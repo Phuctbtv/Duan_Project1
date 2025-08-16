@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập / Đăng ký - SecureLife</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+     <header class="bg-white shadow-lg sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-shield-alt text-white text-xl"></i>
+                    </div>
+                    <span class="text-2xl font-bold text-gray-800">SecureLife</span>
+                </div>
+
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="{%  url 'trangchu' %}" class="text-gray-700 hover:text-blue-600 font-medium transition">Trang chủ</a>
+                    <a href="#products" class="text-gray-700 hover:text-blue-600 font-medium transition">Sản phẩm</a>
+                    <a href="#about" class="text-gray-700 hover:text-blue-600 font-medium transition">Về chúng tôi</a>
+                    <a href="#contact" class="text-gray-700 hover:text-blue-600 font-medium transition">Liên hệ</a>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <button onclick="showLogin()" class="text-blue-600 hover:text-blue-800 font-medium transition">Đăng nhập</button>
+                    <button onclick="showRegister()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition">Đăng ký</button>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    {% block  login %}
+    {% endblock %}
+
+    {% load static %}
+    <script src="{% static 'js/login.js' %}"></script>
+</body>
+</html>
