@@ -81,10 +81,15 @@ WSGI_APPLICATION = 'insurance_app.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'baohiem',   # tên database bạn vừa import
+        'USER': 'postgres',  # user khi cài PostgreSQL
+        'PASSWORD': '123456',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
+
 
 
 # Password validation
