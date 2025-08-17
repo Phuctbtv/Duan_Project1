@@ -82,16 +82,17 @@ WSGI_APPLICATION = 'insurance_app.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'baohiem',   # tên database bạn vừa import
-        'USER': 'postgres',  # user khi cài PostgreSQL
-        'PASSWORD': '123456',
+
+        'NAME': 'BaoHiem',
+        'USER': 'postgres',
+        'PASSWORD': '27112004',
         'HOST': 'localhost',
         'PORT': '5432',
+        'OPTIONS': {
+            'client_encoding': 'UTF8',
+        },
     }
 }
-
-
-
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
@@ -142,3 +143,4 @@ STATICFILES_DIRS = [
 
 # (Tùy chọn) Thư mục sẽ chứa static files khi chạy collectstatic
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+AUTH_USER_MODEL = 'users.User'
