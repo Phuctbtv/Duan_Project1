@@ -82,6 +82,7 @@ WSGI_APPLICATION = 'insurance_app.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
+
         'NAME': 'BaoHiem',
         'USER': 'postgres',
         'PASSWORD': '27112004',
@@ -92,7 +93,6 @@ DATABASES = {
         },
     }
 }
-
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
