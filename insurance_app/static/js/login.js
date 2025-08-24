@@ -1,52 +1,6 @@
 
         let currentForm = 'login';
 
-        function showLogin() {
-            if (currentForm === 'login') return;
-
-            const loginForm = document.getElementById('loginForm');
-            const registerForm = document.getElementById('registerForm');
-
-            // Hide register form
-            registerForm.classList.remove('slide-in');
-            registerForm.classList.add('slide-out');
-
-            setTimeout(() => {
-                registerForm.style.display = 'none';
-                loginForm.style.display = 'block';
-
-                setTimeout(() => {
-                    loginForm.classList.remove('slide-out');
-                    loginForm.classList.add('slide-in');
-                }, 50);
-            }, 250);
-
-            currentForm = 'login';
-        }
-
-        function showRegister() {
-            if (currentForm === 'register') return;
-
-            const loginForm = document.getElementById('loginForm');
-            const registerForm = document.getElementById('registerForm');
-
-            // Hide login form
-            loginForm.classList.remove('slide-in');
-            loginForm.classList.add('slide-out');
-
-            setTimeout(() => {
-                loginForm.style.display = 'none';
-                registerForm.style.display = 'block';
-
-                setTimeout(() => {
-                    registerForm.classList.remove('slide-out');
-                    registerForm.classList.add('slide-in');
-                }, 50);
-            }, 250);
-
-            currentForm = 'register';
-        }
-
         function togglePassword(inputId) {
             const input = document.getElementById(inputId);
             const icon = input.nextElementSibling.querySelector('i');
@@ -112,37 +66,19 @@
         // Form submissions
         document.querySelectorAll('form').forEach(form => {
             form.addEventListener('submit', function(e) {
-                e.preventDefault();
+                const button = this.querySelector('button[type="submit"]');
+                if (!button) return;
 
-                if (currentForm === 'login') {
-                    // Simulate login
-                    const button = this.querySelector('button[type="submit"]');
-                    const originalText = button.innerHTML;
-
+                if (typeof currentForm !== "undefined" && currentForm === 'login') {
                     button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang đăng nhập...';
-                    button.disabled = true;
-
-                    setTimeout(() => {
-                        alert('🎉 Đăng nhập thành công! Chuyển đến trang quản lý hợp đồng...');
-                        button.innerHTML = originalText;
-                        button.disabled = false;
-                    }, 2000);
                 } else {
-                    // Simulate registration
-                    const button = this.querySelector('button[type="submit"]');
-                    const originalText = button.innerHTML;
-
                     button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang tạo tài khoản...';
-                    button.disabled = true;
-
-                    setTimeout(() => {
-                        alert('🎉 Tạo tài khoản thành công! Vui lòng kiểm tra email để xác thực...');
-                        button.innerHTML = originalText;
-                        button.disabled = false;
-                    }, 2000);
                 }
+                button.disabled = true;
             });
         });
+
+
 
         // Social login buttons
         document.querySelectorAll('button').forEach(button => {
@@ -174,3 +110,4 @@
                 this.parentElement.classList.remove('transform', 'scale-105');
             });
         });
+

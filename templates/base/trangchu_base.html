@@ -3,43 +3,603 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập / Đăng ký - SecureLife</title>
+    <title>{% block title %}SecureLife - Bảo hiểm an toàn{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-{% load static %}
-<link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style> .animate-fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .auto-dismiss {
+            animation: fadeOut 0.5s ease-out 4.5s forwards;
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        /* Dropdown menu styles */
+        .dropdown:hover .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-menu {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s ease-in-out;
+        }
+    </style>
+
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <!-- Header -->
-     <header class="bg-white shadow-lg sticky top-0 z-50">
-        <nav class="container mx-auto px-6 py-4">
-            <div class="flex justify-between items-center">
-                <div class="flex items-center space-x-3">
+<!-- Header -->
+<header class="bg-white shadow-lg sticky top-0 z-50">
+    <nav class="container mx-auto px-6 py-4">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'trangchu' %}" class="flex items-center space-x-3">
                     <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
                         <i class="fas fa-shield-alt text-white text-xl"></i>
                     </div>
                     <span class="text-2xl font-bold text-gray-800">SecureLife</span>
-                </div>
+                </a>
+            </div>
 
-                <div class="hidden md:flex items-center space-x-8">
-                    <a href="{%  url 'trangchu' %}" class="text-gray-700 hover:text-blue-600 font-medium transition">Trang chủ</a>
-                    <a href="#products" class="text-gray-700 hover:text-blue-600 font-medium transition">Sản phẩm</a>
-                    <a href="#about" class="text-gray-700 hover:text-blue-600 font-medium transition">Về chúng tôi</a>
-                    <a href="#contact" class="text-gray-700 hover:text-blue-600 font-medium transition">Liên hệ</a>
-                </div>
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="{% url 'trangchu' %}" class="text-gray-700 hover:text-blue-600 font-medium transition">
+                    Trang chủ
+                </a>
+                <a href="#products" class="text-gray-700 hover:text-blue-600 font-medium transition">
+                    Sản phẩm
+                </a>
+                <a href="#about" class="text-gray-700 hover:text-blue-600 font-medium transition">
+                    Về chúng tôi
+                </a>
+                <a href="#contact" class="text-gray-700 hover:text-blue-600 font-medium transition">
+                    Liên hệ
+                </a>
+            </div>
 
-                <div class="flex items-center space-x-4">
-                    <button onclick="showLogin()" class="text-blue-600 hover:text-blue-800 font-medium transition">Đăng nhập</button>
-                    <button onclick="showRegister()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition">Đăng ký</button>
+            <div class="flex items-center space-x-4">
+                {% if user.is_authenticated %}
+                <!-- Menu cho user đã đăng nhập -->
+                <div class="relative dropdown">
+                    <button class="flex items-center space-x-2 text-gray-700 hover:text-blue-600 font-medium transition focus:outline-none">
+                        <i class="fas fa-user-circle text-xl"></i>
+                        <span>{{ user.username }}</span>
+                        <i class="fas fa-chevron-down text-sm transition-transform duration-200"></i>
+                    </button>
+                    <div class="dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 z-50">
+                        <div class="py-2">
+                            <a href="#profile"
+                               class="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition">
+                                <i class="fas fa-user mr-2 w-4"></i>Thông tin cá nhân
+                            </a>
+                            <a href="#contracts"
+                               class="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition">
+                                <i class="fas fa-file-contract mr-2 w-4"></i>Hợp đồng của tôi
+                            </a>
+                            <a href="#settings"
+                               class="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition">
+                                <i class="fas fa-cog mr-2 w-4"></i>Cài đặt
+                            </a>
+                            <hr class="my-2 border-gray-200">
+                            <form method="post" action="{% url 'logout' %}" class="m-0">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="w-full text-left block px-4 py-2 text-red-600 hover:bg-red-50 transition">
+                                    <i class="fas fa-sign-out-alt mr-2 w-4"></i>Đăng xuất
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <!-- Nút cho user chưa đăng nhập -->
+                <a href="{% url 'login' %}" class="text-gray-700 hover:text-blue-600 font-medium transition">
+                    Đăng nhập
+                </a>
+                <a href="{% url 'register' %}"
+                   class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition transform hover:scale-105">
+                    Đăng ký
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Mobile menu button -->
+            <div class="md:hidden">
+                <button id="mobile-menu-btn" class="text-gray-700 hover:text-blue-600 focus:outline-none">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="hidden md:hidden mt-4 pb-4 border-t border-gray-200">
+            <div class="flex flex-col space-y-2 pt-4">
+                <a href="{% url 'trangchu' %}" class="text-gray-700 hover:text-blue-600 font-medium py-2 transition">Trang
+                    chủ</a>
+                <a href="#products" class="text-gray-700 hover:text-blue-600 font-medium py-2 transition">Sản phẩm</a>
+                <a href="#about" class="text-gray-700 hover:text-blue-600 font-medium py-2 transition">Về chúng tôi</a>
+                <a href="#contact" class="text-gray-700 hover:text-blue-600 font-medium py-2 transition">Liên hệ</a>
+
+                {% if user.is_authenticated %}
+                <div class="border-t pt-2 mt-2">
+                    <div class="text-sm text-gray-500 py-2">Xin chào, {{ user.username }}</div>
+                    <a href="#profile" class="block text-gray-700 hover:text-blue-600 font-medium py-2 transition">
+                        <i class="fas fa-user mr-2"></i>Thông tin cá nhân
+                    </a>
+                    <a href="#contracts" class="block text-gray-700 hover:text-blue-600 font-medium py-2 transition">
+                        <i class="fas fa-file-contract mr-2"></i>Hợp đồng của tôi
+                    </a>
+                    <form method="post" action="{% url 'logout' %}" class="mt-2">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="w-full text-left text-red-600 hover:text-red-700 font-medium py-2 transition">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Đăng xuất
+                        </button>
+                    </form>
+                </div>
+                {% else %}
+                <div class="border-t pt-2 mt-2">
+                    <a href="{% url 'login' %}"
+                       class="block text-gray-700 hover:text-blue-600 font-medium py-2 transition">
+                        Đăng nhập
+                    </a>
+                    <a href="{% url 'register' %}"
+                       class="block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold text-center mt-2 transition">
+                        Đăng ký
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+</header>
+
+<!-- Messages Section -->
+{% if messages %}
+<div class="container mx-auto px-6 pt-4">
+    {% for message in messages %}
+    <div class="px-4 py-3 rounded-lg shadow-md mb-4 animate-fade-in auto-dismiss
+                {% if message.tags == 'success' %} bg-green-50 text-green-800 border-l-4 border-green-400
+                {% elif message.tags == 'error' %} bg-red-50 text-red-800 border-l-4 border-red-400
+                {% elif message.tags == 'warning' %} bg-yellow-50 text-yellow-800 border-l-4 border-yellow-400
+                {% else %} bg-blue-50 text-blue-800 border-l-4 border-blue-400 {% endif %}">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                {% if message.tags == 'success' %}
+                <i class="fas fa-check-circle mr-3 text-lg text-green-500"></i>
+                {% elif message.tags == 'error' %}
+                <i class="fas fa-exclamation-circle mr-3 text-lg text-red-500"></i>
+                {% elif message.tags == 'warning' %}
+                <i class="fas fa-exclamation-triangle mr-3 text-lg text-yellow-500"></i>
+                {% else %}
+                <i class="fas fa-info-circle mr-3 text-lg text-blue-500"></i>
+                {% endif %}
+                <span class="font-medium">{{ message }}</span>
+            </div>
+            <button onclick="this.parentElement.parentElement.remove()"
+                    class="text-gray-400 hover:text-gray-600 ml-4 focus:outline-none">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Main Content -->
+{% block content %}
+{% endblock %}
+<!-- Hero Section -->
+<section class="gradient-bg text-white py-20">
+    <div class="container mx-auto px-6">
+        <div class="flex flex-col lg:flex-row items-center">
+            <div class="lg:w-1/2 mb-10 lg:mb-0">
+                <h1 class="text-5xl font-bold mb-6 leading-tight">
+                    Bảo vệ tương lai với
+                    <span class="text-yellow-300">SecureLife</span>
+                </h1>
+                <p class="text-xl mb-8 text-blue-100">
+                    Giải pháp bảo hiểm toàn diện với công nghệ AI hiện đại,
+                    xử lý nhanh chóng và minh bạch cho mọi gia đình Việt Nam.
+                </p>
+                <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                    <button class="bg-yellow-400 hover:bg-yellow-500 text-gray-900 px-8 py-4 rounded-lg font-semibold text-lg transition">
+                        <i class="fas fa-calculator mr-2"></i>Tính phí bảo hiểm
+                    </button>
+                    <button class="border-2 border-white hover:bg-white hover:text-blue-600 text-white px-8 py-4 rounded-lg font-semibold text-lg transition">
+                        <i class="fas fa-play mr-2"></i>Xem demo
+                    </button>
                 </div>
             </div>
-        </nav>
-    </header>
+            <div class="lg:w-1/2 flex justify-center">
+                <div class="animate-float">
+                    <div class="w-80 h-80 bg-white bg-opacity-10 rounded-full flex items-center justify-center backdrop-blur-sm">
+                        <i class="fas fa-shield-alt text-8xl text-yellow-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
-    {% block  login %}
-    {% endblock %}
+<!-- Stats Section -->
+<section class="bg-white py-16">
+    <div class="container mx-auto px-6">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-8">
+            <div class="text-center">
+                <div class="text-4xl font-bold text-blue-600 mb-2">50K+</div>
+                <div class="text-gray-600">Khách hàng tin tưởng</div>
+            </div>
+            <div class="text-center">
+                <div class="text-4xl font-bold text-blue-600 mb-2">99.8%</div>
+                <div class="text-gray-600">Tỷ lệ hài lòng</div>
+            </div>
+            <div class="text-center">
+                <div class="text-4xl font-bold text-blue-600 mb-2">24/7</div>
+                <div class="text-gray-600">Hỗ trợ khách hàng</div>
+            </div>
+            <div class="text-center">
+                <div class="text-4xl font-bold text-blue-600 mb-2">15 phút</div>
+                <div class="text-gray-600">Xử lý bồi thường</div>
+            </div>
+        </div>
+    </div>
+</section>
 
-    {% load static %}
-    <script src="{% static 'js/login.js' %}"></script>
+<!-- Products Section -->
+<section id="products" class="bg-gray-50 py-20">
+    <div class="container mx-auto px-6">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-gray-800 mb-4">Sản phẩm bảo hiểm</h2>
+            <p class="text-xl text-gray-600">Lựa chọn gói bảo hiểm phù hợp với nhu cầu của bạn</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Bảo hiểm Sức khỏe -->
+            <div class="bg-white rounded-xl shadow-lg p-8 card-hover">
+                <div class="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center mb-6">
+                    <i class="fas fa-heartbeat text-3xl text-green-600"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">Bảo hiểm Sức khỏe</h3>
+                <p class="text-gray-600 mb-6">Bảo vệ toàn diện cho sức khỏe gia đình với mức phí hợp lý</p>
+                <ul class="space-y-2 mb-8">
+                    <li class="flex items-center text-gray-600">
+                        <i class="fas fa-check text-green-500 mr-3"></i>Chi phí khám chữa bệnh
+                    </li>
+                    <li class="flex items-center text-gray-600">
+                        <i class="fas fa-check text-green-500 mr-3"></i>Phẫu thuật & nằm viện
+                    </li>
+                    <li class="flex items-center text-gray-600">
+                        <i class="fas fa-check text-green-500 mr-3"></i>Thuốc men & xét nghiệm
+                    </li>
+                </ul>
+                <button class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition">
+                    Tìm hiểu thêm
+                </button>
+            </div>
+
+            <!-- Bảo hiểm Xe cộ -->
+            <div class="bg-white rounded-xl shadow-lg p-8 card-hover">
+                <div class="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center mb-6">
+                    <i class="fas fa-car text-3xl text-blue-600"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">Bảo hiểm Xe cộ</h3>
+                <p class="text-gray-600 mb-6">Bảo vệ xe của bạn khỏi mọi rủi ro trên đường</p>
+                <ul class="space-y-2 mb-8">
+                    <li class="flex items-center text-gray-600">
+                        <i class="fas fa-check text-green-500 mr-3"></i>Tai nạn giao thông
+                    </li>
+                    <li class="flex items-center text-gray-600">
+                        <i class="fas fa-check text-green-500 mr-3"></i>Trộm cắp & cháy nổ
+                    </li>
+                    <li class="flex items-center text-gray-600">
+                        <i class="fas fa-check text-green-500 mr-3"></i>Thiên tai & bão lũ
+                    </li>
+                </ul>
+                <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition">
+                    Tìm hiểu thêm
+                </button>
+            </div>
+
+            <!-- Bảo hiểm Nhà cửa -->
+            <div class="bg-white rounded-xl shadow-lg p-8 card-hover">
+                <div class="w-16 h-16 bg-orange-100 rounded-lg flex items-center justify-center mb-6">
+                    <i class="fas fa-home text-3xl text-orange-600"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">Bảo hiểm Nhà cửa</h3>
+                <p class="text-gray-600 mb-6">An tâm với ngôi nhà được bảo vệ toàn diện</p>
+                <ul class="space-y-2 mb-8">
+                    <li class="flex items-center text-gray-600">
+                        <i class="fas fa-check text-green-500 mr-3"></i>Cháy nổ & sét đánh
+                    </li>
+                    <li class="flex items-center text-gray-600">
+                        <i class="fas fa-check text-green-500 mr-3"></i>Thiên tai & động đất
+                    </li>
+                    <li class="flex items-center text-gray-600">
+                        <i class="fas fa-check text-green-500 mr-3"></i>Trộm cắp tài sản
+                    </li>
+                </ul>
+                <button class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-semibold transition">
+                    Tìm hiểu thêm
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- AI Features Section -->
+<section class="bg-white py-20">
+    <div class="container mx-auto px-6">
+        <div class="flex flex-col lg:flex-row items-center">
+            <div class="lg:w-1/2 mb-10 lg:mb-0">
+                <h2 class="text-4xl font-bold text-gray-800 mb-6">
+                    Công nghệ AI tiên tiến
+                </h2>
+                <p class="text-xl text-gray-600 mb-8">
+                    Hệ thống xử lý bồi thường tự động với AI và OCR,
+                    giúp rút ngắn thời gian từ 30 ngày xuống chỉ 15 phút.
+                </p>
+                <div class="space-y-4">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-robot text-blue-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Phân tích tự động</h4>
+                            <p class="text-gray-600">AI phân tích hồ sơ và đưa ra quyết định nhanh chóng</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-eye text-green-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-800">OCR thông minh</h4>
+                            <p class="text-gray-600">Tự động đọc và xử lý tài liệu bồi thường</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-shield-alt text-purple-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Bảo mật cao</h4>
+                            <p class="text-gray-600">Dữ liệu được mã hóa và bảo vệ tuyệt đối</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="lg:w-1/2 flex justify-center">
+                <div class="relative">
+                    <div class="w-96 h-96 bg-gradient-to-br from-blue-400 to-purple-600 rounded-2xl flex items-center justify-center">
+                        <i class="fas fa-brain text-8xl text-white opacity-80"></i>
+                    </div>
+                    <div class="absolute -top-4 -right-4 w-24 h-24 bg-yellow-400 rounded-full flex items-center justify-center animate-pulse">
+                        <i class="fas fa-lightning-bolt text-2xl text-gray-800"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- My Policies Preview -->
+<section class="bg-gray-50 py-20">
+    <div class="container mx-auto px-6">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-gray-800 mb-4">Quản lý hợp đồng dễ dàng</h2>
+            <p class="text-xl text-gray-600">Theo dõi và quản lý tất cả hợp đồng bảo hiểm của bạn</p>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+            <div class="flex items-center justify-between mb-8">
+                <h3 class="text-2xl font-bold text-gray-800">Hợp đồng của tôi</h3>
+                <button class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition">
+                    <i class="fas fa-plus mr-2"></i>Mua thêm
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <div class="border border-gray-200 rounded-lg p-6 hover:shadow-md transition">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                                <i class="fas fa-heartbeat text-green-600"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-800">Bảo hiểm Sức khỏe Gia đình</h4>
+                                <p class="text-gray-600">Hợp đồng: #SH2024001</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-green-600 font-semibold">Đang hiệu lực</div>
+                            <div class="text-gray-600">Hết hạn: 15/12/2024</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg p-6 hover:shadow-md transition">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                                <i class="fas fa-car text-blue-600"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-800">Bảo hiểm Ô tô Honda City</h4>
+                                <p class="text-gray-600">Hợp đồng: #XE2024002</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-green-600 font-semibold">Đang hiệu lực</div>
+                            <div class="text-gray-600">Hết hạn: 20/08/2024</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Notifications Section -->
+<section class="bg-white py-20">
+    <div class="container mx-auto px-6">
+        <div class="flex flex-col lg:flex-row items-center">
+            <div class="lg:w-1/2 mb-10 lg:mb-0">
+                <div class="bg-gray-50 rounded-2xl p-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-gray-800">Thông báo mới nhất</h3>
+                        <span class="bg-red-500 text-white text-sm px-3 py-1 rounded-full">3</span>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="bg-white rounded-lg p-4 border-l-4 border-blue-500">
+                            <div class="flex items-start">
+                                <i class="fas fa-info-circle text-blue-500 mt-1 mr-3"></i>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800">Gia hạn hợp đồng</h4>
+                                    <p class="text-gray-600 text-sm">Hợp đồng bảo hiểm xe của bạn sẽ hết hạn trong 30
+                                        ngày</p>
+                                    <span class="text-gray-400 text-xs">2 giờ trước</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg p-4 border-l-4 border-green-500">
+                            <div class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800">Bồi thường được duyệt</h4>
+                                    <p class="text-gray-600 text-sm">Yêu cầu bồi thường #BC001 đã được phê duyệt</p>
+                                    <span class="text-gray-400 text-xs">1 ngày trước</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg p-4 border-l-4 border-yellow-500">
+                            <div class="flex items-start">
+                                <i class="fas fa-exclamation-triangle text-yellow-500 mt-1 mr-3"></i>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800">Cập nhật thông tin</h4>
+                                    <p class="text-gray-600 text-sm">Vui lòng cập nhật thông tin liên hệ trong hồ sơ</p>
+                                    <span class="text-gray-400 text-xs">3 ngày trước</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:w-1/2 lg:pl-12">
+                <h2 class="text-4xl font-bold text-gray-800 mb-6">
+                    Luôn cập nhật thông tin
+                </h2>
+                <p class="text-xl text-gray-600 mb-8">
+                    Nhận thông báo ngay lập tức về trạng thái hợp đồng,
+                    yêu cầu bồi thường và các ưu đãi đặc biệt.
+                </p>
+                <div class="space-y-4">
+                    <div class="flex items-center">
+                        <i class="fas fa-bell text-blue-600 text-xl mr-4"></i>
+                        <span class="text-gray-700">Thông báo real-time</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-envelope text-blue-600 text-xl mr-4"></i>
+                        <span class="text-gray-700">Email & SMS tự động</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-mobile-alt text-blue-600 text-xl mr-4"></i>
+                        <span class="text-gray-700">Ứng dụng di động</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Footer -->
+<footer class="bg-gray-800 text-white mt-16">
+    <div class="container mx-auto px-6 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+                <div class="flex items-center space-x-3 mb-4">
+                    <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-shield-alt text-white text-xl"></i>
+                    </div>
+                    <span class="text-2xl font-bold">SecureLife</span>
+                </div>
+                <p class="text-gray-300 leading-relaxed">Bảo vệ cuộc sống của bạn với các sản phẩm bảo hiểm tốt nhất và
+                    dịch vụ chăm sóc khách hàng 24/7.</p>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Sản phẩm</h3>
+                <ul class="space-y-2 text-gray-300">
+                    <li><a href="#" class="hover:text-blue-400 transition">Bảo hiểm nhân thọ</a></li>
+                    <li><a href="#" class="hover:text-blue-400 transition">Bảo hiểm sức khỏe</a></li>
+                    <li><a href="#" class="hover:text-blue-400 transition">Bảo hiểm ô tô</a></li>
+                    <li><a href="#" class="hover:text-blue-400 transition">Bảo hiểm nhà cửa</a></li>
+                    <li><a href="#" class="hover:text-blue-400 transition">Bảo hiểm du lịch</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Hỗ trợ</h3>
+                <ul class="space-y-2 text-gray-300">
+                    <li><a href="#" class="hover:text-blue-400 transition">Trung tâm trợ giúp</a></li>
+                    <li><a href="#" class="hover:text-blue-400 transition">Liên hệ hỗ trợ</a></li>
+                    <li><a href="#" class="hover:text-blue-400 transition">Câu hỏi thường gặp</a></li>
+                    <li><a href="#" class="hover:text-blue-400 transition">Hướng dẫn sử dụng</a></li>
+                    <li><a href="#" class="hover:text-blue-400 transition">Báo cáo sự cố</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Kết nối với chúng tôi</h3>
+                <div class="flex space-x-4 mb-4">
+                    <a href="#" class="text-gray-300 hover:text-blue-400 transition transform hover:scale-110">
+                        <i class="fab fa-facebook text-2xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-300 hover:text-blue-400 transition transform hover:scale-110">
+                        <i class="fab fa-twitter text-2xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-300 hover:text-blue-400 transition transform hover:scale-110">
+                        <i class="fab fa-linkedin text-2xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-300 hover:text-blue-400 transition transform hover:scale-110">
+                        <i class="fab fa-instagram text-2xl"></i>
+                    </a>
+                </div>
+                <div class="text-gray-300">
+                    <p class="text-sm mb-1">📞 Hotline: 1900-xxxx</p>
+                    <p class="text-sm">✉️ Email: support@securelife.vn</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-300">
+            <p>&copy; 2024 SecureLife. Tất cả quyền được bảo lưu. |
+                <a href="#" class="hover:text-blue-400 transition">Chính sách bảo mật</a> |
+                <a href="#" class="hover:text-blue-400 transition">Điều khoản sử dụng</a>
+            </p>
+        </div>
+    </div>
+</footer>
+
+{% load static %}
+<script src="{% static 'js/login.js' %}"></script>
+
 </body>
 </html>

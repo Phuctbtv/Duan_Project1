@@ -48,13 +48,18 @@
             });
         });
 
-        // Add hover effects to cards
-        document.querySelectorAll('.card-hover').forEach(card => {
-            card.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-5px)';
-            });
 
-            card.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
+        // Show notification
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const messages = document.querySelectorAll('[class*="bg-green-100"], [class*="bg-red-100"], [class*="bg-blue-100"]');
+            messages.forEach(function(message) {
+                setTimeout(function() {
+                    message.style.transition = 'opacity 0.5s ease-out';
+                    message.style.opacity = '0';
+                    setTimeout(function() {
+                        message.remove();
+                    }, 500);
+                }, 5000);
             });
         });
