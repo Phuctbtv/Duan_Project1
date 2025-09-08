@@ -1,0 +1,17 @@
+<!-- Contracts List -->
+<div class="space-y-6" id="contracts-container">
+    {% for contract in contracts %}
+    {% include 'components/contract_card.html' with contract=contract %}
+    {% empty %}
+    <div class="bg-white rounded-xl shadow-lg p-8 text-center">
+        <i class="fas fa-file-contract text-4xl text-gray-300 mb-4"></i>
+        <h3 class="text-xl font-semibold text-gray-600 mb-2">Không có hợp đồng nào</h3>
+        <p class="text-gray-500 mb-4">Bạn chưa có hợp đồng bảo hiểm nào. Hãy bắt đầu bảo vệ tài sản và sức khỏe của
+            mình.</p>
+        <button class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition">
+            <i class="fas fa-plus mr-2"></i>Mua bảo hiểm ngay
+        </button>
+    </div>
+    {% endfor %}
+</div>
+

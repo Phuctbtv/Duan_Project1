@@ -1,0 +1,49 @@
+<div class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform -translate-x-full lg:translate-x-0 transition-transform duration-300" id="sidebar">
+        <div class="flex items-center justify-center h-16 gradient-bg">
+            <h1 class="text-white text-xl font-bold">
+                <i class="fas fa-shield-alt mr-2"></i>
+                Quản Trị Bảo Hiểm
+            </h1>
+        </div>
+
+        <nav class="mt-8">
+            <div class="px-4 space-y-2">
+                <a href="{% url 'admin_home' %}" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg transition-all duration-200
+                    {% if request.resolver_match.url_name == 'admin_home' %} gradient-bg text-white {% else %} text-gray-700 {% endif %}" >
+                    <i class="fas fa-tachometer-alt mr-3"></i>
+                    Tổng Quan
+                </a>
+                <a href="{% url 'customer_users_admin' %}"
+                   class="sidebar-item flex items-center px-4 py-3 rounded-lg transition-all duration-200
+                   {% if request.resolver_match.url_name == 'customer_users_admin' %} gradient-bg text-white {% else %} text-gray-700 {% endif %}">
+                   <i class="fas fa-users mr-3"></i>
+                   Quản Lý Khách Hàng
+                </a>
+
+
+                <a href="{% url 'customer_policies_admin' %}" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg transition-all duration-200
+                    {% if request.resolver_match.url_name == 'customer_policies_admin' %} gradient-bg text-white {% else %} text-gray-700 {% endif %}">
+                    <i class="fas fa-file-contract mr-3"></i>
+                    Quản Lý Hợp Đồng
+                </a>
+                <a href="{% url 'customer_claims_admin' %}" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg transition-all duration-200
+                    {% if request.resolver_match.url_name == 'customer_claims_admin' %} gradient-bg text-white {% else %} text-gray-700 {% endif %}" >
+                    <i class="fas fa-clipboard-list mr-3"></i>
+                    Xử Lý Bồi Thường
+                </a>
+                <a href="#" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg transition-all duration-200" >
+                    <i class="fas fa-chart-line mr-3"></i>
+                    Đánh Giá Rủi Ro
+                </a>
+                <a href="{% url 'customer_products_admin' %}" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg transition-all duration-200
+                    {% if request.resolver_match.url_name == 'customer_products_admin' %} gradient-bg text-white {% else %} text-gray-700 {% endif %}" >
+                    <i class="fas fa-box mr-3"></i>
+                    Sản Phẩm Bảo Hiểm
+                </a>
+                <a href="#" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg transition-all duration-200" >
+                    <i class="fas fa-file-signature mr-3"></i>
+                    Tạo Hợp Đồng
+                </a>
+            </div>
+        </nav>
+    </div>

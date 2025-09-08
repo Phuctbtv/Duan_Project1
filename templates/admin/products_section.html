@@ -1,0 +1,96 @@
+{% extends 'admin/admin_home.html' %}
+
+{% load static %}
+{% block content %}
+<div id="products" class="section p-6 ">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Insurance Products Management</h2>
+                <button class="gradient-bg text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
+                    <i class="fas fa-plus mr-2"></i>Add Product
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-300">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="bg-blue-100 p-3 rounded-full">
+                            <i class="fas fa-car text-blue-600 text-xl"></i>
+                        </div>
+                        <span class="text-green-600 text-sm font-semibold">Active</span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Auto Insurance</h3>
+                    <p class="text-gray-600 text-sm mb-4">Comprehensive protection for your vehicle</p>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Premium from:</span>
+                            <span class="font-semibold">$200</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Active Policies:</span>
+                            <span class="font-semibold">342</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex space-x-2">
+                        <button class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">Edit</button>
+                        <button class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-300">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="bg-green-100 p-3 rounded-full">
+                            <i class="fas fa-heartbeat text-green-600 text-xl"></i>
+                        </div>
+                        <span class="text-green-600 text-sm font-semibold">Active</span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Health Insurance</h3>
+                    <p class="text-gray-600 text-sm mb-4">Comprehensive healthcare coverage</p>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Premium from:</span>
+                            <span class="font-semibold">$150</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Active Policies:</span>
+                            <span class="font-semibold">198</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex space-x-2">
+                        <button class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">Edit</button>
+                        <button class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-300">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="bg-purple-100 p-3 rounded-full">
+                            <i class="fas fa-home text-purple-600 text-xl"></i>
+                        </div>
+                        <span class="text-yellow-600 text-sm font-semibold">Paused</span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Home Insurance</h3>
+                    <p class="text-gray-600 text-sm mb-4">Protect your home and belongings</p>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Premium from:</span>
+                            <span class="font-semibold">$300</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Active Policies:</span>
+                            <span class="font-semibold">89</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex space-x-2">
+                        <button class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">Edit</button>
+                        <button class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+{% endblock %}

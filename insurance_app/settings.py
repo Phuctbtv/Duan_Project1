@@ -164,3 +164,4 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'users.backends.EmailOrUsernameModelBackend',
 ]
+'django.template.context_processors.request'

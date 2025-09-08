@@ -108,8 +108,9 @@
                     <a href="#profile" class="block text-gray-700 hover:text-blue-600 font-medium py-2 transition">
                         <i class="fas fa-user mr-2"></i>Thông tin cá nhân
                     </a>
-                    <a href="#contracts" class="block text-gray-700 hover:text-blue-600 font-medium py-2 transition">
-                        <i class="fas fa-file-contract mr-2"></i>Hợp đồng của tôi
+                    <a href="{% url 'quanlytaikhoan' %}"
+                       class="block text-gray-700 hover:text-blue-600 font-medium py-2 transition">
+                        <i class="fas fa-file-contract mr-2"></i>Quản lí tài khoản
                     </a>
                     <form method="post" action="{% url 'logout' %}" class="mt-2">
                         {% csrf_token %}

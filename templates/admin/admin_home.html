@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng Điều Khiển Quản Trị - Hệ Thống Bảo Hiểm</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .sidebar-item:hover { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .status-active { background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%); }
+        .status-pending { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); }
+        .status-rejected { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+        .form-step { display: none; }
+        .form-step.active { display: block; }
+        .step-indicator { background: #e5e7eb; }
+        .step-indicator.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .step-indicator.completed { background: #10b981; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Sidebar -->
+    {% include 'admin/components/sidebar_admin.html' %}
+
+    <!-- Main Content -->
+    <div class="lg:ml-64">
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b border-gray-200">
+            <div class="flex items-center justify-between px-6 py-4">
+                <button class="lg:hidden text-gray-600" onclick="toggleSidebar()">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <i class="fas fa-bell text-gray-600 text-xl cursor-pointer"></i>
+                        <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%23667eea'/%3E%3Ctext x='20' y='26' text-anchor='middle' fill='white' font-size='16' font-weight='bold'%3EQ%3C/text%3E%3C/svg%3E" alt="Quản trị viên" class="w-8 h-8 rounded-full">
+                        <span class="text-gray-700 font-medium">Quản Trị Viên</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        {% block content %}
+        {% endblock %}
+
+        <!-- Dashboard Section -->
+
+
+        <!-- Customers Section -->
+
+
+        <!-- Policies Section -->
+
+
+        <!-- Claims Section -->
+
+
+        <!-- Risk Assessment Section -->
+
+
+        <!-- Products Section -->
+
+
+        <!-- Contract Creation Section -->
+
+    </div>
+
+    <!-- Claim Detail Modal -->
+    <div id="claimModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-semibold text-gray-800">Claim Details - CLM-2024-001</h3>
+                    <button onclick="hideClaimDetail()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-4">Basic Information</h4>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Claim ID:</span>
+                                <span class="font-semibold">CLM-2024-001</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Customer:</span>
+                                <span class="font-semibold">John Smith</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Policy:</span>
+                                <span class="font-semibold">POL-2024-001</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Claim Amount:</span>
+                                <span class="font-semibold text-red-600">$50,000</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Incident Date:</span>
+                                <span class="font-semibold">Mar 18, 2024</span>
+                            </div>
+                        </div>
+
+                        <h4 class="text-lg font-semibold text-gray-800 mb-4 mt-6">Incident Description</h4>
+                        <p class="text-gray-600 text-sm bg-gray-50 p-4 rounded-lg">
+                            Vehicle collision with another car at the intersection of Main St and Oak Ave at 2:30 PM on March 18, 2024.
+                            Damage includes: broken headlight, dented front bumper, cracked windshield.
+                        </p>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-4">Attached Documents & OCR</h4>
+                        <div class="space-y-3">
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-medium">Police Report</span>
+                                    <span class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">OCR Complete</span>
+                                </div>
+                                <div class="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                                    <strong>Extracted:</strong> "Police Report #123/PR-TRAFFIC...
+                                    Time: 2:30 PM March 18, 2024... Location: Main St & Oak Ave intersection..."
+                                </div>
+                            </div>
+
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-medium">Repair Invoice</span>
+                                    <span class="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">Processing OCR</span>
+                                </div>
+                                <div class="text-xs text-gray-600">
+                                    <i class="fas fa-spinner fa-spin mr-1"></i>
+                                    Extracting information from invoice...
+                                </div>
+                            </div>
+
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-medium">Scene Photos</span>
+                                    <span class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">Analyzed</span>
+                                </div>
+                                <div class="text-xs text-gray-600">
+                                    3 photos uploaded and analyzed by AI
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-6">
+                            <h5 class="font-semibold text-gray-800 mb-2">AI Assessment</h5>
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-robot text-blue-600 mr-2"></i>
+                                    <span class="text-sm font-medium text-blue-800">AI Analysis Results</span>
+                                </div>
+                                <div class="text-sm text-blue-700">
+                                    • Damage Level: Moderate<br>
+                                    • Validity: 92% likely valid<br>
+                                    • Estimated Amount: $45,000-$55,000<br>
+                                    • Recommendation: Approve with conditions
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        Request More Documents
+                    </button>
+                    <button class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                        Reject
+                    </button>
+                    <button class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                        Approve
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit User Modal -->
+    <div id="userModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-semibold text-gray-800" id="userModalTitle">Thêm Khách Hàng Mới</h3>
+                    <button onclick="closeUserModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <form id="userForm" class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Họ và Tên *</label>
+                        <input type="text" id="userName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                        <input type="email" id="userEmail" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Số Điện Thoại *</label>
+                        <input type="tel" id="userPhone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Ngày Sinh</label>
+                        <input type="date" id="userBirthDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Giới Tính</label>
+                        <select id="userGender" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Chọn giới tính</option>
+                            <option value="male">Nam</option>
+                            <option value="female">Nữ</option>
+                            <option value="other">Khác</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Trạng Thái</label>
+                        <select id="userStatus" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="active">Hoạt động</option>
+                            <option value="pending">Chờ xác thực</option>
+                            <option value="suspended">Tạm khóa</option>
+                        </select>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Địa Chỉ</label>
+                        <textarea id="userAddress" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Nhập địa chỉ đầy đủ..."></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nghề Nghiệp</label>
+                        <input type="text" id="userJob" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ví dụ: Kỹ sư, Bác sĩ...">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Thu Nhập Hàng Tháng</label>
+                        <input type="number" id="userIncome" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="VNĐ">
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors" onclick="closeUserModal()">
+                        Hủy
+                    </button>
+                    <button type="submit" class="gradient-bg text-white px-6 py-2 rounded-lg hover:opacity-90 transition-opacity">
+                        <i class="fas fa-save mr-2"></i>Lưu
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-md w-full p-6">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">Xác Nhận Xóa</h3>
+                <p class="text-gray-600 mb-6">Bạn có chắc chắn muốn xóa khách hàng <strong id="deleteUserName"></strong>? Hành động này không thể hoàn tác.</p>
+                <div class="flex justify-center space-x-3">
+                    <button class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors" onclick="closeDeleteModal()">
+                        Hủy
+                    </button>
+                    <button class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors" onclick="confirmDeleteUser()">
+                        <i class="fas fa-trash mr-2"></i>Xóa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-md w-full p-6 text-center">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-check text-green-600 text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-800 mb-2" id="successTitle">Thành Công!</h3>
+            <p class="text-gray-600 mb-6" id="successMessage">Thao tác đã được thực hiện thành công.</p>
+            <button class="gradient-bg text-white px-6 py-2 rounded-lg hover:opacity-90 transition-opacity w-full" onclick="closeSuccessModal()">
+                Đóng
+            </button>
+        </div>
+    </div>
+
+<script>
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    sidebar.classList.toggle('-translate-x-full');
+}
+
+// Modal controls
+function showClaimDetail() {
+    document.getElementById('claimModal').classList.remove('hidden');
+}
+function hideClaimDetail() {
+    document.getElementById('claimModal').classList.add('hidden');
+}
+function showAddUserModal() {
+    document.getElementById('userModal').classList.remove('hidden');
+}
+function closeUserModal() {
+    document.getElementById('userModal').classList.add('hidden');
+}
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+}
+function closeSuccessModal() {
+    document.getElementById('successModal').classList.add('hidden');
+}
+
+// Form controls
+function resetForm(formId) {
+    const form = document.getElementById(formId);
+    if (form) {
+        form.reset();
+    }
+}
+function toggleDropdown(dropdownId) {
+    const dropdown = document.getElementById(dropdownId);
+    dropdown.classList.toggle('hidden');
+}
+
+// Utility
+function showAlert(message, type = 'info') {
+    alert(message);
+}
+function showLoading(show = true) {
+    const loader = document.getElementById('loader');
+    if (loader) {
+        if (show) {
+            loader.classList.remove('hidden');
+        } else {
+            loader.classList.add('hidden');
+        }
+    }
+}
+function toggleVisibility(elementId) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.classList.toggle('hidden');
+    }
+}
+
+// Initialize UI on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default date = today
+    const dateInputs = document.querySelectorAll('input[type="date"]');
+    const today = new Date().toISOString().split('T')[0];
+    dateInputs.forEach(input => {
+        if (!input.value) {
+            input.value = today;
+        }
+    });
+});
+
+// Close modals when clicking outside
+document.addEventListener('click', function(e) {
+    if (e.target.id === 'claimModal') hideClaimDetail();
+    if (e.target.id === 'successModal') closeSuccessModal();
+    if (e.target.id === 'userModal') closeUserModal();
+    if (e.target.id === 'deleteModal') closeDeleteModal();
+});
+</script>
+
+</body>
+</html>

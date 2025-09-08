@@ -1,0 +1,307 @@
+{% extends 'admin/admin_home.html' %}
+
+{% load static %}
+{% block content %}
+<div id="contracts" class="section p-6 hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Tạo Hợp Đồng Bảo Hiểm</h2>
+                <div class="flex space-x-3">
+                    <button class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors" onclick="resetContractForm()">
+                        <i class="fas fa-refresh mr-2"></i>Làm Mới
+                    </button>
+                    <button class="gradient-bg text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity" onclick="saveContractDraft()">
+                        <i class="fas fa-save mr-2"></i>Lưu Nháp
+                    </button>
+                </div>
+            </div>
+
+            <!-- Progress Steps -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="step-indicator active w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold">1</div>
+                        <span class="text-sm font-medium text-gray-700">Thông Tin Khách Hàng</span>
+                    </div>
+                    <div class="flex-1 h-1 bg-gray-200 mx-4">
+                        <div class="h-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded" style="width: 33%"></div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="step-indicator w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold">2</div>
+                        <span class="text-sm font-medium text-gray-500">Chi Tiết Bảo Hiểm</span>
+                    </div>
+                    <div class="flex-1 h-1 bg-gray-200 mx-4"></div>
+                    <div class="flex items-center space-x-4">
+                        <div class="step-indicator w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold">3</div>
+                        <span class="text-sm font-medium text-gray-500">Xem Trước & Ký</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contract Form -->
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                <!-- Step 1: Customer Information -->
+                <div id="step1" class="form-step active p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6">Bước 1: Thông Tin Khách Hàng</h3>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Họ và Tên *</label>
+                                <input type="text" id="customerName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Nguyễn Văn A">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Số CMND/CCCD *</label>
+                                <input type="text" id="customerId" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="123456789012">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Ngày Sinh *</label>
+                                <input type="date" id="customerDob" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Giới Tính *</label>
+                                <select id="customerGender" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Chọn giới tính</option>
+                                    <option value="male">Nam</option>
+                                    <option value="female">Nữ</option>
+                                    <option value="other">Khác</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Số Điện Thoại *</label>
+                                <input type="tel" id="customerPhone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0901234567">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                <input type="email" id="customerEmail" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="example@email.com">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Địa Chỉ *</label>
+                                <textarea id="customerAddress" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố"></textarea>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Nghề Nghiệp</label>
+                                <input type="text" id="customerJob" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Kỹ sư, Bác sĩ, Giáo viên...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end mt-6">
+                        <button class="gradient-bg text-white px-6 py-2 rounded-lg hover:opacity-90 transition-opacity" onclick="nextStep(2)">
+                            Tiếp Theo <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Insurance Details -->
+                <div id="step2" class="form-step p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6">Bước 2: Chi Tiết Bảo Hiểm</h3>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Loại Bảo Hiểm *</label>
+                                <select id="insuranceType" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" onchange="updateInsuranceDetails()">
+                                    <option value="">Chọn loại bảo hiểm</option>
+                                    <option value="auto">Bảo Hiểm Ô Tô</option>
+                                    <option value="health">Bảo Hiểm Sức Khỏe</option>
+                                    <option value="home">Bảo Hiểm Nhà Ở</option>
+                                    <option value="life">Bảo Hiểm Nhân Thọ</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Gói Bảo Hiểm *</label>
+                                <select id="insurancePackage" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Chọn gói bảo hiểm</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Số Tiền Bảo Hiểm *</label>
+                                <input type="number" id="insuranceAmount" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="1000000000">
+                                <p class="text-xs text-gray-500 mt-1">Đơn vị: VNĐ</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Thời Hạn Bảo Hiểm *</label>
+                                <select id="insuranceTerm" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Chọn thời hạn</option>
+                                    <option value="6">6 tháng</option>
+                                    <option value="12">1 năm</option>
+                                    <option value="24">2 năm</option>
+                                    <option value="36">3 năm</option>
+                                    <option value="60">5 năm</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Ngày Hiệu Lực *</label>
+                                <input type="date" id="effectiveDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Phương Thức Thanh Toán *</label>
+                                <select id="paymentMethod" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Chọn phương thức</option>
+                                    <option value="monthly">Hàng tháng</option>
+                                    <option value="quarterly">Hàng quý</option>
+                                    <option value="yearly">Hàng năm</option>
+                                    <option value="onetime">Một lần</option>
+                                </select>
+                            </div>
+
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-blue-800 mb-2">Tính Phí Bảo Hiểm</h4>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-blue-700">Phí cơ bản:</span>
+                                        <span class="font-semibold text-blue-800" id="basePremium">0 VNĐ</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-blue-700">Thuế & phí:</span>
+                                        <span class="font-semibold text-blue-800" id="taxFee">0 VNĐ</span>
+                                    </div>
+                                    <hr class="border-blue-200">
+                                    <div class="flex justify-between">
+                                        <span class="text-blue-700 font-semibold">Tổng phí:</span>
+                                        <span class="font-bold text-blue-900" id="totalPremium">0 VNĐ</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Ghi Chú</label>
+                                <textarea id="contractNotes" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ghi chú thêm về hợp đồng..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between mt-6">
+                        <button class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors" onclick="prevStep(1)">
+                            <i class="fas fa-arrow-left mr-2"></i>Quay Lại
+                        </button>
+                        <button class="gradient-bg text-white px-6 py-2 rounded-lg hover:opacity-90 transition-opacity" onclick="nextStep(3)">
+                            Tiếp Theo <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Preview & Sign -->
+                <div id="step3" class="form-step p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6">Bước 3: Xem Trước Hợp Đồng & Ký Kết</h3>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Contract Preview -->
+                        <div class="lg:col-span-2">
+                            <div class="border border-gray-200 rounded-lg p-6 bg-gray-50 max-h-96 overflow-y-auto">
+                                <div class="text-center mb-6">
+                                    <h2 class="text-xl font-bold text-gray-800">HỢP ĐỒNG BẢO HIỂM</h2>
+                                    <p class="text-sm text-gray-600">Số hợp đồng: <span id="contractNumber">HD-2024-001</span></p>
+                                </div>
+
+                                <div class="space-y-4 text-sm">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">I. THÔNG TIN BÊN MUA BẢO HIỂM</h4>
+                                        <div class="pl-4 space-y-1">
+                                            <p><strong>Họ tên:</strong> <span id="previewName">-</span></p>
+                                            <p><strong>CMND/CCCD:</strong> <span id="previewId">-</span></p>
+                                            <p><strong>Ngày sinh:</strong> <span id="previewDob">-</span></p>
+                                            <p><strong>Địa chỉ:</strong> <span id="previewAddress">-</span></p>
+                                            <p><strong>Điện thoại:</strong> <span id="previewPhone">-</span></p>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">II. THÔNG TIN BẢO HIỂM</h4>
+                                        <div class="pl-4 space-y-1">
+                                            <p><strong>Loại bảo hiểm:</strong> <span id="previewType">-</span></p>
+                                            <p><strong>Gói bảo hiểm:</strong> <span id="previewPackage">-</span></p>
+                                            <p><strong>Số tiền bảo hiểm:</strong> <span id="previewAmount">-</span></p>
+                                            <p><strong>Thời hạn:</strong> <span id="previewTerm">-</span></p>
+                                            <p><strong>Ngày hiệu lực:</strong> <span id="previewEffective">-</span></p>
+                                            <p><strong>Phí bảo hiểm:</strong> <span id="previewPremium">-</span></p>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">III. ĐIỀU KHOẢN & ĐIỀU KIỆN</h4>
+                                        <div class="pl-4 text-xs text-gray-600">
+                                            <p>1. Hợp đồng này có hiệu lực kể từ ngày ký và thanh toán phí bảo hiểm đầu tiên.</p>
+                                            <p>2. Bên mua bảo hiểm có trách nhiệm thông báo kịp thời khi có sự kiện bảo hiểm xảy ra.</p>
+                                            <p>3. Công ty bảo hiểm sẽ chi trả quyền lợi theo đúng điều khoản đã thỏa thuận.</p>
+                                            <p>4. Hợp đồng có thể được gia hạn theo thỏa thuận của hai bên.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Signature Section -->
+                        <div class="space-y-4">
+                            <div class="bg-white border border-gray-200 rounded-lg p-4">
+                                <h4 class="font-semibold text-gray-800 mb-3">Chữ Ký Điện Tử</h4>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Khách hàng ký:</label>
+                                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                                            <i class="fas fa-signature text-gray-400 text-2xl mb-2"></i>
+                                            <p class="text-sm text-gray-500">Nhấn để ký</p>
+                                            <button class="mt-2 bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700" onclick="addSignature('customer')">
+                                                Ký Tên
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Đại diện công ty:</label>
+                                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                                            <i class="fas fa-signature text-gray-400 text-2xl mb-2"></i>
+                                            <p class="text-sm text-gray-500">Nhấn để ký</p>
+                                            <button class="mt-2 bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700" onclick="addSignature('company')">
+                                                Ký Tên
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                <div class="flex items-start">
+                                    <i class="fas fa-exclamation-triangle text-yellow-600 mt-1 mr-2"></i>
+                                    <div class="text-sm text-yellow-800">
+                                        <p class="font-semibold mb-1">Lưu ý quan trọng:</p>
+                                        <p>Vui lòng kiểm tra kỹ thông tin trước khi ký. Hợp đồng sẽ có hiệu lực pháp lý sau khi được ký bởi cả hai bên.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between mt-6">
+                        <button class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors" onclick="prevStep(2)">
+                            <i class="fas fa-arrow-left mr-2"></i>Quay Lại
+                        </button>
+                        <div class="space-x-3">
+                            <button class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors" onclick="downloadContract()">
+                                <i class="fas fa-download mr-2"></i>Tải PDF
+                            </button>
+                            <button class="gradient-bg text-white px-6 py-2 rounded-lg hover:opacity-90 transition-opacity" onclick="finalizeContract()">
+                                <i class="fas fa-check mr-2"></i>Hoàn Tất Hợp Đồng
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+{% endblock %}

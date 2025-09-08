@@ -63,23 +63,6 @@
             }
         });
 
-        // Form submissions
-        document.querySelectorAll('form').forEach(form => {
-            form.addEventListener('submit', function(e) {
-                const button = this.querySelector('button[type="submit"]');
-                if (!button) return;
-
-                if (typeof currentForm !== "undefined" && currentForm === 'login') {
-                    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang đăng nhập...';
-                } else {
-                    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang tạo tài khoản...';
-                }
-                button.disabled = true;
-            });
-        });
-
-
-
         // Social login buttons
         document.querySelectorAll('button').forEach(button => {
             if (button.textContent.includes('Google') || button.textContent.includes('Facebook')) {
