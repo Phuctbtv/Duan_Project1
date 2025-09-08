@@ -3,14 +3,16 @@ from django.contrib.auth import login, authenticate
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.forms import AuthenticationForm
+
+from users.decorators import user_required
 from users.forms.RegisterForm import RegisterForm
+from users.models import User
 
 
 def trangchu(request):
     return render(request, "base/trangchu_base.html")
 
 
-@csrf_protect
 @csrf_protect
 def register_view(request):
     if request.method == "POST":
@@ -41,9 +43,14 @@ def register_view(request):
 
 
 @csrf_protect
+@csrf_protect
 def login_view(request):
+    #
     if request.user.is_authenticated:
-        return redirect("trangchu")
+        if request.user.is_staff:
+            return redirect("admin_home")
+        else:
+            return redirect("trangchu")
 
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
@@ -54,10 +61,16 @@ def login_view(request):
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
-                messages.success(request, f"Xin chào {user.get_username()}, bạn đã đăng nhập thành công!")
+                messages.success(
+                    request,
+                    f"Xin chào {user.get_username()}, bạn đã đăng nhập thành công!"
+                )
 
-                next_url = request.GET.get('next', 'trangchu')
-                return redirect(next_url)
+                # Sau khi đăng nhập xong phân quyền
+                if user.is_staff:
+                    return redirect("admin_home")
+                else:
+                    return redirect("trangchu")
             else:
                 messages.error(request, "Tên đăng nhập hoặc mật khẩu không chính xác.")
         else:
@@ -66,3 +79,12 @@ def login_view(request):
         form = AuthenticationForm()
 
     return render(request, "users/login.html", {"form": form})
+
+@user_required
+def customer_users_user(request):
+    return render(request, "users/quanlytaikhoan.html")
+def customer_users_admin(request):
+    users = User.objects.all()
+    return render(request, "admin/customer_section.html", {"users": users})
+def customer_contact_admin( request):
+    return render(request, "admin/contact_section.html")

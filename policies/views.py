@@ -1,3 +1,4 @@
 from django.shortcuts import render
 
-# Create your views here.
+def customer_policies_admin(request):
+    return render(request, 'admin/policies_section.html')

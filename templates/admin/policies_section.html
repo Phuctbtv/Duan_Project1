@@ -1,0 +1,72 @@
+{% extends 'admin/admin_home.html' %}
+
+{% load static %}
+{% block content %}
+<div id="policies" class="section p-6 ">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Quản Lý Hợp Đồng Bảo Hiểm</h2>
+                <button class="gradient-bg text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
+                    <i class="fas fa-plus mr-2"></i>Tạo Hợp Đồng
+                </button>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <input type="text" placeholder="Số hợp đồng..." class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <select class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option>Tất cả sản phẩm</option>
+                            <option>Bảo hiểm ô tô</option>
+                            <option>Bảo hiểm sức khỏe</option>
+                            <option>Bảo hiểm nhà ở</option>
+                        </select>
+                        <select class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option>Tất cả trạng thái</option>
+                            <option>Hiệu lực</option>
+                            <option>Hết hạn</option>
+                            <option>Đã hủy</option>
+                        </select>
+                        <button class="gradient-bg text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
+                            <i class="fas fa-search mr-2"></i>Tìm Kiếm
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hợp Đồng</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Khách Hàng</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sản Phẩm</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phí BH</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày Hiệu Lực</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng Thái</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">HD-2024-001</div>
+                                    <div class="text-sm text-gray-500">Hết hạn: 15/03/2025</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Nguyễn Văn An</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Bảo hiểm ô tô</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">28.8 triệu</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">15/03/2024</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full status-active text-white">Hiệu lực</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <button class="text-blue-600 hover:text-blue-900 mr-3">Xem</button>
+                                    <button class="text-green-600 hover:text-green-900 mr-3">Gia hạn</button>
+                                    <button class="text-red-600 hover:text-red-900">Hủy</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+{% endblock %}

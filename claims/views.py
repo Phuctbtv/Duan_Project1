@@ -1,3 +1,4 @@
 from django.shortcuts import render
 
-# Create your views here.
+def customer_claims_admin(request):
+    return render(request, 'admin/claims_section.html')

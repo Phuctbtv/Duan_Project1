@@ -1,3 +1,4 @@
 from django.shortcuts import render
 
-# Create your views here.
+def customer_products_admin(request):
+    return render(request, 'admin/products_section.html')
