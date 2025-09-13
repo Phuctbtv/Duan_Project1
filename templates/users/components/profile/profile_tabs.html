@@ -1,0 +1,22 @@
+<div class="mb-6">
+    <div class="flex space-x-2 bg-gray-100 p-1 rounded-lg">
+        <a href="?tab=profile_info"
+           class="tab-button px-6 py-3 rounded-lg font-medium transition
+                  {% if active_tab == 'profile_info' %}bg-white shadow text-blue-600{% else %}text-gray-600 hover:bg-gray-200{% endif %}">
+            <i class="fas fa-user mr-2"></i> Hồ sơ cá nhân
+        </a>
+
+        <a href="?tab=security"
+           class="tab-button px-6 py-3 rounded-lg font-medium transition
+                  {% if active_tab == 'security' %}bg-white shadow text-blue-600{% else %}text-gray-600 hover:bg-gray-200{% endif %}">
+            <i class="fas fa-shield-alt mr-2"></i> Bảo mật
+        </a>
+
+        <a href="?tab=notifications"
+           class="tab-button px-6 py-3 rounded-lg font-medium transition
+                  {% if active_tab == 'notifications' %}bg-white shadow text-blue-600{% else %}text-gray-600 hover:bg-gray-200{% endif %}">
+            <i class="fas fa-bell mr-2"></i> Thông báo
+        </a>
+
+    </div>
+</div>

@@ -1,0 +1,93 @@
+{% extends 'users/quanlytaikhoan.html' %}
+
+{% load static %}
+{% block users %}
+<div class="flex-1 p-8">
+        <!-- Dashboard Stats -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Hợp đồng bảo hiểm</h1>
+            <p class="text-gray-600">Quản lý và theo dõi tất cả hợp đồng bảo hiểm của bạn</p>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Tổng hợp đồng</p>
+                        <p class="text-3xl font-bold text-gray-800">5</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-file-contract text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Đang hiệu lực</p>
+                        <p class="text-3xl font-bold text-green-600">4</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-green-600 h-2 rounded-full progress-bar" style="width: 80%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Phí hàng tháng</p>
+                        <p class="text-3xl font-bold text-blue-600">2.1M</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-money-bill-wave text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-gray-500">VNĐ/tháng</span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Tổng bảo hiểm</p>
+                        <p class="text-3xl font-bold text-purple-600">3.2B</p>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-umbrella text-purple-600 text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-gray-500">VNĐ bảo hiểm</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters and Actions -->
+        {% include 'users/components/quanlytaikhoan/filters.html' %}
+
+        <!-- Contracts List -->
+        {% include 'users/components/quanlytaikhoan/contract_list.html' %}
+
+        <!-- Pagination -->
+        <div class="flex items-center justify-between mt-8">
+            <div class="flex items-center space-x-2">
+                <button class="px-3 py-2 border border-gray-300 rounded-lg text-gray-500 cursor-not-allowed">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="px-3 py-2 bg-blue-600 text-white rounded-lg">1</button>
+                <button class="px-3 py-2 border border-gray-300 rounded-lg text-gray-500 cursor-not-allowed">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+{% endblock %}

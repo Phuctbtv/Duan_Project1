@@ -1,0 +1,133 @@
+<div id="notificationsTab" class="tab-content" >
+                        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4">Cài đặt thông báo</h3>
+
+                            <div class="space-y-6">
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-3">Thông báo Email</h4>
+                                    <div class="space-y-3">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <div class="font-medium text-gray-800">Cập nhật hợp đồng</div>
+                                                <div class="text-sm text-gray-600">Thông báo về thay đổi hợp đồng bảo hiểm</div>
+                                            </div>
+                                            <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+                                        </div>
+
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <div class="font-medium text-gray-800">Thanh toán</div>
+                                                <div class="text-sm text-gray-600">Nhắc nhở thanh toán và xác nhận giao dịch</div>
+                                            </div>
+                                            <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+                                        </div>
+
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <div class="font-medium text-gray-800">Bồi thường</div>
+                                                <div class="text-sm text-gray-600">Cập nhật tiến trình xử lý bồi thường</div>
+                                            </div>
+                                            <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+                                        </div>
+
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <div class="font-medium text-gray-800">Khuyến mãi</div>
+                                                <div class="text-sm text-gray-600">Thông tin về ưu đãi và sản phẩm mới</div>
+                                            </div>
+                                            <div class="toggle-switch" onclick="toggleSwitch(this)"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-3">Thông báo SMS</h4>
+                                    <div class="space-y-3">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <div class="font-medium text-gray-800">Xác thực bảo mật</div>
+                                                <div class="text-sm text-gray-600">Mã OTP và xác thực 2 bước</div>
+                                            </div>
+                                            <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+                                        </div>
+
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <div class="font-medium text-gray-800">Thanh toán khẩn cấp</div>
+                                                <div class="text-sm text-gray-600">Nhắc nhở thanh toán sắp đến hạn</div>
+                                            </div>
+                                            <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+                                        </div>
+
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <div class="font-medium text-gray-800">Bồi thường khẩn cấp</div>
+                                                <div class="text-sm text-gray-600">Cập nhật quan trọng về bồi thường</div>
+                                            </div>
+                                            <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-3">Thông báo Push</h4>
+                                    <div class="space-y-3">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <div class="font-medium text-gray-800">Thông báo tức thì</div>
+                                                <div class="text-sm text-gray-600">Nhận thông báo ngay trên thiết bị</div>
+                                            </div>
+                                            <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+                                        </div>
+
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <div class="font-medium text-gray-800">Âm thanh thông báo</div>
+                                                <div class="text-sm text-gray-600">Phát âm thanh khi có thông báo mới</div>
+                                            </div>
+                                            <div class="toggle-switch" onclick="toggleSwitch(this)"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notification Schedule -->
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4">Lịch trình thông báo</h3>
+
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Giờ nhận thông báo</label>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="text-sm text-gray-600">Từ</label>
+                                            <input type="time" value="08:00" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        </div>
+                                        <div>
+                                            <label class="text-sm text-gray-600">Đến</label>
+                                            <input type="time" value="22:00" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Tần suất thông báo</label>
+                                    <select class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="immediate" selected>Ngay lập tức</option>
+                                        <option value="hourly">Mỗi giờ</option>
+                                        <option value="daily">Hàng ngày</option>
+                                        <option value="weekly">Hàng tuần</option>
+                                    </select>
+                                </div>
+
+                                <button class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition">
+                                    <i class="fas fa-save mr-2"></i>Lưu cài đặt
+                                </button>
+                            </div>
+                        </div>
+                    </div>

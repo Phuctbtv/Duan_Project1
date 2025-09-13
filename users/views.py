@@ -81,10 +81,18 @@ def login_view(request):
     return render(request, "users/login.html", {"form": form})
 
 @user_required
-def customer_users_user(request):
+def custom_users_user(request):
     return render(request, "users/quanlytaikhoan.html")
-def customer_users_admin(request):
+def custom_users_admin(request):
     users = User.objects.all()
-    return render(request, "admin/customer_section.html", {"users": users})
-def customer_contact_admin( request):
+    return render(request, "admin/custom_section.html", {"users": users})
+def custom_contact_admin( request):
     return render(request, "admin/contact_section.html")
+
+def profile_view(request):
+    tab = request.GET.get("tab", "profile_info")
+    context = {
+        "active_tab": tab
+    }
+    return render(request, "users/profile_user.html", context)
+

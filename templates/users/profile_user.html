@@ -1,0 +1,256 @@
+{% extends 'users/quanlytaikhoan.html' %}
+
+{% load static %}
+{% block users %}
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .tab-active {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        .tab-inactive {
+            background: white;
+            color: #6b7280;
+            border: 1px solid #e5e7eb;
+        }
+        .tab-inactive:hover {
+            background: #f9fafb;
+            color: #374151;
+        }
+        .notification-dot { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .sidebar-item { transition: all 0.3s ease; }
+        .sidebar-item:hover { background: rgba(59, 130, 246, 0.1); }
+        .sidebar-item.active { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; }
+        .profile-avatar {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            position: relative;
+            overflow: hidden;
+        }
+        .profile-avatar::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.6s;
+        }
+        .profile-avatar:hover::before {
+            animation: shine 0.6s ease-in-out;
+        }
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        .security-level-high { background: linear-gradient(135deg, #10b981, #059669); }
+        .security-level-medium { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .security-level-low { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background: #e5e7eb;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .toggle-switch.active {
+            background: #3b82f6;
+        }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .toggle-switch.active::after {
+            transform: translateX(26px);
+        }
+        .activity-item {
+            position: relative;
+            padding-left: 2rem;
+        }
+        .activity-item::before {
+            content: '';
+            position: absolute;
+            left: 0.5rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e5e7eb;
+        }
+        .activity-item:last-child::before {
+            display: none;
+        }
+        .activity-dot {
+            position: absolute;
+            left: 0.25rem;
+            top: 0.75rem;
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            background: #3b82f6;
+        }
+        .progress-bar {
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+            height: 8px;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+    </style>
+<!-- Main Content -->
+        <main class="flex-1 p-8">
+            <!-- Header -->
+            <div class="mb-8">
+                <div class="flex items-center space-x-3 mb-4">
+                    <h1 class="text-3xl font-bold text-gray-800">Thông tin cá nhân</h1>
+                </div>
+                <p class="text-gray-600">Quản lý thông tin tài khoản và cài đặt bảo mật</p>
+            </div>
+
+            <!-- Profile Header -->
+          {% include "users/components/profile/profile_header.html" %}
+
+            <!-- Tabs -->
+          {% include "users/components/profile/profile_tabs.html" %}
+
+            <!-- Tab Content -->
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Main Content Area -->
+                <div class="lg:col-span-2">
+
+                    {% if active_tab == "profile_info" %}
+                        {% include "users/components/profile/profile_user.html" %}
+                    {% elif active_tab == "security" %}
+                        {% include "users/components/profile/profile_security.html" %}
+                    {% elif active_tab == "notifications" %}
+                        {% include "users/components/profile/notification.html" %}
+                     {% endif %}
+                </div>
+
+                <!-- Sidebar Info -->
+                <div class="space-y-6">
+                    <!-- Account Status -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Trạng thái tài khoản</h3>
+
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-600">Độ hoàn thiện hồ sơ</span>
+                                <span class="font-bold text-green-600">95%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-green-600 h-2 rounded-full" style="width: 95%"></div>
+                            </div>
+
+                            <div class="text-sm text-gray-600">
+                                <i class="fas fa-info-circle text-blue-600 mr-1"></i>
+                                Hoàn thiện thêm 5% để nhận ưu đãi VIP
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Thao tác nhanh</h3>
+
+                        <div class="space-y-3">
+                            <button class="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-download text-blue-600"></i>
+                                    <div>
+                                        <div class="font-medium text-gray-800">Tải hợp đồng</div>
+                                        <div class="text-sm text-gray-600">PDF các hợp đồng</div>
+                                    </div>
+                                </div>
+                            </button>
+
+                            <button class="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-print text-green-600"></i>
+                                    <div>
+                                        <div class="font-medium text-gray-800">In thẻ bảo hiểm</div>
+                                        <div class="text-sm text-gray-600">Thẻ vật lý</div>
+                                    </div>
+                                </div>
+                            </button>
+
+                            <button class="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-share-alt text-purple-600"></i>
+                                    <div>
+                                        <div class="font-medium text-gray-800">Giới thiệu bạn bè</div>
+                                        <div class="text-sm text-gray-600">Nhận ưu đãi</div>
+                                    </div>
+                                </div>
+                            </button>
+
+                            <button class="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-trash-alt text-red-600"></i>
+                                    <div>
+                                        <div class="font-medium text-gray-800">Xóa tài khoản</div>
+                                        <div class="text-sm text-gray-600">Vĩnh viễn</div>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Support -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Hỗ trợ</h3>
+
+                        <div class="space-y-3">
+                            <button class="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-question-circle text-blue-600"></i>
+                                    <div>
+                                        <div class="font-medium text-gray-800">Câu hỏi thường gặp</div>
+                                        <div class="text-sm text-gray-600">Tìm câu trả lời</div>
+                                    </div>
+                                </div>
+                            </button>
+
+                            <button class="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-comments text-green-600"></i>
+                                    <div>
+                                        <div class="font-medium text-gray-800">Chat với tư vấn viên</div>
+                                        <div class="text-sm text-gray-600">Trực tuyến 24/7</div>
+                                    </div>
+                                </div>
+                            </button>
+
+                            <button class="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-phone text-orange-600"></i>
+                                    <div>
+                                        <div class="font-medium text-gray-800">Gọi hotline</div>
+                                        <div class="text-sm text-gray-600">1900 1234</div>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+{% endblock %}
