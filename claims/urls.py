@@ -2,9 +2,9 @@ from django.urls import path
 from . import views
 from django.urls import path, include
 
-from .views import customer_claims_admin
+from .views import custom_claims_admin
 
 urlpatterns = [
-    path('', customer_claims_admin, name='customer_claims_admin'),
+    path('', custom_claims_admin, name='custom_claims_admin'),
 
 ]

@@ -1,5 +1,5 @@
 from django.urls import path
-from payments.views import payments
+from payments.views import payments_users
 urlpatterns = [
-    path("", payments, name="payments"),
+    path("", payments_users, name="payments_users"),
 ]

@@ -1,54 +1,8 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thanh toán - SecureLife</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .step-active { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
-        .step-completed { background: linear-gradient(135deg, #10b981, #059669); }
-        .step-inactive { background: #e5e7eb; }
-        .payment-card { transition: all 0.3s ease; border: 2px solid transparent; }
-        .payment-card.selected { border-color: #3b82f6; background: #eff6ff; }
-        .form-step { display: none; }
-        .form-step.active { display: block; }
-        .security-badge { animation: pulse 2s infinite; }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-    </style>
-</head>
-<body class="bg-gray-50">
-<!-- Header -->
-<header class="bg-white shadow-lg">
-    <nav class="container mx-auto px-6 py-4">
-        <div class="flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-shield-alt text-white text-xl"></i>
-                </div>
-                <span class="text-2xl font-bold text-gray-800">SecureLife</span>
-            </div>
+{% extends 'users/quanlytaikhoan.html' %}
 
-            <div class="flex items-center space-x-4">
-                <div class="security-badge flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-                    <i class="fas fa-lock mr-2"></i>
-                    Bảo mật SSL
-                </div>
-                <button class="text-gray-600 hover:text-gray-800">
-                    <i class="fas fa-question-circle text-xl"></i>
-                </button>
-            </div>
-        </div>
-    </nav>
-</header>
-
+{% load static %}
+{% block users %}
+<div class="w-full">
 <!-- Progress Steps -->
 <section class="bg-white border-b border-gray-200 py-6">
     <div class="container mx-auto px-6">
@@ -452,61 +406,7 @@
         </div>
     </div>
 </div>
-
-<!-- Footer -->
-<footer class="bg-gray-900 text-white py-12">
-    <div class="container mx-auto px-6">
-        <div class="grid md:grid-cols-4 gap-8">
-            <div>
-                <div class="flex items-center space-x-3 mb-4">
-                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-shield-alt text-white"></i>
-                    </div>
-                    <span class="text-xl font-bold">SecureLife</span>
-                </div>
-                <p class="text-gray-400 text-sm">
-                    Bảo hiểm tin cậy với công nghệ hiện đại
-                </p>
-            </div>
-
-            <div>
-                <h4 class="font-semibold mb-4">Hỗ trợ</h4>
-                <ul class="space-y-2 text-sm text-gray-400">
-                    <li><a href="#" class="hover:text-white transition">Trung tâm trợ giúp</a></li>
-                    <li><a href="#" class="hover:text-white transition">Liên hệ</a></li>
-                    <li><a href="#" class="hover:text-white transition">FAQ</a></li>
-                </ul>
-            </div>
-
-            <div>
-                <h4 class="font-semibold mb-4">Bảo mật</h4>
-                <div class="space-y-2">
-                    <div class="flex items-center text-sm text-gray-400">
-                        <i class="fas fa-shield-alt mr-2 text-green-500"></i>
-                        SSL 256-bit
-                    </div>
-                    <div class="flex items-center text-sm text-gray-400">
-                        <i class="fas fa-lock mr-2 text-green-500"></i>
-                        PCI DSS Compliant
-                    </div>
-                </div>
-            </div>
-
-            <div>
-                <h4 class="font-semibold mb-4">Liên hệ</h4>
-                <div class="space-y-2 text-sm text-gray-400">
-                    <div>Hotline: 1900 1234</div>
-                    <div>Email: support@securelife.vn</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="border-t border-gray-800 mt-8 pt-6 text-center text-sm text-gray-400">
-            © 2024 SecureLife. Tất cả quyền được bảo lưu.
-        </div>
-    </div>
-</footer>
-
+</div>
 <script>
     let currentStep = 1;
 
@@ -669,6 +569,5 @@
         }
     });
 </script>
-</body>
 
-</html>
+{% endblock %}

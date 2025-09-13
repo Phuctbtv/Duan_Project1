@@ -1,16 +1,18 @@
-<!-- Sidebar -->
-<aside class="w-64 bg-white shadow-lg min-h-screen">
+<div class="flex">
+    <aside class=" fixed  w-64 w-64 bg-white shadow-lg min-h-screen">
     <div class="p-6">
         <h2 class="text-lg font-bold text-gray-800 mb-6">Quản lý tài khoản</h2>
 
         <nav class="space-y-2">
-            <a href="#"
-               class="sidebar-item {% if active_page == 'contracts' %}active{% endif %} flex items-center px-4 py-3 rounded-lg">
+            <a href="{% url 'custom_policies_users' %}"
+               class="sidebar-item {% if active_page == 'contracts' %}active{% endif %} flex items-center px-4 py-3 rounded-lg
+                {% if request.resolver_match.url_name == 'custom_policies_users' %} gradient-bg text-white {% else %} text-gray-700 {% endif %}">
                 <i class="fas fa-file-contract mr-3"></i>
                 <span>Hợp đồng của tôi</span>
             </a>
-            <a href="{% url 'payments' %}"
-               class="sidebar-item flex items-center px-4 py-3 rounded-lg text-gray-700 hover:text-blue-600">
+            <a href="{% url 'payments_users' %}"
+               class="sidebar-item flex items-center px-4 py-3 rounded-lg text-gray-700 hover:text-blue-600
+                {% if request.resolver_match.url_name == 'payments_users' %} gradient-bg text-white {% else %} text-gray-700 {% endif %}">
                 <i class="fas fa-credit-card mr-3"></i>
                 <span>Thanh toán</span>
             </a>
@@ -19,8 +21,9 @@
                 <i class="fas fa-file-medical mr-3"></i>
                 <span>Yêu cầu bồi thường</span>
             </a>
-            <a href="#"
-               class="sidebar-item flex items-center px-4 py-3 rounded-lg text-gray-700 hover:text-blue-600">
+            <a href="{% url 'custom_profile_user' %}"
+               class="sidebar-item flex items-center px-4 py-3 rounded-lg text-gray-700 hover:text-blue-600
+            {% if request.resolver_match.url_name == 'custom_profile_user' %} gradient-bg text-white {% else %} text-gray-700 {% endif %}">
                 <i class="fas fa-user-edit mr-3"></i>
                 <span>Thông tin cá nhân</span>
             </a>
@@ -37,3 +40,5 @@
         </nav>
     </div>
 </aside>
+</div>
+<!-- Sidebar -->

@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
-from django.urls import path, include
-urlpatterns = [
-    path('', views.customer_policies_admin, name='customer_policies_admin'),
 
+urlpatterns = [
+    path('admin/policies/', views.custom_policies_admin, name='custom_policies_admin'),
+    path('user/policies/', views.custom_policies_users, name='custom_policies_users'),
 ]
