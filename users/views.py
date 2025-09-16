@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate
 from django.contrib import messages
@@ -6,7 +7,7 @@ from django.contrib.auth.forms import AuthenticationForm
 
 from users.decorators import user_required
 from users.forms.RegisterForm import RegisterForm
-from users.models import User
+from users.models import User, Customer
 
 
 def trangchu(request):
@@ -20,7 +21,7 @@ def register_view(request):
         if form.is_valid():
             user = form.save()
 
-            # Xác thực lại user để Django gắn backend
+
             raw_password = form.cleaned_data.get("password1")
             user = authenticate(username=user.username, password=raw_password)
 
@@ -95,4 +96,28 @@ def profile_view(request):
         "active_tab": tab
     }
     return render(request, "users/profile_user.html", context)
+@login_required
+def update_profile(request):
+    if request.method == "POST":
+        user = request.user
+        # Cập nhật thông tin user
+        user.first_name = request.POST.get("first_name")
+        user.last_name = request.POST.get("last_name")
+        user.email = request.POST.get("email")
+        user.phone_number = request.POST.get("phone_number")
+        user.address = request.POST.get("address")
+        user.date_of_birth = request.POST.get("date_of_birth")
+        user.save()
+
+        # Cập nhật hoặc tạo Customer
+        customer, created = Customer.objects.get_or_create(user=user)
+        customer.gender = request.POST.get("gender")
+        customer.id_card_number = request.POST.get("id_card_number")
+        customer.job = request.POST.get("job")
+        customer.save()
+
+        return redirect("custom_profile_user")
+
+    return redirect("custom_profile_user")
+
 

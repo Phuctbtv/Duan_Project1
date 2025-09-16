@@ -60,7 +60,16 @@ class Customer(models.Model):
     nationality = models.CharField(
         max_length=50, default="Việt Nam", verbose_name="Quốc tịch"
     )
+    GENDERS = [
+        ("male", "Nam"),
+        ("female", "Nữ"),
+        ("other","Khác")
+    ]
 
+    gender = models.CharField(
+        max_length=10, choices=GENDERS, default="other", verbose_name="Giới tính"
+    )
+    job = models.CharField(max_length=100, blank=True, verbose_name="Nghề nghiệp")
     class Meta:
         db_table = "customers"
         verbose_name = "Khách hàng"
