@@ -82,11 +82,11 @@
                     </button>
                     <div class="dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 z-50">
                         <div class="py-2">
-                            <a href="#profile"
+                            <a href="{% url 'custom_profile_user' %}"
                                class="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition">
                                 <i class="fas fa-user mr-2 w-4"></i>Thông tin cá nhân
                             </a>
-                            <a href="{% url 'custom_users_user' %}"
+                            <a href="{% url 'custom_policies_users' %}"
                                class="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition">
                                 <i class="fas fa-file-contract mr-2 w-4"></i>Quản lí tài khoản
                             </a>
