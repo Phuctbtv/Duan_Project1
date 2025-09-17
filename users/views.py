@@ -1,12 +1,13 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, update_session_auth_hash
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.forms import AuthenticationForm
 
 from users.decorators import user_required
 from users.forms.RegisterForm import RegisterForm
+from users.forms.ChangePasswordForm import ChangePasswordForm
 from users.models import User, Customer
 
 
@@ -20,7 +21,6 @@ def register_view(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
-
 
             raw_password = form.cleaned_data.get("password1")
             user = authenticate(username=user.username, password=raw_password)
@@ -91,11 +91,17 @@ def custom_contact_admin( request):
     return render(request, "admin/contact_section.html")
 
 def profile_view(request):
-    tab = request.GET.get("tab", "profile_info")
+    tab = request.GET.get("tab")
+    if tab:
+        request.session["active_tab"] = tab
+    else:
+        tab = request.session.get("active_tab", "profile_info")
+
     context = {
         "active_tab": tab
     }
     return render(request, "users/profile_user.html", context)
+
 @login_required
 def update_profile(request):
     if request.method == "POST":
@@ -115,9 +121,53 @@ def update_profile(request):
         customer.id_card_number = request.POST.get("id_card_number")
         customer.job = request.POST.get("job")
         customer.save()
-
+        messages.success(request, " Cập nhật thông tin thành công!")
         return redirect("custom_profile_user")
 
     return redirect("custom_profile_user")
+
+@login_required(login_url="login")
+def change_password(request):
+    if request.method == "POST":
+        form = ChangePasswordForm(request.POST)
+        current_password = request.POST.get('current_password')
+
+        if not request.user.check_password(current_password):
+            messages.error(request, 'Mật khẩu hiện tại không đúng.')
+            return render(
+                request,
+                'users/profile_user.html',
+                {'formChangePassword': form, 'active_tab': 'security'}
+            )
+
+        if form.is_valid():
+            new_password = form.cleaned_data['password1']
+
+            if request.user.check_password(new_password):
+                messages.error(request, "Mật khẩu mới không được trùng với mật khẩu hiện tại.")
+                return render(
+                    request,
+                    "users/profile_user.html",
+                    {"formChangePassword": form, "active_tab": "security"}
+                )
+            request.user.set_password(new_password)
+            request.user.save()
+
+            update_session_auth_hash(request, request.user)
+            messages.success(request, 'Đổi mật khẩu thành công!')
+            return redirect("custom_profile_user")
+        else:
+            messages.error(request, 'Có lỗi xảy ra. Vui lòng kiểm tra lại thông tin.')
+            return render(
+                request,
+                'users/profile_user.html',
+                {'formChangePassword': form, 'active_tab': 'security'}
+            )
+    else:
+        form = ChangePasswordForm()
+
+    return redirect("custom_profile_user")
+
+
 
 

@@ -1,111 +1,119 @@
 
-<div id="securityTab" class="tab-content" >
-                        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-                            <div class="flex items-center justify-between mb-6">
-                                <h3 class="text-lg font-bold text-gray-800">Mức độ bảo mật</h3>
-                                <div class="security-level-high px-4 py-2 rounded-full text-white text-sm font-medium">
-                                    <i class="fas fa-shield-alt mr-1"></i>Cao
-                                </div>
-                            </div>
+        <div id="securityTab" class="tab-content">
+            <!-- Change Password -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">Đổi mật khẩu </h3>
 
-                            <div class="space-y-4">
-                                <div class="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
-                                    <div class="flex items-center space-x-3">
-                                        <i class="fas fa-check-circle text-green-600"></i>
-                                        <div>
-                                            <div class="font-semibold text-gray-800">Xác thực 2 bước</div>
-                                            <div class="text-sm text-gray-600">Đã kích hoạt qua SMS</div>
-                                        </div>
-                                    </div>
-                                    <button class="text-blue-600 hover:text-blue-700 font-medium">Cài đặt</button>
-                                </div>
+                <!-- Toast Container -->
+                <div id="toast-container" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col gap-2 z-[1000]"></div>
 
-                                <div class="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
-                                    <div class="flex items-center space-x-3">
-                                        <i class="fas fa-check-circle text-green-600"></i>
-                                        <div>
-                                            <div class="font-semibold text-gray-800">Email xác thực</div>
-                                            <div class="text-sm text-gray-600">nguyenvana@email.com</div>
-                                        </div>
-                                    </div>
-                                    <button class="text-blue-600 hover:text-blue-700 font-medium">Thay đổi</button>
-                                </div>
-
-                                <div class="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
-                                    <div class="flex items-center space-x-3">
-                                        <i class="fas fa-check-circle text-green-600"></i>
-                                        <div>
-                                            <div class="font-semibold text-gray-800">Số điện thoại xác thực</div>
-                                            <div class="text-sm text-gray-600">***-***-4567</div>
-                                        </div>
-                                    </div>
-                                    <button class="text-blue-600 hover:text-blue-700 font-medium">Thay đổi</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Change Password -->
-                        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-                            <h3 class="text-lg font-bold text-gray-800 mb-4">Đổi mật khẩu</h3>
-
-                            <form class="space-y-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Mật khẩu hiện tại</label>
-                                    <input type="password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                </div>
-
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Mật khẩu mới</label>
-                                    <input type="password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                    <div class="mt-2">
-                                        <div class="text-xs text-gray-500 mb-1">Độ mạnh mật khẩu:</div>
-                                        <div class="w-full bg-gray-200 rounded-full h-2">
-                                            <div class="progress-bar w-0 h-2 rounded-full"></div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Xác nhận mật khẩu mới</label>
-                                    <input type="password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                </div>
-
-                                <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition" onclick="changePassword()">
-                                    <i class="fas fa-key mr-2"></i>Đổi mật khẩu
-                                </button>
-                            </form>
-                        </div>
-
-                        <!-- Login Sessions -->
-                        <div class="bg-white rounded-xl shadow-lg p-6">
-                            <h3 class="text-lg font-bold text-gray-800 mb-4">Phiên đăng nhập</h3>
-
-                            <div class="space-y-4">
-                                <div class="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
-                                    <div class="flex items-center space-x-3">
-                                        <i class="fas fa-desktop text-blue-600"></i>
-                                        <div>
-                                            <div class="font-semibold text-gray-800">Chrome trên Windows</div>
-                                            <div class="text-sm text-gray-600">Hiện tại - TP.HCM, Việt Nam</div>
-                                        </div>
-                                    </div>
-                                    <span class="text-sm bg-green-100 text-green-800 px-2 py-1 rounded-full">Hiện tại</span>
-                                </div>
-
-                                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                                    <div class="flex items-center space-x-3">
-                                        <i class="fas fa-mobile-alt text-gray-600"></i>
-                                        <div>
-                                            <div class="font-semibold text-gray-800">Safari trên iPhone</div>
-                                            <div class="text-sm text-gray-600">2 giờ trước - TP.HCM, Việt Nam</div>
-                                        </div>
-                                    </div>
-                                    <button class="text-red-600 hover:text-red-700 font-medium">Đăng xuất</button>
-                                </div>
-
-                                <button class="w-full p-3 text-red-600 hover:text-red-700 font-medium border border-red-200 rounded-lg hover:bg-red-50 transition">
-                                    <i class="fas fa-sign-out-alt mr-2"></i>Đăng xuất tất cả thiết bị khác
-                                </button>
-                            </div>
+                <form method="POST" class="space-y-4" id="changePasswordForm" action="{% url 'change_password' %}">
+                    {% csrf_token %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Mật khẩu hiện tại</label>
+                        <div class="relative">
+                            <input type="password" name="current_password" id="currentPassword"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                            <button type="button" onclick="togglePassword('currentPassword')" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <i class="fas fa-eye text-gray-400 hover:text-gray-600"></i>
+                            </button>
                         </div>
                     </div>
+
+                    <div class="relative">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Mật khẩu mới</label>
+                            <div class="relative">
+                                <input type="password" name="password1" id="password1"
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                                <button type="button" onclick="togglePassword('password1')" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                    <i class="fas fa-eye text-gray-400 hover:text-gray-600"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <div class="flex items-center space-x-2 text-xs">
+                                <div id="length" class="flex items-center text-gray-400 requirement-unmet">
+                                    <i class="fas fa-times mr-1"></i>Tối thiểu 8 ký tự
+                                </div>
+                                <div id="uppercase" class="flex items-center text-gray-400 requirement-unmet">
+                                    <i class="fas fa-times mr-1"></i>Chữ hoa
+                                </div>
+                                <div id="number" class="flex items-center text-gray-400 requirement-unmet">
+                                    <i class="fas fa-times mr-1"></i>Số
+                                </div>
+                            </div>
+
+                            <div class="password-strength-indicator">
+                                <div id="strengthBar" class="strength-bar" style="width: 0%;"></div>
+                            </div>
+                        </div>
+
+                        {% if formChangePassword.password1.errors %}
+                            <div class="mt-1 ">
+                                {% for error in formChangePassword.password1.errors %}
+                                    <div class="text-xs text-red-600">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Xác nhận mật khẩu mới</label>
+                        <div class="relative">
+                            <input type="password" name="password2" id="password2"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                            <button type="button" onclick="togglePassword('password2')" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <i class="fas fa-eye text-gray-400 hover:text-gray-600"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="passwordMatch" class="mt-1 text-xs"></div>
+                    {% if formChangePassword.password2.errors %}
+                        <div class="mt-1 ">
+                            {% for error in formChangePassword.password2.errors %}
+                                <div class="text-xs text-red-600">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <button type="submit" id="submitBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-key mr-2"></i>Đổi mật khẩu
+                    </button>
+                </form>
+            </div>
+
+            <!-- Login Sessions -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">Phiên đăng nhập</h3>
+
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-desktop text-blue-600"></i>
+                            <div>
+                                <div class="font-semibold text-gray-800">Chrome trên Windows</div>
+                                <div class="text-sm text-gray-600">Hiện tại - TP.HCM, Việt Nam</div>
+                            </div>
+                        </div>
+                        <span class="text-sm bg-green-100 text-green-800 px-2 py-1 rounded-full">Hiện tại</span>
+                    </div>
+
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-mobile-alt text-gray-600"></i>
+                            <div>
+                                <div class="font-semibold text-gray-800">Safari trên iPhone</div>
+                                <div class="text-sm text-gray-600">2 giờ trước - TP.HCM, Việt Nam</div>
+                            </div>
+                        </div>
+                        <button class="text-red-600 hover:text-red-700 font-medium">Đăng xuất</button>
+                    </div>
+
+                    <button class="w-full p-3 text-red-600 hover:text-red-700 font-medium border border-red-200 rounded-lg hover:bg-red-50 transition">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Đăng xuất tất cả thiết bị khác
+                    </button>
+                </div>
+            </div>
+        </div>
+

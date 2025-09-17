@@ -54,7 +54,7 @@
             editBtn.onclick = editProfile;
         }
 
-        function saveProfile() {
+        function saveProfile(event) {
             // Simulate saving
             const saveBtn = event.target;
             const originalText = saveBtn.innerHTML;
@@ -62,7 +62,6 @@
             saveBtn.disabled = true;
 
             setTimeout(() => {
-                alert('✅ Cập nhật thông tin thành công!');
                 cancelEdit();
                 saveBtn.innerHTML = originalText;
                 saveBtn.disabled = false;
@@ -184,3 +183,35 @@ document.addEventListener('click', function(e) {
 document.querySelector('.fa-bell').closest('button').addEventListener('click', function() {
     alert('🔔 Bạn có 3 thông báo mới:\n• Hợp đồng #SH2024001 sắp đến hạn gia hạn\n• Yêu cầu bồi thường #BC2024003 đã được phê duyệt\n• Khuyến mãi đặc biệt dành cho khách hàng VIP');
 });
+
+
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const icon = input.nextElementSibling.querySelector('i');
+
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+function showToast(message, type = 'success') {
+    const toastContainer = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `px-4 py-3 rounded-lg shadow-md text-white text-sm flex items-center gap-2 animate-slide-in
+                       ${type === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
+    toast.innerHTML = type === 'success'
+        ? `<i class="fas fa-check-circle"></i> ${message}`
+        : `<i class="fas fa-exclamation-circle"></i> ${message}`;
+    toastContainer.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
