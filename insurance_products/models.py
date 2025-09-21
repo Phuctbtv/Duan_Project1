@@ -24,6 +24,14 @@ class InsuranceProduct(models.Model):
         default="VND",
         verbose_name="Đơn vị tiền tệ",
     )
+    max_claim_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="Mức chi trả tối đa",
+    )
+
     is_active = models.BooleanField(default=True, verbose_name="Đang hoạt động")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Ngày cập nhật")

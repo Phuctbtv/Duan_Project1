@@ -11,11 +11,13 @@
 
         <!-- Quick Stats -->
         <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
+            <!-- Tổng hợp đồng -->
             <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-600">Tổng hợp đồng</p>
-                        <p class="text-3xl font-bold text-gray-800">5</p>
+                        <p class="text-3xl font-bold text-gray-800">{{ total_contracts }}</p>
                     </div>
                     <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                         <i class="fas fa-file-contract text-blue-600 text-xl"></i>
@@ -23,11 +25,12 @@
                 </div>
             </div>
 
+            <!-- Đang hiệu lực -->
             <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-600">Đang hiệu lực</p>
-                        <p class="text-3xl font-bold text-green-600">4</p>
+                        <p class="text-3xl font-bold text-green-600">{{ active_contracts }}</p>
                     </div>
                     <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                         <i class="fas fa-check-circle text-green-600 text-xl"></i>
@@ -35,31 +38,38 @@
                 </div>
                 <div class="mt-4">
                     <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-green-600 h-2 rounded-full progress-bar" style="width: 80%"></div>
+                        {% if total_contracts > 0 %}
+                            {% widthratio active_contracts total_contracts 100 as active_percent %}
+                            <div class="bg-green-600 h-2 rounded-full progress-bar" style="width: {{ active_percent }}%"></div>
+                        {% else %}
+                            <div class="bg-green-600 h-2 rounded-full progress-bar" style="width: 0%"></div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
 
+            <!-- Phí hàng tháng -->
             <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-gray-600">Phí hàng tháng</p>
-                        <p class="text-3xl font-bold text-blue-600">2.1M</p>
+                        <p class="text-sm font-medium text-gray-600">Phí hàng năm</p>
+                        <p class="text-3xl font-bold text-blue-600">{{ year_fee }} VNĐ</p>
                     </div>
                     <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                         <i class="fas fa-money-bill-wave text-blue-600 text-xl"></i>
                     </div>
                 </div>
                 <div class="mt-4 flex items-center text-sm">
-                    <span class="text-gray-500">VNĐ/tháng</span>
+                    <span class="text-gray-500">VNĐ/năm</span>
                 </div>
             </div>
 
+            <!-- Tổng bảo hiểm -->
             <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-600">Tổng bảo hiểm</p>
-                        <p class="text-3xl font-bold text-purple-600">3.2B</p>
+                        <p class="text-3xl font-bold text-purple-600">{{ total_insurance }} VNĐ</p>
                     </div>
                     <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                         <i class="fas fa-umbrella text-purple-600 text-xl"></i>
@@ -71,11 +81,12 @@
             </div>
         </div>
 
+
         <!-- Filters and Actions -->
-        {% include 'users/components/quanlytaikhoan/filters.html' %}
+        {% include 'users/components/policy/filters_policy.html' %}
 
         <!-- Contracts List -->
-        {% include 'users/components/quanlytaikhoan/contract_list.html' %}
+        {% include 'users/components/policy/list_policies_user.html' %}
 
         <!-- Pagination -->
         <div class="flex items-center justify-between mt-8">

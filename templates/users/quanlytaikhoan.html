@@ -1,15 +1,16 @@
-
 {% extends 'base/trangchu.html' %}
 {% load static %}
 {% block content %}
 <div class="bg-gray-50">
+    <!-- Toast Container -->
+<div id="toast-container" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col gap-2 z-[1000]"></div>
     <!-- Sidebar -->
     {% include 'users/components/quanlytaikhoan/sidebar_user.html' %}
-     <!-- Main Content -->
+    <!-- Main Content -->
     <div class="lg:ml-64">
-    {% block users %}
-    {% endblock users %}
-        </div>
+        {% block users %}
+        {% endblock users %}
+    </div>
 </div>
 
 <!-- Contract Detail Modal -->
@@ -24,7 +25,6 @@
                     </button>
                 </div>
             </div>
-
             <div class="p-6">
                 <div id="modalContent">
                     <!-- Modal content will be populated by JavaScript -->
@@ -35,8 +35,30 @@
 </div>
 
 
-<script src="{% static 'js/contract_management.js' %}"></script>
+<style>
+    .toast {
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        color: white;
+        font-size: 16px;
+        font-family: Arial, sans-serif;
+        text-align: center;
+        min-width: 200px;
+        max-width: 400px;
+        transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    .toast-success {
+        background-color: #10b981; /* Màu xanh lá */
+    }
+    .toast-error {
+        background-color: #ef4444; /* Màu đỏ */
+    }
+    .toast-hidden {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+    }
+</style>
 
+<script src="{% static 'js/contract_management.js' %}"></script>
 {% endblock content %}
-</body>
-</html>

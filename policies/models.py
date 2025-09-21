@@ -1,6 +1,8 @@
 from django.db import models
 from users.models import Customer
 from insurance_products.models import InsuranceProduct
+from django.utils import timezone
+
 
 
 class Policy(models.Model):
@@ -49,6 +51,17 @@ class Policy(models.Model):
     policy_document_url = models.URLField(
         blank=True, verbose_name="URL tài liệu hợp đồng"
     )
+    sum_insured = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        verbose_name="Tổng số tiền bảo hiểm",
+    )
+    claimed_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        verbose_name="Tổng số tiền đã chi trả",
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Ngày cập nhật")
 
@@ -57,8 +70,33 @@ class Policy(models.Model):
         verbose_name = "Hợp đồng bảo hiểm"
         verbose_name_plural = "Hợp đồng bảo hiểm"
 
+    def remaining_days(self):
+        return (self.end_date - timezone.now().date()).days
+
+    def progress_percent(self):
+        total_days = (self.end_date - self.start_date).days
+        used_days = (timezone.now().date() - self.start_date).days
+        if total_days > 0:
+            return round((used_days / total_days) * 100)
+        return 0
+
+    def format_money(self, value):
+        """Format số tiền: 2000000 -> 2M, 2100000 -> 2.1M"""
+        value = float(value or 0)
+        if value >= 1_000_000:
+            return f"{value/1_000_000:.1f}".rstrip("0").rstrip(".") + "M"
+        elif value >= 1_000:
+            return f"{value/1_000:.1f}".rstrip("0").rstrip(".") + "K"
+        return str(int(value))
+
+    def premium_short(self):
+        return self.format_money(self.premium_amount)
+
+    def sum_insured_short(self):
+        return self.format_money(self.sum_insured)
+
     def __str__(self):
-        return f"{self.policy_number} - {self.customer.user.full_name}"
+        return f"{self.policy_number} - {self.customer.user.username}"
 
 
 class PolicyHolder(models.Model):
