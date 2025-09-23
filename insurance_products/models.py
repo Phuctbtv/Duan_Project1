@@ -1,6 +1,5 @@
 from django.db import models
 
-
 class InsuranceProduct(models.Model):
     """Model sản phẩm bảo hiểm"""
 
@@ -31,6 +30,18 @@ class InsuranceProduct(models.Model):
         blank=True,
         verbose_name="Mức chi trả tối đa",
     )
+    PACKAGE_CHOICES = [
+        ('basic', 'Gói Cơ bản'),
+        ('standard', 'Gói Tiêu chuẩn'),
+        ('premium', 'Gói Cao cấp'),
+    ]
+
+    product_type = models.CharField(
+        max_length=20,
+        choices=PACKAGE_CHOICES,
+        default='standard',
+        verbose_name="Loại gói bảo hiểm"
+    )
 
     is_active = models.BooleanField(default=True, verbose_name="Đang hoạt động")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
@@ -40,6 +51,18 @@ class InsuranceProduct(models.Model):
         db_table = "insurance_product"
         verbose_name = "Sản phẩm bảo hiểm"
         verbose_name_plural = "Sản phẩm bảo hiểm"
+    def format_money(self, value):
+        """Format số tiền: 2000000 -> 2M, 2100000 -> 2.1M"""
+        value = float(value or 0)
+        if value >= 1_000_000:
+            return f"{value/1_000_000:.1f}".rstrip("0").rstrip(".") + "M"
+        elif value >= 1_000:
+            return f"{value/1_000:.1f}".rstrip("0").rstrip(".") + "K"
+        return str(int(value))
 
+    def premium_base_amount_short(self):
+        return self.format_money(self.premium_base_amount)
+    def max_claim_amount_short(self):
+        return self.format_money(self.max_claim_amount)
     def __str__(self):
         return self.product_name

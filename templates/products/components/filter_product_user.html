@@ -1,0 +1,81 @@
+    <section class="py-12">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col lg:flex-row gap-8">
+                <!-- Sidebar Filters -->
+               {% include 'products/components/sidebar_filter.html' %}
+
+                <!-- Products Grid -->
+                <div class="lg:w-3/4">
+                    <!-- Sort & View Options -->
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-8">
+                        <div class="flex items-center space-x-4">
+                            <form method="get" id="sortForm">
+                                <select name="sort" class="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                        onchange="document.getElementById('sortForm').submit()">
+                                    <option value="">Sắp xếp theo</option>
+                                    <option value="price_asc" {% if sort_by == "price_asc" %}selected{% endif %}>Giá thấp đến cao</option>
+                                    <option value="price_desc" {% if sort_by == "price_desc" %}selected{% endif %}>Giá cao đến thấp</option>
+                                    <option value="newest" {% if sort_by == "popular" %}selected{% endif %}>Mới nhất</option>
+                                </select>
+                            </form>
+
+                            <div class="flex border border-gray-300 rounded-lg">
+                                <button onclick="setView('grid')" id="gridView" class="p-2 bg-blue-600 text-white rounded-l-lg">
+                                    <i class="fas fa-th-large"></i>
+                                </button>
+                                <button onclick="setView('list')" id="listView" class="p-2 text-gray-600 hover:bg-gray-100 rounded-r-lg">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Products Container -->
+                    <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-6" id="productsContainer">
+                        {% for product in products %}
+
+                        <div class="product-card bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition"
+                             data-category="{{ product.category }}"
+                             data-price="{{ product.premium_base_amount }}">
+                            <div class="h-48 bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
+                                    <i class="fas fa-heartbeat text-6xl text-white"></i>
+                            </div>
+
+                            <div class="p-6">
+                                <h3 class="text-xl font-bold text-gray-800 mb-2">{{ product.product_name }}</h3>
+                                <p class="text-gray-600 mb-4">{{ product.description|truncatewords:20 }}</p>
+
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="text-2xl font-bold text-{{ product.get_color_class }}-600">
+                                        {{ product.premium_base_amount_short }} VNĐ
+                                    </span>
+                                    <span class="bg-{{ product.get_color_class }}-100 text-{{ product.get_color_class }}-800 text-sm font-medium px-2 py-1 rounded">
+                                        {{ product.get_category_display }}
+                                    </span>
+                                </div>
+
+
+
+                                <div class="flex space-x-2">
+                                    <button class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium transition">
+                                        Mua ngay
+                                    </button>
+                                    <a href="{% url 'product_detail' product.id %}"
+                                       class="px-4 py-2 border border-green-600 text-green-600 hover:bg-green-50 rounded-lg transition inline-flex items-center">
+                                        <i class="fas fa-info-circle"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Load More Button -->
+                    <div class="text-center mt-12">
+                        <button class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition">
+                            <i class="fas fa-plus mr-2"></i>Xem thêm sản phẩm
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>

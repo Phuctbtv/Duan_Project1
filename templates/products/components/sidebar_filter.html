@@ -1,0 +1,76 @@
+ <div class="lg:w-1/4">
+                    <div class="bg-white rounded-xl shadow-lg p-6 sticky top-24">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-bold text-gray-800">Bộ lọc </h3>
+
+                        </div>
+
+                    <form method="get">
+                        <!-- Price Range -->
+                        <div class="mb-6">
+                            <h4 class="font-semibold text-gray-800 mb-3">Mức phí (VNĐ/năm)</h4>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="radio" name="price" class="text-blue-600" value="0-500000"
+                                           {% if selected_price == "0-500000" %}checked{% endif %}>
+                                    <span class="ml-2 text-gray-700">Dưới 500.000</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="price" class="text-blue-600" value="500000-1000000"
+                                           {% if selected_price == "500000-1000000" %}checked{% endif %}>
+                                    <span class="ml-2 text-gray-700">500.000 - 1.000.000</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="price" class="text-blue-600" value="1000000-2000000"
+                                           {% if selected_price == "1000000-2000000" %}checked{% endif %}>
+                                    <span class="ml-2 text-gray-700">1.000.000 - 2.000.000</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="price" class="text-blue-600" value="2000000+"
+                                           {% if selected_price == "2000000+" %}checked{% endif %}>
+                                    <span class="ml-2 text-gray-700">Trên 2.000.000</span>
+                                </label>
+                            </div>
+                        </div>
+
+
+                        <div class="mb-6">
+                            <h4 class="font-semibold text-gray-800 mb-3">Loại gói bảo hiểm</h4>
+                            <select name="category" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">Tất cả</option>
+                                        {% for key, name in category_choices %}
+                                            <option value="{{ key }}" {% if request.GET.category == key %}selected{% endif %}>
+                                                {{ name }}
+                                            </option>
+                                        {% endfor %}
+                            </select>
+                        </div>
+                        <!-- Age Group -->
+                        <div class="mb-6">
+                            <h4 class="font-semibold text-gray-800 mb-3">Độ tuổi</h4>
+                            <select name="age" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">Tất cả độ tuổi</option>
+                                <option value="18-30" {% if selected_age == "18-30" %}selected{% endif %}>18-30 tuổi</option>
+                                <option value="31-45" {% if selected_age == "31-45" %}selected{% endif %}>31-45 tuổi</option>
+                                <option value="46-60" {% if selected_age == "46-60" %}selected{% endif %}>46-60 tuổi</option>
+                                <option value="60+" {% if selected_age == "60+" %}selected{% endif %}>Trên 60 tuổi</option>
+                            </select>
+                        </div>
+
+                        <!-- Coverage Amount -->
+                        <div class="mb-6">
+                            <h4 class="font-semibold text-gray-800 mb-3">Mức bảo hiểm</h4>
+                            <select name="coverage" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">Tất cả mức bảo hiểm</option>
+                                <option value="0-10000000" {% if selected_coverage == "0-10000000" %}selected{% endif %}>Dưới 10 triệu</option>
+                                <option value="10000000-50000000" {% if selected_coverage == "10000000-50000000" %}selected{% endif %}>10 - 50 triệu</option>
+                                <option value="50000000-100000000" {% if selected_coverage == "50000000-100000000" %}selected{% endif %}>50 triệu - 100 triệu</option>
+                                <option value="100000000+" {% if selected_coverage == "100000000+" %}selected{% endif %}>Trên 100 triệu</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg">Lọc</button>
+                    </form>
+
+                    </div>
+                </div>

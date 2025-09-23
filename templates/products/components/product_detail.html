@@ -1,0 +1,241 @@
+<!-- product_detail.html -->
+{% extends 'base/trangchu.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-6xl">
+
+    <!-- Chi tiết sản phẩm chính -->
+    <div class="grid lg:grid-cols-3 gap-8 mb-12">
+        <!-- Thông tin sản phẩm -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <h1 class="text-3xl font-bold text-gray-800 mb-4">{{ product.product_name }}</h1>
+
+                <div class="flex items-center mb-6">
+                    <div class="flex text-yellow-400">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= product.average_rating|default:4.8 %}
+                                <i class="fas fa-star"></i>
+                            {% else %}
+                                <i class="far fa-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <span class="ml-2 text-gray-600">(4.8/5 từ 124 đánh giá)</span>
+                </div>
+
+                <div class="prose text-gray-600 mb-8">
+                    <p class="text-lg leading-relaxed">{{ product.description }}</p>
+                </div>
+
+                <!-- Chi tiết bảo hiểm -->
+                <div class="bg-blue-50 rounded-lg p-6 mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📋 Quyền lợi bảo hiểm</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-shield-alt text-blue-600 mr-3"></i>
+                            <span class="text-gray-700">Mức bảo hiểm tối đa:
+                                <strong class="text-blue-600">
+                                    {% if product.max_claim_amount %}
+                                        {{ product.max_claim_amount_short }} VNĐ
+                                    {% else %}
+                                        Không giới hạn
+                                    {% endif %}
+                                </strong>
+                            </span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-sync-alt text-blue-600 mr-3"></i>
+                            <span class="text-gray-700">Số lần chi trả/năm:
+                                <strong class="text-blue-600">
+                                    {% if product.claim_limit_per_year %}
+                                        {{ product.claim_limit_per_year }} lần
+                                    {% else %}
+                                        Không giới hạn
+                                    {% endif %}
+                                </strong>
+                            </span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-money-bill-wave text-blue-600 mr-3"></i>
+                            <span class="text-gray-700">Phạm vi bảo hiểm:
+                                <strong class="text-blue-600">Toàn cầu</strong>
+
+                            </span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-clock text-blue-600 mr-3"></i>
+                            <span class="text-gray-700">Thời gian chờ:
+                                <strong class="text-blue-600">15 ngày</strong>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Điều khoản chi tiết -->
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📝 Điều khoản và điều kiện</h3>
+                    <div class="prose text-gray-600 max-h-48 overflow-y-auto">
+                        <ul class="list-disc pl-6 text-gray-600">
+                            {% for line in product.terms_and_conditions.splitlines %}
+                                {% if line.strip %}
+                                    <li>{{ line }}</li>
+                                {% endif %}
+                            {% endfor %}
+</ul>
+
+                    </div>
+                    <div class="space-y-4">
+                            <div class="border-l-4 border-green-500 pl-4">
+                                <h4 class="font-semibold text-gray-800">✅ Được bảo hiểm</h4>
+                                <ul class="text-gray-600 mt-2 space-y-1">
+                                    <li>• Chi phí điều trị nội trú và ngoại trú</li>
+                                    <li>• Phẫu thuật và các thủ thuật y tế</li>
+                                    <li>• Thuốc men theo đơn bác sĩ</li>
+                                    <li>• Xét nghiệm, chẩn đoán hình ảnh</li>
+                                    <li>• Cấp cứu 24/7</li>
+                                </ul>
+                            </div>
+                            <div class="border-l-4 border-red-500 pl-4">
+                                <h4 class="font-semibold text-gray-800">❌ Không được bảo hiểm</h4>
+                                <ul class="text-gray-600 mt-2 space-y-1">
+                                    <li>• Bệnh có từ trước khi tham gia</li>
+                                    <li>• Tai nạn do sử dụng chất kích thích</li>
+                                    <li>• Thẩm mỹ không cần thiết</li>
+                                    <li>• Điều trị tại nước ngoài không được phê duyệt</li>
+                                </ul>
+                            </div>
+                        </div>
+                </div>
+                <div class="bg-green-50 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">🔄 Quy trình bồi thường đơn giản</h3>
+                        <div class="grid md:grid-cols-3 gap-4">
+                            <div class="text-center">
+                                <div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <span class="text-white font-bold">1</span>
+                                </div>
+                                <h4 class="font-semibold text-gray-800">Báo cáo sự cố</h4>
+                                <p class="text-sm text-gray-600 mt-1">Gọi hotline 1900-xxx-xxx</p>
+                            </div>
+                            <div class="text-center">
+                                <div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <span class="text-white font-bold">2</span>
+                                </div>
+                                <h4 class="font-semibold text-gray-800">Nộp hồ sơ</h4>
+                                <p class="text-sm text-gray-600 mt-1">Online hoặc tại văn phòng</p>
+                            </div>
+                            <div class="text-center">
+                                <div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <span class="text-white font-bold">3</span>
+                                </div>
+                                <h4 class="font-semibold text-gray-800">Nhận tiền</h4>
+                                <p class="text-sm text-gray-600 mt-1">Trong vòng 7 ngày làm việc</p>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+        </div>
+
+        <!-- Box mua hàng -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-xl shadow-lg p-6 sticky top-24">
+                <div class="text-center mb-6">
+                    <div class="text-4xl font-bold text-green-600 mb-2">
+                        {{ product.premium_base_amount_short }} VNĐ
+                    </div>
+                    <p class="text-gray-600">Phí bảo hiểm hàng năm</p>
+                </div>
+
+                <div class="space-y-3 mb-6">
+                    <div class="flex items-center text-green-600">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        <span class="text-sm">Bảo hiểm 24/7 toàn cầu</span>
+                    </div>
+                    <div class="flex items-center text-green-600">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        <span class="text-sm">Chi trả trực tiếp tại bệnh viện</span>
+                    </div>
+                    <div class="flex items-center text-green-600">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        <span class="text-sm">Hỗ trợ y tế khẩn cấp</span>
+                    </div>
+                </div>
+
+                <a href=""
+                   class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-4 px-6 rounded-xl font-semibold text-center block mb-4 transition-all duration-200 transform hover:scale-105">
+                    <i class="fas fa-shopping-cart mr-2"></i>Mua ngay
+                </a>
+
+                <div class="text-center text-xs text-gray-500 mb-4">
+                    <p>✅ Hoàn tiền trong 30 ngày nếu không hài lòng</p>
+                    <p>✅ Đăng ký online - Nhận thẻ bảo hiểm ngay</p>
+                </div>
+
+                <div class="border-t pt-4">
+                    <div class="flex items-center justify-center text-gray-600">
+                        <i class="fas fa-headset mr-2 text-blue-600"></i>
+                        <span class="text-sm">Hỗ trợ 24/7: <strong>1900 1234</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sản phẩm liên quan -->
+    {% if related_products %}
+    <div class="bg-gray-50 rounded-xl p-8">
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="text-2xl font-bold text-gray-800">Sản phẩm tương tự</h2>
+            <a href="{% url 'custom_products_user' %}" class="text-blue-600 hover:text-blue-800 text-sm font-semibold">
+                Xem tất cả <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {% for related in related_products %}
+            <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <div class="h-32 bg-gradient-to-br from-{{ related.get_color_class }}-400 to-{{ related.get_color_class }}-600 flex items-center justify-center">
+                    <i class="fas fa-shield-alt text-white text-4xl"></i>
+                </div>
+
+                <div class="p-4">
+                    <h3 class="font-semibold text-gray-800 mb-2 line-clamp-2">{{ related.product_name }}</h3>
+                    <p class="text-green-600 font-bold text-lg mb-3">
+                        {{ related.premium_base_amount_short }} VNĐ
+                    </p>
+
+                    <div class="flex items-center justify-between">
+                        <span class="bg-{{ related.get_color_class }}-100 text-{{ related.get_color_class }}-800 text-xs px-2 py-1 rounded">
+                            {{ related.get_category_display }}
+                        </span>
+                        <span class="text-yellow-500 text-sm">
+                            <i class="fas fa-star"></i> 4.8
+                        </span>
+                    </div>
+
+                    <a href="{% url 'product_detail' related.id %}"
+                       class="mt-4 w-full bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 px-4 rounded-lg text-sm font-medium text-center block transition">
+                        Xem chi tiết
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.prose {
+    max-width: none;
+}
+</style>
+{% endblock %}
