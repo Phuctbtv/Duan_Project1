@@ -60,7 +60,7 @@
                 <a href="{% url 'trangchu' %}" class="text-gray-700 hover:text-blue-600 font-medium transition">
                     Trang chủ
                 </a>
-                <a href="#products" class="text-gray-700 hover:text-blue-600 font-medium transition">
+                <a href="{% url 'custom_products_user' %}" class="text-gray-700 hover:text-blue-600 font-medium transition">
                     Sản phẩm
                 </a>
                 <a href="#about" class="text-gray-700 hover:text-blue-600 font-medium transition">
@@ -130,18 +130,18 @@
             <div class="flex flex-col space-y-2 pt-4">
                 <a href="{% url 'trangchu' %}" class="text-gray-700 hover:text-blue-600 font-medium py-2 transition">Trang
                     chủ</a>
-                <a href="#products" class="text-gray-700 hover:text-blue-600 font-medium py-2 transition">Sản phẩm</a>
+                <a href="{% url 'custom_products_user' %}" class="text-gray-700 hover:text-blue-600 font-medium py-2 transition">Sản phẩm</a>
                 <a href="#about" class="text-gray-700 hover:text-blue-600 font-medium py-2 transition">Về chúng tôi</a>
                 <a href="#contact" class="text-gray-700 hover:text-blue-600 font-medium py-2 transition">Liên hệ</a>
 
                 {% if user.is_authenticated %}
                 <div class="border-t pt-2 mt-2">
                     <div class="text-sm text-gray-500 py-2">Xin chào, {{ user.username }}</div>
-                    <a href="#profile" class="block text-gray-700 hover:text-blue-600 font-medium py-2 transition">
+                    <a href="{% url 'custom_profile_user' %}" class="block text-gray-700 hover:text-blue-600 font-medium py-2 transition">
                         <i class="fas fa-user mr-2"></i>Thông tin cá nhân
                     </a>
-                    <a href="#contracts" class="block text-gray-700 hover:text-blue-600 font-medium py-2 transition">
-                        <i class="fas fa-file-contract mr-2"></i>Hợp đồng của tôi
+                    <a href="{% url 'custom_policies_users' %}" class="block text-gray-700 hover:text-blue-600 font-medium py-2 transition">
+                        <i class="fas fa-file-contract mr-2"></i> Quản lý tài khoản
                     </a>
                     <form method="post" action="{% url 'logout' %}" class="mt-2">
                         {% csrf_token %}

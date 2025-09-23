@@ -1,0 +1,60 @@
+{% extends 'base/trangchu.html' %}
+{% block title %}Sản phẩm bảo hiểm - SecureLife - SecureLife{% endblock %}
+{% load static %}
+{% block content %}
+
+<style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        .filter-slide { transition: all 0.3s ease; max-height: 0; overflow: hidden; }
+        .filter-slide.open { max-height: 500px; }
+        .price-range { background: linear-gradient(to right, #3b82f6, #10b981); }
+    </style>
+<div class="bg-gray-50">
+    <!-- Hero Section -->
+    <section class="gradient-bg text-white py-16">
+        <div class="container mx-auto px-6 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">Sản phẩm bảo hiểm</h1>
+            <p class="text-xl text-blue-100 mb-8">Tìm gói bảo hiểm phù hợp nhất cho bạn và gia đình</p>
+
+            <!-- Search Bar -->
+            <form method="get"  class="max-w-2xl mx-auto">
+                <div class="relative">
+                    <input name="search" value="{{ request.GET.search }}" type="text" id="searchInput" placeholder="Tìm kiếm sản phẩm bảo hiểm..." class="w-full px-6 py-4 pl-12 text-gray-800 rounded-xl border-0 focus:ring-4 focus:ring-blue-300 text-lg">
+                    <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl"></i>
+                </div>
+                 </form>
+        </div>
+
+    </section>
+
+    <!-- Filters & Products -->
+    {% include 'products/components/filter_product_user.html' %}
+
+    <!-- Compare Modal -->
+    <div id="compareModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-2xl max-w-6xl w-full max-h-screen overflow-y-auto">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-2xl font-bold text-gray-800">So sánh sản phẩm</h3>
+                        <button onclick="toggleCompare()" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times text-2xl"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="p-6">
+                    <div id="compareContent" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Compare content will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<script src="{% static 'js/product.js' %}"></script>
+</div>
+{% endblock content %}
