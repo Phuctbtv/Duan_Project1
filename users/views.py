@@ -10,7 +10,8 @@ from users.forms.RegisterForm import RegisterForm
 from users.forms.ChangePasswordForm import ChangePasswordForm
 from users.models import User, Customer
 
-
+from django.contrib.auth.views import PasswordResetConfirmView
+from .forms.CustomSetPasswordForm import CustomSetPasswordForm
 def trangchu(request):
     return render(request, "base/trangchu_base.html")
 
@@ -167,6 +168,12 @@ def change_password(request):
         form = ChangePasswordForm()
 
     return redirect("custom_profile_user")
+
+
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+    form_class = CustomSetPasswordForm
+    template_name = 'users/components/registration/password_reset_confirm.html'
+    success_url = '/login/'
 
 
 

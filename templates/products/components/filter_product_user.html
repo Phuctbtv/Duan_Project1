@@ -67,13 +67,37 @@
                             </div>
                         </div>
                         {% endfor %}
-                    </div>
 
-                    <!-- Load More Button -->
-                    <div class="text-center mt-12">
-                        <button class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition">
-                            <i class="fas fa-plus mr-2"></i>Xem thêm sản phẩm
-                        </button>
+                    </div>
+                    <!-- Pagination -->
+                    <div class="flex justify-center mt-12">
+                        <nav class="inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                            {% if products.has_previous %}
+                                <a href="?page=1{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"
+                                   class="px-3 py-2 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700">
+                                    « First
+                                </a>
+                                <a href="?page={{ products.previous_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"
+                                   class="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700">
+                                    ‹ Prev
+                                </a>
+                            {% endif %}
+
+                            <span class="px-4 py-2 text-white bg-blue-600 border border-blue-600">
+                                Page {{ products.number }} / {{ products.paginator.num_pages }}
+                            </span>
+
+                            {% if products.has_next %}
+                                <a href="?page={{ products.next_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"
+                                   class="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700">
+                                    Next ›
+                                </a>
+                                <a href="?page={{ products.paginator.num_pages }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"
+                                   class="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700">
+                                    Last »
+                                </a>
+                            {% endif %}
+                        </nav>
                     </div>
                 </div>
             </div>
