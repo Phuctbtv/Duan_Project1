@@ -1,0 +1,119 @@
+{% extends 'admin/admin_home.html' %}
+{% load static %}
+
+{% block content %}
+<div class="p-6 bg-white rounded-xl shadow-sm max-w-5xl mx-auto">
+    <h2 class="text-2xl font-bold mb-6">{{ title }}</h2>
+
+    <form method="post" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% csrf_token %}
+
+        <!-- Khách hàng -->
+        <div class="flex flex-col">
+            <label class="font-medium text-gray-700 mb-1">Khách hàng</label>
+            {{ form.customer }}
+            {% for error in form.customer.errors %}
+                <p class="text-red-500 text-sm">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- Sản phẩm bảo hiểm -->
+        <div class="flex flex-col">
+            <label class="font-medium text-gray-700 mb-1">Sản phẩm bảo hiểm</label>
+            {{ form.product }}
+            {% for error in form.product.errors %}
+                <p class="text-red-500 text-sm">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- Số hợp đồng -->
+        <div class="flex flex-col">
+            <label class="font-medium text-gray-700 mb-1">Số hợp đồng</label>
+            {{ form.policy_number }}
+            {% for error in form.policy_number.errors %}
+                <p class="text-red-500 text-sm">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- Ngày hiệu lực -->
+        <div class="flex flex-col">
+            <label class="font-medium text-gray-700 mb-1">Ngày hiệu lực</label>
+            {{ form.start_date }}
+            {% for error in form.start_date.errors %}
+                <p class="text-red-500 text-sm">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- Ngày hết hạn -->
+        <div class="flex flex-col">
+            <label class="font-medium text-gray-700 mb-1">Ngày hết hạn</label>
+            {{ form.end_date }}
+            {% for error in form.end_date.errors %}
+                <p class="text-red-500 text-sm">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- Phí bảo hiểm -->
+        <div class="flex flex-col">
+            <label class="font-medium text-gray-700 mb-1">Phí bảo hiểm</label>
+            {{ form.premium_amount }}
+            {% for error in form.premium_amount.errors %}
+                <p class="text-red-500 text-sm">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- Trạng thái thanh toán -->
+        <div class="flex flex-col">
+            <label class="font-medium text-gray-700 mb-1">Trạng thái thanh toán</label>
+            {{ form.payment_status }}
+            {% for error in form.payment_status.errors %}
+                <p class="text-red-500 text-sm">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- Trạng thái hợp đồng -->
+        <div class="flex flex-col">
+            <label class="font-medium text-gray-700 mb-1">Trạng thái hợp đồng</label>
+            {{ form.policy_status }}
+            {% for error in form.policy_status.errors %}
+                <p class="text-red-500 text-sm">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- URL tài liệu hợp đồng -->
+        <div class="flex flex-col md:col-span-2">
+            <label class="font-medium text-gray-700 mb-1">URL tài liệu hợp đồng</label>
+            {{ form.policy_document_url }}
+            {% for error in form.policy_document_url.errors %}
+                <p class="text-red-500 text-sm">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- Tổng số tiền bảo hiểm -->
+        <div class="flex flex-col">
+            <label class="font-medium text-gray-700 mb-1">Tổng số tiền bảo hiểm</label>
+            {{ form.sum_insured }}
+            {% for error in form.sum_insured.errors %}
+                <p class="text-red-500 text-sm">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- Tổng số tiền đã chi trả -->
+        <div class="flex flex-col">
+            <label class="font-medium text-gray-700 mb-1">Tổng số tiền đã chi trả</label>
+            {{ form.claimed_amount }}
+            {% for error in form.claimed_amount.errors %}
+                <p class="text-red-500 text-sm">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- Buttons -->
+        <div class="md:col-span-2 flex items-center space-x-4 mt-4">
+            <button type="submit" class="gradient-bg text-white px-6 py-2 rounded-lg hover:opacity-90 transition-opacity">
+                Lưu Hợp Đồng
+            </button>
+            <a href="{% url 'custom_policies_admin' %}" class="text-gray-600 hover:text-gray-900">Hủy</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

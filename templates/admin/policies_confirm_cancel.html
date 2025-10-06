@@ -1,0 +1,24 @@
+{% extends 'admin/admin_home.html' %}
+{% load static %}
+
+{% block content %}
+<div class="section p-6">
+
+    <h2 class="text-2xl font-bold mb-4">Hủy Hợp Đồng</h2>
+
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <p>Bạn có chắc chắn muốn hủy hợp đồng <strong>{{ policy.policy_number }}</strong> của khách hàng <strong>{{ policy.customer.user.username }}</strong> không?</p>
+
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 mr-2">
+                Hủy hợp đồng
+            </button>
+            <a href="{% url 'admin_policy_list' %}" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400">
+                Hủy bỏ
+            </a>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

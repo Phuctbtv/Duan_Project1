@@ -1,0 +1,16 @@
+{% extends 'admin/admin_home.html' %}
+
+{% block content %}
+<div class="p-6 max-w-lg mx-auto bg-white rounded-xl shadow-sm">
+    <h2 class="text-xl font-bold mb-4">Gia hạn hợp đồng {{ old_policy.policy_number }}</h2>
+    <p class="mb-4">Bạn có chắc muốn gia hạn hợp đồng này không?</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="flex gap-4">
+            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Gia hạn</button>
+            <a href="{% url 'admin_policy_list' %}" class="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500">Hủy</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
