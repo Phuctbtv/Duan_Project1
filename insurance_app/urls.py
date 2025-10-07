@@ -9,4 +9,5 @@ urlpatterns = [
     path("custom_policies/", include("policies.urls")),
     path("custom_payments/", include("payments.urls")),
     path("custom_claims/", include("claims.urls")),
+    path('custom_user/', include('dashboard.urls')),
 ]
