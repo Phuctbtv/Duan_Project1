@@ -21,12 +21,15 @@
                     <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Số hợp đồng..."
                            class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
 
-                    <select name="product" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                        <option value="">Tất cả sản phẩm</option>
-                        <option value="oto">Bảo hiểm ô tô</option>
-                        <option value="suckhoe">Bảo hiểm sức khỏe</option>
-                        <option value="nhao">Bảo hiểm nhà ở</option>
+                  <select name="product" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Tất cả sản phẩm</option>
+                            {% for p in products %}
+                            <option value="{{ p.product_name }}" {% if selected_product == p.product_name %}selected{% endif %}>
+                            {{ p.product_name }}
+                            </option>
+                        {% endfor %}
                     </select>
+
 
                     <select name="status" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                         <option value="">Tất cả trạng thái</option>

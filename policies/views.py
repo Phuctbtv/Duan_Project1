@@ -1,21 +1,28 @@
 from datetime import timezone
-
-from django.contrib.auth.decorators import login_required
-from django.db.models import Q
-from django.shortcuts import render
-
-from policies.models import Policy
 from django.db import models
 from datetime import timedelta
 from django.utils import timezone
+from django.contrib.auth.decorators import login_required
+from django.db.models import Q
+from insurance_products.models import InsuranceProduct  # import model sản phẩm
 @login_required
 def custom_policies_admin(request):
     query = request.GET.get('q', '')
     status = request.GET.get('status', '')
     product = request.GET.get('product', '')
 
+    # Lấy tất cả sản phẩm từ CSDL để hiển thị dropdown
+    products = InsuranceProduct.objects.all()
+
     # Lấy tất cả hợp đồng + join với customer và product
     policies = Policy.objects.select_related('customer', 'product').all()
+
+    # Cập nhật trạng thái expired nếu end_date < hôm nay
+    today = timezone.now().date()
+    for policy in policies:
+        if policy.end_date < today and policy.policy_status != "expired":
+            policy.policy_status = "expired"
+            policy.save(update_fields=["policy_status"])
 
     # Filter theo tìm kiếm
     if query:
@@ -29,7 +36,11 @@ def custom_policies_admin(request):
         policies = policies.filter(product__product_name__icontains=product)
 
     context = {
-        'policies': policies
+        'policies': policies,
+        'products': products,  # gửi danh sách sản phẩm sang template
+        'query': query,
+        'status': status,
+        'selected_product': product,
     }
     return render(request, 'admin/policies_section.html', context)
 

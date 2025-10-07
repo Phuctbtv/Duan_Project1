@@ -18,6 +18,7 @@ class PolicyForm(forms.ModelForm):
             "policy_document_url",
             "payment_status",
             "policy_status",
+            "claimed_amount",  # thêm vào đây
         ]
         widgets = {
             "customer": forms.Select(attrs={
@@ -43,13 +44,22 @@ class PolicyForm(forms.ModelForm):
             "sum_insured": forms.NumberInput(attrs={
                 "class": "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             }),
-            "policy_document_url": forms.FileInput(attrs={
-                "class": "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            # "policy_document_url": forms.FileInput(attrs={
+            #     "class": "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            # }),
+            "policy_document_url": forms.URLInput(attrs={
+                "class": "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500",
+                "placeholder": "Nhập URL tài liệu hợp đồng"
             }),
+
             "payment_status": forms.Select(attrs={
                 "class": "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             }),
             "policy_status": forms.Select(attrs={
                 "class": "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            }),
+            "claimed_amount": forms.NumberInput(attrs={  # widget cho claimed_amount
+                "class": "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500",
+                "placeholder": "Nhập tổng số tiền đã chi trả"
             }),
         }
