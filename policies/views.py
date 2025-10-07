@@ -1,12 +1,48 @@
+from datetime import timezone
+from django.db import models
+from datetime import timedelta
+from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from django.shortcuts import render
-
-from policies.models import Policy
-from django.db import models
-
+from insurance_products.models import InsuranceProduct  # import model sản phẩm
+@login_required
 def custom_policies_admin(request):
-    return render(request, 'admin/policies_section.html')
+    query = request.GET.get('q', '')
+    status = request.GET.get('status', '')
+    product = request.GET.get('product', '')
+
+    # Lấy tất cả sản phẩm từ CSDL để hiển thị dropdown
+    products = InsuranceProduct.objects.all()
+
+    # Lấy tất cả hợp đồng + join với customer và product
+    policies = Policy.objects.select_related('customer', 'product').all()
+
+    # Cập nhật trạng thái expired nếu end_date < hôm nay
+    today = timezone.now().date()
+    for policy in policies:
+        if policy.end_date < today and policy.policy_status != "expired":
+            policy.policy_status = "expired"
+            policy.save(update_fields=["policy_status"])
+
+    # Filter theo tìm kiếm
+    if query:
+        policies = policies.filter(
+            Q(policy_number__icontains=query) |
+            Q(product__product_name__icontains=query)
+        )
+    if status and status != '':
+        policies = policies.filter(policy_status=status)
+    if product and product != '':
+        policies = policies.filter(product__product_name__icontains=product)
+
+    context = {
+        'policies': policies,
+        'products': products,  # gửi danh sách sản phẩm sang template
+        'query': query,
+        'status': status,
+        'selected_product': product,
+    }
+    return render(request, 'admin/policies_section.html', context)
 
 @login_required
 def dashboard_view_user(request):
@@ -74,3 +110,91 @@ def search_policies(user, search_query=""):
         )
 
     return policies
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Policy
+from .forms import PolicyForm
+from django.contrib import messages
+
+@login_required
+def admin_policy_list(request):
+    """Danh sách + tìm kiếm hợp đồng"""
+
+    # Cập nhật trạng thái hết hạn
+    now = timezone.now().date()
+    expired_policies = Policy.objects.filter(end_date__lt=now, policy_status="active")
+    expired_policies.update(policy_status="expired")
+
+    query = request.GET.get('q', '')
+    status = request.GET.get('status', '')
+    product = request.GET.get('product', '')
+
+    policies = Policy.objects.select_related('customer', 'product').all()
+
+    if query:
+        policies = policies.filter(policy_number__icontains=query)
+    if status and status != 'Tất cả trạng thái':
+        policies = policies.filter(policy_status=status)
+    if product and product != 'Tất cả sản phẩm':
+        policies = policies.filter(product__product_name=product)
+
+    context = {
+        'policies': policies,
+        'query': query,
+        'status': status,
+        'product': product,
+    }
+    return render(request, 'admin/policies_section.html', context)
+
+
+@login_required
+def admin_policy_create(request):
+    """Tạo hợp đồng"""
+    if request.method == 'POST':
+        form = PolicyForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Đã thêm hợp đồng thành công!")
+            return redirect('admin_policy_list')
+    else:
+        form = PolicyForm()
+    return render(request, 'admin/policies_form.html', {'form': form, 'title': 'Tạo Hợp Đồng'})
+
+
+@login_required
+def admin_policy_detail(request, pk):
+    """Xem chi tiết"""
+    policy = get_object_or_404(Policy, pk=pk)
+    return render(request, 'admin/policies_detail.html', {'policy': policy})
+
+
+@login_required
+def admin_policy_renew(request, pk):
+    """Gia hạn hợp đồng - cập nhật bản ghi cũ"""
+    policy = get_object_or_404(Policy, pk=pk)
+    if request.method == 'POST':
+        # Tính số ngày hợp đồng hiện tại
+        duration = policy.end_date - policy.start_date
+
+        # Cập nhật ngày mới
+        policy.start_date = policy.end_date + timedelta(days=1)
+        policy.end_date = policy.start_date + duration
+
+        policy.policy_status = "active"  # đặt lại trạng thái nếu cần
+        policy.save()
+
+        messages.success(request, f"Hợp đồng {policy.policy_number} đã được gia hạn thành công!")
+        return redirect('admin_policy_list')
+
+    return render(request, 'admin/policies_confirm_renew.html', {'old_policy': policy})
+
+
+@login_required
+def admin_policy_cancel(request, pk):
+    """Hủy hợp đồng"""
+    policy = get_object_or_404(Policy, pk=pk)
+    if request.method == 'POST':
+        policy.policy_status = "cancelled"
+        policy.save()
+        messages.warning(request, f"Hợp đồng {policy.policy_number} đã bị hủy.")
+        return redirect('admin_policy_list')
+    return render(request, 'admin/policies_confirm_cancel.html', {'policy': policy})
