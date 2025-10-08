@@ -28,6 +28,8 @@ urlpatterns = [
 
     # Hủy hợp đồng
     path('admin/policies/<int:pk>/cancel/', views.admin_policy_cancel, name='policy_delete'),
+    # Sửa hợp đồng - THÊM DÒNG NÀY
+    path('admin/policies/<int:pk>/edit/', views.admin_policy_edit, name='policy_edit'),
 
     # USER
     path('user/policies/dashboard/', views.dashboard_view_user, name='custom_policies_users'),
