@@ -54,11 +54,11 @@
                                 </div>
 
 
-
                                 <div class="flex space-x-2">
-                                    <button class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium transition">
+                                   <a href="{% url 'buy_now' product.id %}"
+                                       class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium transition text-center block">
                                         Mua ngay
-                                    </button>
+                                    </a>
                                     <a href="{% url 'product_detail' product.id %}"
                                        class="px-4 py-2 border border-green-600 text-green-600 hover:bg-green-50 rounded-lg transition inline-flex items-center">
                                         <i class="fas fa-info-circle"></i>

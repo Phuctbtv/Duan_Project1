@@ -2,572 +2,693 @@
 
 {% load static %}
 {% block users %}
-<div class="w-full">
-<!-- Progress Steps -->
-<section class="bg-white border-b border-gray-200 py-6">
-    <div class="container mx-auto px-6">
-        <div class="flex items-center justify-center space-x-8">
-            <div class="flex items-center">
-                <div class="w-10 h-10 rounded-full step-completed flex items-center justify-center text-white font-bold">
-                    <i class="fas fa-check"></i>
+
+    <!-- Progress Steps -->
+    <div class="bg-white border-b shadow-sm">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center justify-center">
+                <div class="flex items-center space-x-8">
+                    <!-- Step 1 -->
+                    <div class="flex items-center">
+                        <div id="step-1" class="step-indicator w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold active">
+                            1
+                        </div>
+                        <div class="ml-3">
+                            <div class="text-sm font-semibold text-blue-600">Chọn sản phẩm</div>
+                            <div class="text-xs text-gray-500">Lựa chọn gói bảo hiểm</div>
+                        </div>
+                    </div>
+
+                    <div class="w-16 h-1 bg-gray-300 rounded">
+                        <div id="progress-1-2" class="h-full bg-blue-600 rounded transition-all duration-500" style="width: 0%"></div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="flex items-center">
+                        <div id="step-2" class="step-indicator w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-gray-500 font-bold">
+                            2
+                        </div>
+                        <div class="ml-3">
+                            <div class="text-sm font-semibold text-gray-500">Thông tin cá nhân</div>
+                            <div class="text-xs text-gray-400">Điền thông tin để tính phí</div>
+                        </div>
+                    </div>
+
+                    <div class="w-16 h-1 bg-gray-300 rounded">
+                        <div id="progress-2-3" class="h-full bg-blue-600 rounded transition-all duration-500" style="width: 0%"></div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="flex items-center">
+                        <div id="step-3" class="step-indicator w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-gray-500 font-bold">
+                            3
+                        </div>
+                        <div class="ml-3">
+                            <div class="text-sm font-semibold text-gray-500">Xác nhận phí</div>
+                            <div class="text-xs text-gray-400">Kiểm tra phí bảo hiểm</div>
+                        </div>
+                    </div>
+
+                    <div class="w-16 h-1 bg-gray-300 rounded">
+                        <div id="progress-3-4" class="h-full bg-blue-600 rounded transition-all duration-500" style="width: 0%"></div>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="flex items-center">
+                        <div id="step-4" class="step-indicator w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-gray-500 font-bold">
+                            4
+                        </div>
+                        <div class="ml-3">
+                            <div class="text-sm font-semibold text-gray-500">Thanh toán</div>
+                            <div class="text-xs text-gray-400">Hoàn tất thanh toán</div>
+                        </div>
+                    </div>
+
+                    <div class="w-16 h-1 bg-gray-300 rounded">
+                        <div id="progress-4-5" class="h-full bg-blue-600 rounded transition-all duration-500" style="width: 0%"></div>
+                    </div>
+
+                    <!-- Step 5 -->
+                    <div class="flex items-center">
+                        <div id="step-5" class="step-indicator w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-gray-500 font-bold">
+                            5
+                        </div>
+                        <div class="ml-3">
+                            <div class="text-sm font-semibold text-gray-500">Hợp đồng</div>
+                            <div class="text-xs text-gray-400">Sinh hợp đồng bảo hiểm</div>
+                        </div>
+                    </div>
                 </div>
-                <span class="ml-3 text-green-600 font-medium">Chọn sản phẩm</span>
-            </div>
-
-            <div class="w-16 h-1 bg-green-500 rounded"></div>
-
-            <div class="flex items-center">
-                <div class="w-10 h-10 rounded-full step-active flex items-center justify-center text-white font-bold">
-                    2
-                </div>
-                <span class="ml-3 text-blue-600 font-medium">Thông tin & Thanh toán</span>
-            </div>
-
-            <div class="w-16 h-1 bg-gray-300 rounded"></div>
-
-            <div class="flex items-center">
-                <div class="w-10 h-10 rounded-full step-inactive flex items-center justify-center text-gray-500 font-bold">
-                    3
-                </div>
-                <span class="ml-3 text-gray-500 font-medium">Hoàn thành</span>
             </div>
         </div>
     </div>
-</section>
 
-<!-- Main Content -->
-<section class="py-12">
-    <div class="container mx-auto px-6">
-        <div class="max-w-6xl mx-auto">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Step 1: Product Selection -->
+
+        <div id="step-1-content" class="step-content">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-800 mb-4">Chọn sản phẩm bảo hiểm bạn đã xem gần đây</h1>
+                <p class="text-gray-600">Lựa chọn gói bảo hiểm phù hợp với nhu cầu của bạn</p>
+            </div>
+
+            {% if recent_products %}
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {% for product in recent_products %}
+                <div class="product-card bg-white rounded-2xl shadow-lg p-6 border-2 border-transparent hover:border-blue-500 cursor-pointer"
+                     onclick="selectProduct('{{ product.id }}')">
+                    <!-- Icon + Tên -->
+                    <div class="text-center mb-6">
+                        <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-heartbeat text-blue-600 text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">{{ product.product_name }}</h3>
+                        <p class="text-gray-600 text-sm">{{ product.description|truncatewords:10 }}</p>
+                    </div>
+
+                    <!-- Một số thông tin cơ bản -->
+                    <div class="space-y-3 mb-6">
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            <span>{{ product.coverage_details|truncatewords:12 }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Phí cơ bản -->
+                    <div class="text-center mb-4">
+                        <div class="text-2xl font-bold text-blue-600">
+                            Phí từ {{ product.premium_base_amount_short }} {{ product.currency }}/năm
+                        </div>
+                        <div class="text-sm text-gray-500">Phí chính xác sẽ được tính sau</div>
+                    </div>
+
+                    <!-- Tag -->
+                    <div class="bg-blue-50 rounded-lg p-3 text-center">
+                        <span class="text-blue-600 font-semibold text-sm">Bạn vừa xem</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Continue Button -->
+            <div class="text-center">
+                <button id="continue-step-1" onclick="showInfo()" class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:from-blue-700 hover:to-indigo-700 transition duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    <i class="fas fa-arrow-right mr-2"></i>
+                    Tiếp tục
+                </button>
+                <p class="text-sm text-gray-500 mt-2">Vui lòng chọn một sản phẩm để tiếp tục</p>
+            </div>
+        </div>
+
+        <!-- Step 2: Health Insurance Information -->
+        <div id="step-2-content" class="step-content hidden">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-800 mb-4">Thông tin cá nhân & sức khỏe</h1>
+                <p class="text-gray-600">Điền thông tin để hệ thống tính toán phí và phụ phí bảo hiểm</p>
+            </div>
+
             <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Form -->
+                <div class="lg:col-span-2">
+                    <form id="health-info-form" class="bg-white rounded-2xl shadow-lg p-8" onsubmit="return false;">
+                        <div class="grid md:grid-cols-2 gap-6">
+                        {% csrf_token %}
+                            <!-- Thông tin cơ bản -->
+                            <div class="md:col-span-2">
+                                <h3 class="text-lg font-bold text-gray-800 mb-4">Thông tin cơ bản</h3>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Họ và tên *</label>
+                                <input type="text" id="fullName" name="fullname" required class="form-input w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500" readonly>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Ngày sinh *</label>
+                                <input type="date" id="birthDate" required name="birthDate"
+                                       class="form-input w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                       onchange="calculateAge('birthDate','ageDisplay')">
+                            </div>
+
+                            <div class="mt-4">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Tuổi</label>
+                                <input type="text" id="ageDisplay" name="age"
+                                       class="form-input w-full px-4 py-3 border rounded-lg bg-gray-100"
+                                       readonly>
+                            </div>
+                            <div class="mt-4">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">CCCD/CMND: </label>
+                                <input type="number" id="id_card_number" name="id_card_number"
+                                       class="form-input w-full px-4 py-3 border rounded-lg bg-gray-100"
+                                       >
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Giới tính *</label>
+                                <select id="gender" required name="gender" class="form-input w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500" aria-readonly="true">
+                                    <option value="">Chọn</option>
+                                    <option value="male">Nam</option>
+                                    <option value="female">Nữ</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Nghề nghiệp *</label>
+                                <input type="text" id="occupation" name="occupation" required class="form-input w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+
+                            <!-- Thông tin sức khỏe -->
+                            <div class="md:col-span-2 mt-6">
+                                <h3 class="text-lg font-bold text-gray-800 mb-4">Thông tin sức khỏe</h3>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Chiều cao (cm) *</label>
+                                <input type="number" id="height" name="height" class="form-input w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Cân nặng (kg) *</label>
+                                <input type="number" id="weight" name="weight" required class="form-input w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Hút thuốc *</label>
+                                <select id="smoking"  name="smoker" required class="form-input w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Chọn</option>
+                                    <option value="never">Không hút</option>
+                                    <option value="former">Đã bỏ</option>
+                                    <option value="current">Đang hút</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Uống rượu/bia *</label>
+                                <select id="alcohol" name="alcohol" required class="form-input w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Chọn</option>
+                                    <option value="no">Không</option>
+                                    <option value="sometimes">Thỉnh thoảng</option>
+
+                                </select>
+                            </div>
+
+                            <!-- Câu hỏi sức khỏe -->
+                           <div class="md:col-span-2 mt-6">
+                                <h3 class="text-lg font-bold text-gray-800 mb-4">Tiền sử bệnh lý</h3>
+                                <div class="space-y-3">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="conditions[]" value="tiểu_đường" class="mr-2"> Tiểu đường
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="conditions[]" value="tim_mạch_cao_huyết_áp" class="mr-2"> Tim mạch / Cao huyết áp
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="conditions[]" value="ung_thư_thận_gan_phổi" class="mr-2"> Ung thư / Thận / Gan / Phổi
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="conditions[]" value="đang_điều_trị_dài_hạn" class="mr-2"> Đang điều trị dài hạn
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Người thụ hưởng -->
+                            <div class="md:col-span-2 mt-6">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-4">Thông tin người thụ hưởng</h4>
+                                <div class="bg-gray-50 rounded-lg p-4">
+                                    <label class="flex items-center mb-4">
+                                        <input type="checkbox" id="sameBeneficiary" class="rounded text-blue-600 mr-3">
+                                        <span class="text-gray-700">Người mua bảo hiểm cũng là người thụ hưởng</span>
+                                    </label>
+
+                                    <div id="beneficiaryInfo" class="grid md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Họ tên người thụ hưởng</label>
+                                            <input type="text" id="fullname_benefic" name="fullname_benefic" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Họ và tên">
+                                        </div>
+                                        <div  >
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Mối quan hệ</label>
+                                            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" id="relationship_to_customer" name="relationship_to_customer" >
+                                                <option value="">Chọn mối quan hệ</option>
+                                                <option value="spouse">Vợ/Chồng</option>
+                                                <option value="child">Con</option>
+                                                <option value="parent">Cha/Mẹ</option>
+                                                <option value="sibling">Anh/Chị/Em</option>
+                                                <option value="me">Chính mình</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-semibold text-gray-700 mb-2">Ngày sinh *</label>
+                                            <input type="date" name="birthDate_benefic" id="birthDate_benefic" required
+                                                   class="form-input w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                                   onchange="calculateAge('birthDate_benefic','ageDisplay_benefic')">
+                                        </div>
+                                        <div class="mt-4">
+                                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tuổi</label>
+                                            <input type="text" id="ageDisplay_benefic" name="ageDisplay_benefic"
+                                                   class="form-input w-full px-4 py-3 border rounded-lg bg-gray-100"
+                                                   >
+                                        </div>
+                                        <div class="mt-4">
+                                            <label class="block text-sm font-semibold text-gray-700 mb-2">CCCD/CMND:</label>
+                                            <input type="number" id="id_card_number_benefic" name="id_card_number_benefic"
+                                                   class="form-input w-full px-4 py-3 border rounded-lg bg-gray-100"
+                                                   >
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Thông tin liên hệ -->
+                            <div class="md:col-span-2 mt-6">
+                                <h3 class="text-lg font-bold text-gray-800 mb-4">Thông tin liên hệ</h3>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Số điện thoại *</label>
+                                <input type="tel" id="phone" name="phone" required class="form-input w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Email *</label>
+                                <input type="email" id="email" name="email" required class="form-input w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Địa chỉ *</label>
+                                <input type="text" id="address" name="address" required placeholder="Số nhà, đường, quận, tỉnh" class="form-input w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="mt-8 flex justify-between">
+                            <button type="button" onclick="goToStep(1)" class="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300">
+                                <i class="fas fa-arrow-left mr-2"></i> Quay lại
+                            </button>
+                            <button onclick="submitToDjangoForCalculation()"  type="button" class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700">
+                                <i class="fas fa-calculator mr-2"></i> Tính phí bảo hiểm
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Info Panel -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-2xl shadow-lg p-6 sticky top-24">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-box-open text-blue-600 mr-2"></i> Sản phẩm đã chọn
+                        </h3>
+                        <div id="product-summary-step2" class="space-y-4">
+                            <p class="text-sm text-gray-500 italic text-center">Chưa có sản phẩm nào được chọn</p>
+                        </div>
+                        <div class="mt-4">
+                            <button onclick="goToStep(1)" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 px-4 rounded-lg text-sm font-medium">
+                                <i class="fas fa-arrow-left mr-1"></i> Chọn sản phẩm khác
+                            </button>
+                        </div>
+                        <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                            <h4 class="font-semibold text-gray-800 mb-3 flex items-center">
+                                <i class="fas fa-info-circle text-blue-600 mr-2"></i> Lưu ý quan trọng
+                            </h4>
+                            <ul class="text-sm text-gray-600 space-y-2">
+                                <li>• Thông tin chính xác giúp tính phí đúng</li>
+                                <li>• Phí bảo hiểm phụ thuộc vào sức khỏe & lối sống</li>
+                                <li>• Khai báo sai có thể ảnh hưởng đến bồi thường</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Step 3: Premium Calculation -->
+        <div id="step-3-content" class="step-content hidden">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-800 mb-4">Phí bảo hiểm của bạn</h1>
+                <p class="text-gray-600">Hệ thống đã tính toán phí bảo hiểm dựa trên thông tin bạn cung cấp</p>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Premium Details -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-2xl shadow-lg p-8">
+                        <div class="text-center mb-8">
+                            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-calculator text-green-600 text-3xl"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Phí bảo hiểm đã được tính toán</h3>
+                            <div id="calculated-premium" class="text-4xl font-bold text-green-600 mb-2">0 VNĐ</div>
+                            <div class="text-sm text-gray-500">Phí hàng năm (đã bao gồm VAT)</div>
+                        </div>
+
+                        <!-- Premium Breakdown -->
+                        <div id="premium-breakdown" class="bg-gray-50 rounded-xl p-6 mb-8">
+                            <h4 class="font-bold text-gray-800 mb-4">Chi tiết tính phí</h4>
+                            <div class="space-y-3">
+                                <!-- Breakdown items will be inserted here -->
+                            </div>
+                        </div>
+
+                        <!-- Risk Factors -->
+                        <div id="risk-factors" class="mb-8">
+                            <h4 class="font-bold text-gray-800 mb-4">Các yếu tố ảnh hưởng đến phí</h4>
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <!-- Risk factors will be inserted here -->
+                            </div>
+                        </div>
+
+                        <!-- Coverage Details -->
+                        <div class="bg-blue-50 rounded-xl p-6 mb-8">
+                            <h4 class="font-bold text-gray-800 mb-4">Quyền lợi bảo hiểm</h4>
+                            <div id="coverage-details" class="space-y-2">
+                                <!-- Coverage details will be inserted here -->
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between">
+                            <button type="button" onclick="goToStep(2)" class="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition duration-200">
+                                <i class="fas fa-arrow-left mr-2"></i>
+                                Sửa thông tin
+                            </button>
+                            <button onclick="goToStep(4)" class="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-green-700 hover:to-emerald-700 transition duration-300">
+                                <i class="fas fa-arrow-right mr-2"></i>
+                                Xác nhận và thanh toán
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-2xl shadow-lg p-6 sticky top-24">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Thông tin khách hàng</h3>
+                        <div id="customer-summary">
+                            <!-- Customer summary will be inserted here -->
+                        </div>
+
+                        <div class="mt-6 p-4 bg-yellow-50 rounded-lg">
+                            <h4 class="font-semibold text-gray-800 mb-2">⚠️ Lưu ý</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Phí có thể thay đổi nếu sửa thông tin</li>
+                                <li>• Bảo hiểm có hiệu lực sau thanh toán</li>
+                                <li>• Hỗ trợ tư vấn: 1900-xxx-xxx</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Payment -->
+        <div id="step-4-content" class="step-content hidden">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-800 mb-4">Thanh toán</h1>
+                <p class="text-gray-600">Hoàn tất thanh toán để kích hoạt bảo hiểm</p>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Payment Methods -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-2xl shadow-lg p-8">
+                        <h3 class="text-lg font-bold text-gray-800 mb-6">Phương thức thanh toán</h3>
+
+                        <!-- Payment Options -->
+                        <div class="space-y-4 mb-8">
+
+                            <!-- Bank Transfer -->
+                            <div class="payment-method border-2 border-gray-200 rounded-xl p-4 cursor-pointer hover:border-green-500 transition duration-200" onclick="selectPaymentMethod('bank')">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                                            <i class="fas fa-university text-green-600 text-xl"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-gray-800">Chuyển khoản ngân hàng</h4>
+                                            <p class="text-sm text-gray-600">Chuyển khoản trực tiếp</p>
+                                        </div>
+                                    </div>
+                                    <input type="radio" name="payment" value="bank" class="w-5 h-5 text-green-600">
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- Payment Form -->
+
+                        <form id="payment-form" class="hidden">
+
+                            <!-- Bank Transfer Form -->
+                            <div id="bank-form" class="hidden">
+                                <h4 class="font-semibold text-gray-800 mb-4">Thông tin chuyển khoản</h4>
+                                <div class="bg-gray-50 rounded-lg p-4">
+                                    <div class="grid md:grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                            <span class="font-semibold">Ngân hàng:</span>
+                                            <p>MB BANK - Chi nhánh Hà Nội</p>
+                                        </div>
+                                        <div>
+                                            <span class="font-semibold">Số tài khoản:</span>
+                                            <p>0325349348</p>
+                                        </div>
+                                        <div>
+                                            <span class="font-semibold">Chủ tài khoản:</span>
+                                            <p>CONG TY VIETINSURANCE</p>
+                                        </div>
+                                        <div>
+                                            <span class="font-semibold">Số tiền:</span>
+                                            <p id="transfer-amount"></p>
+                                        </div>
+                                        <div>
+                                            <span class="font-semibold">Nội dung:</span>
+                                            <p id="transfer-content"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </form>
+
+                        <div class="mt-8 flex justify-between">
+                            <button type="button" onclick="goToStep(3)" class="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition duration-200">
+                                <i class="fas fa-arrow-left mr-2"></i>
+                                Quay lại
+                            </button>
+                              <button
+                                      id="payment-submit" onclick="processPayment()"
+                                      class="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-green-700 hover:to-emerald-700 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                  <i class="fas fa-lock mr-2"></i>
+                                  Thanh toán an toàn
+                              </button>
+
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Order Summary -->
                 <div class="lg:col-span-1">
-                    <div class="bg-white rounded-xl shadow-lg p-6 sticky top-6">
-                        <h3 class="text-xl font-bold text-gray-800 mb-6">Tóm tắt đơn hàng</h3>
+                    <div class="bg-white rounded-2xl shadow-lg p-6 sticky top-24">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Chi tiết thanh toán</h3>
+                        <div id="final-order-summary">
+                            <!-- Final order summary will be inserted here -->
+                        </div>
 
-                        <!-- Selected Product -->
-                        <div class="border border-gray-200 rounded-lg p-4 mb-6">
-                            <div class="flex items-center mb-4">
-                                <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center">
-                                    <i class="fas fa-heartbeat text-2xl text-white"></i>
+                        <div class="mt-6 p-4 bg-green-50 rounded-lg">
+                            <h4 class="font-semibold text-gray-800 mb-2">🛡️ Bảo mật thanh toán</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Mã hóa PCI DSS</li>
+                                <li>• Xác thực 3D Secure</li>
+                                <li>• Hoàn tiền 100%</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Contract -->
+        <div id="step-5-content" class="step-content hidden">
+            <div class="text-center mb-8">
+                <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-check text-green-600 text-4xl"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-800 mb-4">Thanh toán đang chờ xử lý !</h1>
+                <p class="text-gray-600 mb-8">Hợp đồng bảo hiểm đã được tạo thành công</p>
+            </div>
+
+            <!-- Contract Display -->
+            <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Hợp đồng bảo hiểm</h2>
+                    <div class="flex space-x-4">
+                        <button onclick="printContract()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition duration-200">
+                            <i class="fas fa-print mr-2"></i>
+                            In hợp đồng
+                        </button>
+                        <button onclick="downloadContract()" class="bg-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-700 transition duration-200">
+                            <i class="fas fa-download mr-2"></i>
+                            Tải PDF
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Contract Content -->
+                <div id="contract-content" class="print-area">
+                    <div class="border-2 border-gray-300 rounded-lg p-8">
+                        <!-- Contract Header -->
+                        <div class="text-center mb-8">
+                            <div class="flex items-center justify-center mb-4">
+                                <div class="w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center mr-4">
+                                    <i class="fas fa-shield-alt text-white text-2xl"></i>
                                 </div>
-                                <div class="ml-4">
-                                    <h4 class="font-semibold text-gray-800">Bảo hiểm Sức khỏe Cơ bản</h4>
-                                    <p class="text-sm text-gray-600">Gói bảo vệ toàn diện</p>
+                                <div>
+                                    <h1 class="text-3xl font-bold text-gray-800">VietInsurance</h1>
+                                    <p class="text-gray-600">Công ty Bảo hiểm Việt Nam</p>
                                 </div>
                             </div>
+                            <h2 class="text-2xl font-bold text-blue-600 mb-2">HỢP ĐỒNG BẢO HIỂM</h2>
+                            <p class="text-gray-600">Số hợp đồng: <span id="contract-number" class="font-bold text-blue-600">VIE-2024-001234</span></p>
+                        </div>
 
-                            <div class="space-y-2 text-sm">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Mức bảo hiểm:</span>
-                                    <span class="font-medium">200 triệu VNĐ</span>
+                        <!-- Contract Details -->
+                        <div class="grid md:grid-cols-2 gap-8 mb-8">
+                            <!-- Insurer Info -->
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-800 mb-4">THÔNG TIN BÊN BẢO HIỂM</h3>
+                                <div class="space-y-2 text-sm">
+                                    <p><strong>Công ty:</strong> VietInsurance Co., Ltd</p>
+                                    <p><strong>Địa chỉ:</strong> 123 Đường ABC, Quận 1, TP.HCM</p>
+                                    <p><strong>Điện thoại:</strong> 1900-xxx-xxx</p>
+                                    <p><strong>Email:</strong> info@vietinsurance.com</p>
+                                    <p><strong>Giấy phép:</strong> 123/GP-KDBH</p>
                                 </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Thời hạn:</span>
-                                    <span class="font-medium">12 tháng</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-800 mb-4">THÔNG TIN NGƯỜI MUA BẢO HIỂM</h3>
+                                <div id="contract-customer-info" class="space-y-2 text-sm">
+                                    <!-- Customer info will be inserted here -->
                                 </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Người được bảo hiểm:</span>
-                                    <span class="font-medium">1 người</span>
+                            </div>
+                            <!-- Customer Info -->
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-800 mb-4">THÔNG TIN NGƯỜI ĐƯỢC BẢO HIỂM</h3>
+                                <div id="contract-personalBenefic-info" class="space-y-2 text-sm">
+                                    <!-- Customer info will be inserted here -->
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Pricing Breakdown -->
-                        <div class="space-y-3 mb-6">
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Phí bảo hiểm (12 tháng):</span>
-                                <span class="font-medium">4.200.000 VNĐ</span>
+                        <!-- Insurance Details -->
+                        <div class="mb-8">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4">CHI TIẾT BẢO HIỂM</h3>
+                            <div id="contract-insurance-details" class="bg-gray-50 rounded-lg p-6">
+                                <!-- Insurance details will be inserted here -->
                             </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Phí dịch vụ:</span>
-                                <span class="font-medium">100.000 VNĐ</span>
+                        </div>
+
+                        <!-- Terms and Conditions -->
+                        <div class="mb-8">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4">ĐIỀU KHOẢN VÀ ĐIỀU KIỆN</h3>
+                            <div class="text-sm text-gray-700 space-y-2">
+                                <p><strong>1. Hiệu lực hợp đồng:</strong> Hợp đồng có hiệu lực từ 00:00 ngày <span id="contract-start-date"></span> đến 24:00 ngày <span id="contract-end-date"></span>.</p>
+                                <p><strong>2. Phạm vi bảo hiểm:</strong> Theo điều khoản bảo hiểm đã thỏa thuận và quy định của pháp luật.</p>
+                                <p><strong>3. Nghĩa vụ của bên mua bảo hiểm:</strong> Thanh toán phí bảo hiểm đầy đủ, đúng hạn và cung cấp thông tin chính xác.</p>
+                                <p><strong>4. Quyền lợi của bên mua bảo hiểm:</strong> Được bồi thường theo quy định khi xảy ra rủi ro được bảo hiểm.</p>
+                                <p><strong>5. Giải quyết tranh chấp:</strong> Các tranh chấp sẽ được giải quyết thông qua thương lượng hoặc tại Tòa án có thẩm quyền.</p>
                             </div>
-                            <div class="flex justify-between text-green-600">
-                                <span>Giảm giá (Khách hàng mới):</span>
-                                <span class="font-medium">-300.000 VNĐ</span>
+                        </div>
+
+                        <!-- Signatures -->
+                        <div class="grid md:grid-cols-2 gap-8 mt-12">
+                            <div class="text-center">
+                                <p class="font-bold text-gray-800 mb-4">BÊN MUA BẢO HIỂM</p>
+                                <p class="text-sm text-gray-600 mb-8">(Ký tên và ghi rõ họ tên)</p>
+                                <div class="border-t border-gray-300 pt-2">
+                                    <p id="customer-signature" class="font-semibold"></p>
+                                </div>
                             </div>
-                            <div class="border-t border-gray-200 pt-3">
-                                <div class="flex justify-between text-lg font-bold text-gray-800">
-                                    <span>Tổng cộng:</span>
-                                    <span class="text-blue-600">4.000.000 VNĐ</span>
+                            <div class="text-center">
+                                <p class="font-bold text-gray-800 mb-4">BÊN BẢO HIỂM</p>
+                                <p class="text-sm text-gray-600 mb-8">(Ký tên, đóng dấu)</p>
+                                <div class="border-t border-gray-300 pt-2">
+                                    <p class="font-semibold">VietInsurance Co., Ltd</p>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Promo Code -->
-                        <div class="mb-6">
-                            <div class="flex space-x-2">
-                                <input type="text" placeholder="Mã giảm giá"
-                                       class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                <button class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition">
-                                    Áp dụng
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Security Info -->
-                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <div class="flex items-center mb-2">
-                                <i class="fas fa-shield-alt text-blue-600 mr-2"></i>
-                                <span class="font-semibold text-blue-800">Thanh toán an toàn</span>
-                            </div>
-                            <p class="text-sm text-blue-700">
-                                Thông tin của bạn được mã hóa và bảo vệ bởi công nghệ SSL 256-bit
+                        <!-- Footer -->
+                        <div class="text-center mt-8 pt-8 border-t border-gray-300">
+                            <p class="text-sm text-gray-600">
+                                Hợp đồng được tạo tự động vào ngày <span id="contract-created-date"></span><br>
+                                Hotline hỗ trợ: 1900-xxx-xxx | Website: www.vietinsurance.com
                             </p>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Payment Form -->
-                <div class="lg:col-span-2">
-                    <div class="bg-white rounded-xl shadow-lg p-8">
-                        <form id="paymentForm">
-                            <!-- Step 1: Personal Information -->
-                            <div class="form-step active" id="step1">
-                                <h3 class="text-2xl font-bold text-gray-800 mb-6">Thông tin người mua bảo hiểm</h3>
-
-                                <div class="grid md:grid-cols-2 gap-6 mb-6">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Họ và tên *</label>
-                                        <input type="text" required
-                                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                               placeholder="Nguyễn Văn A">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Số điện thoại
-                                            *</label>
-                                        <input type="tel" required
-                                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                               placeholder="0901234567">
-                                    </div>
-                                </div>
-
-                                <div class="grid md:grid-cols-2 gap-6 mb-6">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
-                                        <input type="email" required
-                                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                               placeholder="email@example.com">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Ngày sinh *</label>
-                                        <input type="date" required
-                                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                    </div>
-                                </div>
-
-                                <div class="grid md:grid-cols-2 gap-6 mb-6">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">CMND/CCCD *</label>
-                                        <input type="text" required
-                                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                               placeholder="123456789">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Giới tính *</label>
-                                        <select required
-                                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                            <option value="">Chọn giới tính</option>
-                                            <option value="male">Nam</option>
-                                            <option value="female">Nữ</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="mb-6">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Địa chỉ *</label>
-                                    <textarea required
-                                              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                              rows="3"
-                                              placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố"></textarea>
-                                </div>
-
-                                <div class="mb-8">
-                                    <h4 class="text-lg font-semibold text-gray-800 mb-4">Thông tin người thụ hưởng</h4>
-                                    <div class="bg-gray-50 rounded-lg p-4">
-                                        <label class="flex items-center mb-4">
-                                            <input type="checkbox" id="sameBeneficiary"
-                                                   class="rounded text-blue-600 mr-3">
-                                            <span class="text-gray-700">Người mua bảo hiểm cũng là người thụ hưởng</span>
-                                        </label>
-
-                                        <div id="beneficiaryInfo" class="grid md:grid-cols-2 gap-4">
-                                            <div>
-                                                <label class="block text-sm font-medium text-gray-700 mb-2">Họ tên người
-                                                    thụ hưởng</label>
-                                                <input type="text"
-                                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                                       placeholder="Họ và tên">
-                                            </div>
-                                            <div>
-                                                <label class="block text-sm font-medium text-gray-700 mb-2">Mối quan
-                                                    hệ</label>
-                                                <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                                    <option value="">Chọn mối quan hệ</option>
-                                                    <option value="spouse">Vợ/Chồng</option>
-                                                    <option value="child">Con</option>
-                                                    <option value="parent">Cha/Mẹ</option>
-                                                    <option value="sibling">Anh/Chị/Em</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <button type="button" onclick="nextStep()"
-                                        class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-semibold text-lg transition">
-                                    Tiếp tục thanh toán
-                                    <i class="fas fa-arrow-right ml-2"></i>
-                                </button>
-                            </div>
-
-                            <!-- Step 2: Payment Method -->
-                            <div class="form-step" id="step2">
-                                <div class="flex items-center justify-between mb-6">
-                                    <h3 class="text-2xl font-bold text-gray-800">Phương thức thanh toán</h3>
-                                    <button type="button" onclick="prevStep()"
-                                            class="text-blue-600 hover:text-blue-800 font-medium">
-                                        <i class="fas fa-arrow-left mr-2"></i>Quay lại
-                                    </button>
-                                </div>
-
-                                <!-- Payment Methods -->
-                                <div class="grid md:grid-cols-2 gap-4 mb-8">
-                                    <div class="payment-card bg-white border-2 border-gray-200 rounded-xl p-6 cursor-pointer"
-                                         onclick="selectPayment('card')">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="flex items-center">
-                                                <i class="fas fa-credit-card text-2xl text-blue-600 mr-3"></i>
-                                                <span class="font-semibold text-gray-800">Thẻ tín dụng/ghi nợ</span>
-                                            </div>
-                                            <input type="radio" name="payment" value="card" class="text-blue-600">
-                                        </div>
-                                        <div class="flex space-x-2">
-                                            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='24' viewBox='0 0 40 24'%3E%3Crect width='40' height='24' rx='4' fill='%231A1F71'/%3E%3Ctext x='20' y='15' text-anchor='middle' fill='white' font-size='8' font-weight='bold'%3EVISA%3C/text%3E%3C/svg%3E"
-                                                 alt="Visa" class="h-6">
-                                            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='24' viewBox='0 0 40 24'%3E%3Crect width='40' height='24' rx='4' fill='%23EB001B'/%3E%3Ccircle cx='15' cy='12' r='6' fill='%23EB001B'/%3E%3Ccircle cx='25' cy='12' r='6' fill='%23FF5F00'/%3E%3C/svg%3E"
-                                                 alt="Mastercard" class="h-6">
-                                            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='24' viewBox='0 0 40 24'%3E%3Crect width='40' height='24' rx='4' fill='%23006FCF'/%3E%3Ctext x='20' y='15' text-anchor='middle' fill='white' font-size='6' font-weight='bold'%3EJCB%3C/text%3E%3C/svg%3E"
-                                                 alt="JCB" class="h-6">
-                                        </div>
-                                    </div>
-
-                                    <div class="payment-card bg-white border-2 border-gray-200 rounded-xl p-6 cursor-pointer"
-                                         onclick="selectPayment('banking')">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="flex items-center">
-                                                <i class="fas fa-university text-2xl text-green-600 mr-3"></i>
-                                                <span class="font-semibold text-gray-800">Internet Banking</span>
-                                            </div>
-                                            <input type="radio" name="payment" value="banking" class="text-blue-600">
-                                        </div>
-                                        <p class="text-sm text-gray-600">Vietcombank, BIDV, VietinBank,
-                                            Techcombank...</p>
-                                    </div>
-
-                                    <div class="payment-card bg-white border-2 border-gray-200 rounded-xl p-6 cursor-pointer"
-                                         onclick="selectPayment('ewallet')">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="flex items-center">
-                                                <i class="fas fa-mobile-alt text-2xl text-purple-600 mr-3"></i>
-                                                <span class="font-semibold text-gray-800">Ví điện tử</span>
-                                            </div>
-                                            <input type="radio" name="payment" value="ewallet" class="text-blue-600">
-                                        </div>
-                                        <div class="flex space-x-2">
-                                            <div class="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white text-xs font-bold">
-                                                MP
-                                            </div>
-                                            <div class="w-8 h-8 bg-red-600 rounded flex items-center justify-center text-white text-xs font-bold">
-                                                ZP
-                                            </div>
-                                            <div class="w-8 h-8 bg-green-600 rounded flex items-center justify-center text-white text-xs font-bold">
-                                                MB
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="payment-card bg-white border-2 border-gray-200 rounded-xl p-6 cursor-pointer"
-                                         onclick="selectPayment('installment')">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="flex items-center">
-                                                <i class="fas fa-calendar-alt text-2xl text-orange-600 mr-3"></i>
-                                                <span class="font-semibold text-gray-800">Trả góp 0%</span>
-                                            </div>
-                                            <input type="radio" name="payment" value="installment"
-                                                   class="text-blue-600">
-                                        </div>
-                                        <p class="text-sm text-gray-600">Chia thành 6-12 kỳ thanh toán</p>
-                                    </div>
-                                </div>
-
-                                <!-- Card Payment Form -->
-                                <div id="cardPaymentForm" class="hidden">
-                                    <h4 class="text-lg font-semibold text-gray-800 mb-4">Thông tin thẻ</h4>
-                                    <div class="grid md:grid-cols-2 gap-6 mb-6">
-                                        <div class="md:col-span-2">
-                                            <label class="block text-sm font-medium text-gray-700 mb-2">Số thẻ *</label>
-                                            <input type="text" placeholder="1234 5678 9012 3456"
-                                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                                   maxlength="19">
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-2">Tên chủ thẻ
-                                                *</label>
-                                            <input type="text" placeholder="NGUYEN VAN A"
-                                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                        </div>
-                                        <div class="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <label class="block text-sm font-medium text-gray-700 mb-2">MM/YY
-                                                    *</label>
-                                                <input type="text" placeholder="12/25"
-                                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                                       maxlength="5">
-                                            </div>
-                                            <div>
-                                                <label class="block text-sm font-medium text-gray-700 mb-2">CVV
-                                                    *</label>
-                                                <input type="text" placeholder="123"
-                                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                                       maxlength="4">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Terms and Conditions -->
-                                <div class="bg-gray-50 rounded-lg p-6 mb-6">
-                                    <div class="space-y-3">
-                                        <label class="flex items-start">
-                                            <input type="checkbox" required class="rounded text-blue-600 mt-1 mr-3">
-                                            <span class="text-sm text-gray-700">
-                                                    Tôi đã đọc và đồng ý với
-                                                    <a href="#" class="text-blue-600 hover:underline">Điều khoản và Điều kiện</a>
-                                                    của hợp đồng bảo hiểm
-                                                </span>
-                                        </label>
-                                        <label class="flex items-start">
-                                            <input type="checkbox" required class="rounded text-blue-600 mt-1 mr-3">
-                                            <span class="text-sm text-gray-700">
-                                                    Tôi xác nhận rằng tất cả thông tin đã cung cấp là chính xác và đầy đủ
-                                                </span>
-                                        </label>
-                                        <label class="flex items-start">
-                                            <input type="checkbox" class="rounded text-blue-600 mt-1 mr-3">
-                                            <span class="text-sm text-gray-700">
-                                                    Tôi đồng ý nhận thông tin khuyến mãi và ưu đãi từ SecureLife
-                                                </span>
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <button type="submit"
-                                        class="w-full bg-green-600 hover:bg-green-700 text-white py-4 px-6 rounded-lg font-bold text-lg transition">
-                                    <i class="fas fa-lock mr-2"></i>
-                                    Thanh toán an toàn - 4.000.000 VNĐ
-                                </button>
-
-                                <div class="text-center mt-4">
-                                    <p class="text-sm text-gray-600">
-                                        Bằng cách nhấn "Thanh toán", bạn đồng ý với các điều khoản của chúng tôi
-                                    </p>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
+            <!-- Action Buttons -->
+            <div class="text-center">
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button onclick="printContract()" class="bg-blue-600 text-white py-3 px-8 rounded-lg font-semibold hover:bg-blue-700 transition duration-200">
+                        <i class="fas fa-print mr-2"></i>
+                        In hợp đồng
+                    </button>
+                    <button onclick="downloadContract()" class="bg-green-600 text-white py-3 px-8 rounded-lg font-semibold hover:bg-green-700 transition duration-200">
+                        <i class="fas fa-download mr-2"></i>
+                        Tải hợp đồng PDF
+                    </button>
+                    <button onclick="startOver()" class="bg-gray-200 text-gray-700 py-3 px-8 rounded-lg font-semibold hover:bg-gray-300 transition duration-200">
+                        <i class="fas fa-plus mr-2"></i>
+                        Mua thêm bảo hiểm
+                    </button>
                 </div>
             </div>
         </div>
     </div>
-</section>
 
-<!-- Success Modal -->
-<div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-    <div class="bg-white rounded-2xl max-w-md w-full mx-4 p-8 text-center">
-        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <i class="fas fa-check text-3xl text-green-600"></i>
-        </div>
-        <h3 class="text-2xl font-bold text-gray-800 mb-4">Thanh toán thành công!</h3>
-        <p class="text-gray-600 mb-6">
-            Hợp đồng bảo hiểm của bạn đã được kích hoạt.
-            Chúng tôi sẽ gửi email xác nhận trong vòng 5 phút.
-        </p>
-        <div class="space-y-3">
-            <button onclick="closeSuccessModal()"
-                    class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-semibold transition">
-                Xem hợp đồng
-            </button>
-            <button onclick="closeSuccessModal()"
-                    class="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-3 px-6 rounded-lg font-semibold transition">
-                Về trang chủ
-            </button>
+    <!-- Loading Modal -->
+    <div id="loadingModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
+            <div class="text-center">
+                <div class="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+                <h3 id="loading-title" class="text-xl font-bold text-gray-800 mb-2">Đang tính toán phí bảo hiểm</h3>
+                <p id="loading-message" class="text-gray-600">Vui lòng đợi trong giây lát...</p>
+            </div>
         </div>
     </div>
-</div>
-</div>
-<script>
-    let currentStep = 1;
 
-    // Step navigation
-    function nextStep() {
-        if (validateStep(currentStep)) {
-            document.getElementById(`step${currentStep}`).classList.remove('active');
-            currentStep++;
-            document.getElementById(`step${currentStep}`).classList.add('active');
-            updateProgressBar();
-        }
-    }
 
-    function prevStep() {
-        document.getElementById(`step${currentStep}`).classList.remove('active');
-        currentStep--;
-        document.getElementById(`step${currentStep}`).classList.add('active');
-        updateProgressBar();
-    }
-
-    function validateStep(step) {
-        const currentStepElement = document.getElementById(`step${step}`);
-        const requiredFields = currentStepElement.querySelectorAll('[required]');
-
-        for (let field of requiredFields) {
-            if (!field.value.trim()) {
-                field.focus();
-                field.classList.add('border-red-500');
-                setTimeout(() => field.classList.remove('border-red-500'), 3000);
-                return false;
-            }
-        }
-        return true;
-    }
-
-    function updateProgressBar() {
-        // Update progress steps visual state
-        const steps = document.querySelectorAll('.step-active, .step-completed, .step-inactive');
-        // This would update the visual progress - simplified for demo
-    }
-
-    // Payment method selection
-    function selectPayment(method) {
-        // Remove selected class from all cards
-        document.querySelectorAll('.payment-card').forEach(card => {
-            card.classList.remove('selected');
-        });
-
-        // Add selected class to clicked card
-        event.currentTarget.classList.add('selected');
-
-        // Check the radio button
-        event.currentTarget.querySelector('input[type="radio"]').checked = true;
-
-        // Show/hide card form
-        const cardForm = document.getElementById('cardPaymentForm');
-        if (method === 'card') {
-            cardForm.classList.remove('hidden');
-        } else {
-            cardForm.classList.add('hidden');
-        }
-    }
-
-    // Beneficiary checkbox
-    document.getElementById('sameBeneficiary').addEventListener('change', function() {
-        const beneficiaryInfo = document.getElementById('beneficiaryInfo');
-        const inputs = beneficiaryInfo.querySelectorAll('input, select');
-
-        if (this.checked) {
-            inputs.forEach(input => {
-                input.disabled = true;
-                input.classList.add('bg-gray-100');
-            });
-        } else {
-            inputs.forEach(input => {
-                input.disabled = false;
-                input.classList.remove('bg-gray-100');
-            });
-        }
-    });
-
-    // Card number formatting
-    document.addEventListener('input', function(e) {
-        if (e.target.placeholder === '1234 5678 9012 3456') {
-            let value = e.target.value.replace(/\s/g, '').replace(/[^0-9]/gi, '');
-            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
-            e.target.value = formattedValue;
-        }
-
-        if (e.target.placeholder === '12/25') {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length >= 2) {
-                value = value.substring(0, 2) + '/' + value.substring(2, 4);
-            }
-            e.target.value = value;
-        }
-    });
-
-    // Form submission
-    document.getElementById('paymentForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        if (!validateStep(2)) {
-            return;
-        }
-
-        // Show loading state
-        const submitBtn = e.target.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang xử lý...';
-        submitBtn.disabled = true;
-
-        // Simulate payment processing
-        setTimeout(() => {
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-            showSuccessModal();
-        }, 3000);
-    });
-
-    function showSuccessModal() {
-        document.getElementById('successModal').classList.remove('hidden');
-    }
-
-    function closeSuccessModal() {
-        document.getElementById('successModal').classList.add('hidden');
-        // Redirect or perform other actions
-        alert('Chuyển hướng đến trang quản lý hợp đồng...');
-    }
-
-    // Promo code application
-    document.querySelector('button:contains("Áp dụng")') && document.querySelector('button').addEventListener('click', function() {
-        const promoInput = this.previousElementSibling;
-        const promoCode = promoInput.value.trim().toUpperCase();
-
-        if (promoCode) {
-            // Simulate promo code validation
-            if (promoCode === 'WELCOME10') {
-                alert('✅ Mã giảm giá hợp lệ! Giảm thêm 10%');
-            } else {
-                alert('❌ Mã giảm giá không hợp lệ');
-            }
-        }
-    });
-
-    // Initialize
-    document.addEventListener('DOMContentLoaded', function() {
-        // Auto-fill demo data for testing
-        if (window.location.search.includes('demo=1')) {
-            setTimeout(() => {
-                const inputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"]');
-                const demoData = [
-                    'Nguyễn Văn A', '0901234567', 'nguyenvana@email.com',
-                    '123456789', '123 Nguyễn Huệ, Q1, TP.HCM'
-                ];
-                inputs.forEach((input, index) => {
-                    if (demoData[index]) input.value = demoData[index];
-                });
-            }, 1000);
-        }
-    });
-</script>
+<script src="{% static 'js/payment.js' %}"></script>
 
 {% endblock %}

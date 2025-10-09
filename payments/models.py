@@ -9,6 +9,7 @@ class Payment(models.Model):
         ("credit_card", "Thẻ tín dụng"),
         ("bank_transfer", "Chuyển khoản ngân hàng"),
         ("e_wallet", "Ví điện tử"),
+        ("money","Tiền mặt"),
         ("other", "Khác"),
     ]
 

@@ -7,6 +7,6 @@ urlpatterns = [
     path("",include("users.urls")),
     path("custom_products/", include("insurance_products.urls")),
     path("custom_policies/", include("policies.urls")),
-    path("custom_payments/", include("payments.urls")),
+    path("payments/", include("payments.urls")),
     path("custom_claims/", include("claims.urls")),
 ]
