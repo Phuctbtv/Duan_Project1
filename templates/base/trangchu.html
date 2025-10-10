@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="  bg-gray-50 min-h-screen">
 <!-- Header -->
 <header class="bg-white shadow-lg sticky top-0 z-50">
     <nav class="container mx-auto px-6 py-4">
@@ -168,13 +168,12 @@
     {% endfor %}
 </div>
 {% endif %}
-
 <!-- Main Content -->
 {% block content %}
 {% endblock %}
 
 <!-- Footer -->
-<footer class=" ml-64 flex-1 bg-gray-800 text-white mt-16">
+<footer class=" bg-gray-800 text-white mt-16">
     <div class="container mx-auto px-6 py-12">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
@@ -242,8 +241,7 @@
     </div>
 </footer>
 
-{% load static %}
 <script src="{% static 'js/login.js' %}"></script>
-
+{% load static %}
 </body>
 </html>

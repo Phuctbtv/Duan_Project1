@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, update_session_auth_hash
 from django.contrib import messages
@@ -14,7 +15,25 @@ from django.contrib.auth.views import PasswordResetConfirmView
 from .forms.CustomSetPasswordForm import CustomSetPasswordForm
 def trangchu(request):
     return render(request, "base/trangchu_base.html")
+@login_required
+def user_info_api(request):
+    user = request.user
+    customer = Customer.objects.get(user=user)
 
+    data = {
+        "full_name": f"{user.first_name} {user.last_name}".strip(),
+        "email": user.email,
+        "phone": user.phone_number,
+        "birth_date":user.date_of_birth,
+        "gender": customer.gender,
+        "address": user.address,
+        "id_card_number": customer.id_card_number,
+        "occupation": customer.job,
+        "cccd":customer.id_card_number,
+        "nationality": customer.nationality,
+    }
+
+    return JsonResponse(data)
 
 @csrf_protect
 def register_view(request):

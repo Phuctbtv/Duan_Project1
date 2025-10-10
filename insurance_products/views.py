@@ -1,6 +1,6 @@
 
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Q
 from .models import InsuranceProduct
 from django.core.paginator import Paginator
@@ -93,11 +93,37 @@ def product_detail(request, product_id):
         is_active=True
     ).exclude(id=product_id)[:4]
 
+    recent_products = request.session.get("recent_products", [])
+    if product_id in recent_products:
+        recent_products.remove(product_id)
+    recent_products.insert(0, product_id)
+    request.session["recent_products"] = recent_products[:3]
+
     context = {
         'product': product,
         'related_products': related_products
     }
     return render(request, 'products/components/product_detail.html', context)
+def recent_products(request, product_id):
+    product = get_object_or_404(InsuranceProduct, id=product_id)
+
+    # --- Lưu sản phẩm vào session ---
+    recent_products = request.session.get("recent_products", [])
+
+    # Nếu sản phẩm đã có thì xóa (tránh trùng lặp)
+    if product.id in recent_products:
+        recent_products.remove(product.id)
+
+    # Thêm sản phẩm mới vào đầu danh sách
+    recent_products.insert(0, product.id)
+
+    # Chỉ giữ tối đa 3 sản phẩm
+    recent_products = recent_products[:3]
+
+    # Cập nhật lại session
+    request.session["recent_products"] = recent_products
+
+    return redirect("payments_users")
 
 
 
