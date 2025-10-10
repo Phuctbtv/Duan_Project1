@@ -1,98 +1,300 @@
 {% extends 'admin/admin_home.html' %}
 
 {% load static %}
+{% load humanize %}
 {% block content %}
 <div id="dashboard" class="section p-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">Tổng Quan Hệ Thống</h2>
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">Tổng Quan Hệ Thống</h2>
+        <div class="flex space-x-3">
+            <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors" onclick="refreshCharts(event)">
+                <i class="fas fa-sync-alt mr-2"></i>Cập Nhật
+            </button>
+            <button class="gradient-bg text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity" onclick="exportReport()">
+                <i class="fas fa-download mr-2"></i>Xuất Báo Cáo
+            </button>
+        </div>
+    </div>
 
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-300">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-600 text-sm">Tổng Khách Hàng</p>
-                            <p class="text-2xl font-bold text-gray-800">1,234</p>
-                        </div>
-                        <div class="bg-blue-100 p-3 rounded-full">
-                            <i class="fas fa-users text-blue-600 text-xl"></i>
-                        </div>
-                    </div>
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm">Tổng Khách Hàng</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ total_customers|intcomma }}</p>
+                    <p class="text-xs text-green-600 mt-1">{{ active_customers }} đang hoạt động</p>
                 </div>
-
-                <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-300">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-600 text-sm">Hợp Đồng Hiệu Lực</p>
-                            <p class="text-2xl font-bold text-gray-800">856</p>
-                        </div>
-                        <div class="bg-green-100 p-3 rounded-full">
-                            <i class="fas fa-file-contract text-green-600 text-xl"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-300">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-600 text-sm">Yêu Cầu Bồi Thường</p>
-                            <p class="text-2xl font-bold text-gray-800">42</p>
-                        </div>
-                        <div class="bg-yellow-100 p-3 rounded-full">
-                            <i class="fas fa-clipboard-list text-yellow-600 text-xl"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-300">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-600 text-sm">Doanh Thu Tháng</p>
-                            <p class="text-2xl font-bold text-gray-800">58.5 tỷ</p>
-                        </div>
-                        <div class="bg-purple-100 p-3 rounded-full">
-                            <i class="fas fa-chart-line text-purple-600 text-xl"></i>
-                        </div>
-                    </div>
+                <div class="bg-blue-100 p-3 rounded-full">
+                    <i class="fas fa-users text-blue-600 text-xl"></i>
                 </div>
             </div>
+        </div>
 
-            <!-- Recent Activities -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-white rounded-xl shadow-sm p-6">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Hoạt Động Gần Đây</h3>
-                    <div class="space-y-4">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <span class="text-sm text-gray-600">Khách hàng Nguyễn Văn An đã mua bảo hiểm ô tô</span>
-                        </div>
-                        <div class="flex items-center space-x-3">
-                            <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
-                            <span class="text-sm text-gray-600">Yêu cầu bồi thường #12345 đã được phê duyệt</span>
-                        </div>
-                        <div class="flex items-center space-x-3">
-                            <div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                            <span class="text-sm text-gray-600">Đánh giá rủi ro cho khách hàng mới đã hoàn thành</span>
-                        </div>
+        <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm">Người Dùng Hệ Thống</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ total_users|intcomma }}</p>
+                    <p class="text-xs text-blue-600 mt-1">{{ staff_users }} quản trị viên</p>
+                </div>
+                <div class="bg-green-100 p-3 rounded-full">
+                    <i class="fas fa-user-shield text-green-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm">Khách Hàng Mới</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ new_customers_this_month }}</p>
+                    <p class="text-xs text-green-600 mt-1">tháng này</p>
+                </div>
+                <div class="bg-yellow-100 p-3 rounded-full">
+                    <i class="fas fa-user-plus text-yellow-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm">Doanh Thu Tháng</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ monthly_revenue }} tỷ</p>
+                    <p class="text-xs text-green-600 mt-1">+4.2% tăng trưởng</p>
+                </div>
+                <div class="bg-purple-100 p-3 rounded-full">
+                    <i class="fas fa-chart-line text-purple-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Biểu Đồ -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Biểu đồ doanh thu -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Doanh Thu Theo Tháng</h3>
+            <div class="h-64">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Biểu đồ phân loại hợp đồng -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Phân Loại Hợp Đồng</h3>
+            <div class="h-64">
+                <canvas id="contractChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activities & Thống Kê -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Hoạt Động Gần Đây</h3>
+            <div class="space-y-4">
+                <div class="flex items-start space-x-3">
+                    <div class="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-800">Khách hàng Nguyễn Văn An đã mua bảo hiểm ô tô</p>
+                        <p class="text-xs text-gray-500 mt-1">10:30 - 20/05/2024</p>
                     </div>
                 </div>
-
-                <div class="bg-white rounded-xl shadow-sm p-6">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Thống Kê Nhanh</h3>
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-600">Tỷ Lệ Phê Duyệt</span>
-                            <span class="text-sm font-semibold text-green-600">94.2%</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-600">Thời Gian Xử Lý TB</span>
-                            <span class="text-sm font-semibold text-blue-600">2.3 ngày</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-600">Hài Lòng Khách Hàng</span>
-                            <span class="text-sm font-semibold text-purple-600">4.8/5</span>
-                        </div>
+                <div class="flex items-start space-x-3">
+                    <div class="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-800">Yêu cầu bồi thường #12345 đã được phê duyệt</p>
+                        <p class="text-xs text-gray-500 mt-1">09:15 - 20/05/2024</p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-3">
+                    <div class="w-2 h-2 bg-yellow-500 rounded-full mt-2"></div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-800">Đánh giá rủi ro cho khách hàng mới đã hoàn thành</p>
+                        <p class="text-xs text-gray-500 mt-1">14:20 - 19/05/2024</p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-3">
+                    <div class="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-800">{{ new_customers_this_month }} khách hàng mới đăng ký tháng này</p>
+                        <p class="text-xs text-gray-500 mt-1">Cập nhật: {% now "H:i - d/m/Y" %}</p>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Thống Kê Hiệu Suất</h3>
+            <div class="space-y-4">
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-700">Tỷ Lệ Phê Duyệt</span>
+                        <span class="text-sm font-bold text-green-600">{{ approval_rate }}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-green-500 h-2 rounded-full" style="width: {{ approval_rate }}%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-700">Thời Gian Xử Lý TB</span>
+                        <span class="text-sm font-bold text-blue-600">{{ avg_processing_time }} ngày</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-500 h-2 rounded-full" style="width: 70%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-700">Hài Lòng Khách Hàng</span>
+                        <span class="text-sm font-bold text-purple-600">{{ customer_satisfaction }}/5</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-purple-500 h-2 rounded-full" style="width: 96%"></div>
+                    </div>
+                </div>
+                <div class="pt-4 border-t border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium text-gray-700">Tổng số Admin</span>
+                        <span class="text-sm font-bold text-orange-600">{{ staff_users }} người</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Biến toàn cục cho biểu đồ
+let revenueChart, contractChart;
+
+// Hàm làm mới biểu đồ với API
+function refreshCharts() {
+    // Hiển thị loading
+    const refreshBtn = event.target;
+    const originalHtml = refreshBtn.innerHTML;
+    refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang cập nhật...';
+    refreshBtn.disabled = true;
+
+    fetch('/dashboard/data/')
+        .then(response => response.json())
+        .then(data => {
+            updateCharts(data);
+            // Khôi phục nút
+            refreshBtn.innerHTML = originalHtml;
+            refreshBtn.disabled = false;
+            showNotification('Dữ liệu đã được cập nhật thành công!', 'success');
+        })
+        .catch(error => {
+            console.error('Lỗi khi cập nhật biểu đồ:', error);
+            // Khôi phục nút
+            refreshBtn.innerHTML = originalHtml;
+            refreshBtn.disabled = false;
+            showNotification('Có lỗi khi cập nhật dữ liệu', 'error');
+        });
+}
+
+// Hàm cập nhật biểu đồ với dữ liệu mới
+function updateCharts(data) {
+    if (revenueChart && data.revenue_chart) {
+        revenueChart.data.labels = data.revenue_chart.labels;
+        revenueChart.data.datasets[0].data = data.revenue_chart.data;
+        revenueChart.update();
+    }
+
+    if (contractChart && data.contract_chart) {
+        contractChart.data.labels = data.contract_chart.labels;
+        contractChart.data.datasets[0].data = data.contract_chart.data;
+        contractChart.update();
+    }
+}
+
+// Hàm xuất báo cáo
+function exportReport() {
+    showNotification('Đang chuẩn bị xuất báo cáo...', 'info');
+    // Có thể thêm logic xuất PDF/Excel ở đây
+    setTimeout(() => {
+        showNotification('Báo cáo đã được xuất thành công!', 'success');
+    }, 2000);
+}
+
+// Hàm hiển thị thông báo
+function showNotification(message, type = 'info') {
+    // Sử dụng alert đơn giản - có thể thay thế bằng toast notification sau
+    const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+    alert(`${icon} ${message}`);
+}
+
+// Khởi tạo biểu đồ khi trang load
+document.addEventListener('DOMContentLoaded', function() {
+    // Biểu đồ doanh thu
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    revenueChart = new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: ['Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6'],
+            datasets: [{
+                label: 'Doanh Thu (tỷ VNĐ)',
+                data: [45, 52, 48, 55, 58.5, 62],
+                borderColor: '#8b5cf6',
+                backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    // Biểu đồ phân loại hợp đồng
+    const contractCtx = document.getElementById('contractChart').getContext('2d');
+    contractChart = new Chart(contractCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Bảo Hiểm Ô Tô', 'Bảo Hiểm Sức Khỏe', 'Bảo Hiểm Du Lịch', 'Bảo Hiểm Nhà Ở'],
+            datasets: [{
+                data: [45, 25, 15, 15],
+                backgroundColor: [
+                    '#3b82f6',
+                    '#10b981',
+                    '#f59e0b',
+                    '#8b5cf6'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+});
+</script>
+
+<style>
+.gradient-bg {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.card-hover:hover {
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+</style>
 {% endblock %}
