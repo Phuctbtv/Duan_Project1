@@ -60,6 +60,32 @@
         <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-300">
             <div class="flex items-center justify-between">
                 <div>
+                    <p class="text-gray-600 text-sm">Hợp Đồng Đang Hoạt Động</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ active_policies_count }}</p>
+                    <p class="text-xs text-green-600 mt-1">{{ pending_policies }} chờ xử lý</p>
+                </div>
+                <div class="bg-orange-100 p-3 rounded-full">
+                    <i class="fas fa-file-contract text-orange-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm">Yêu Cầu Bồi Thường</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ pending_claims_count }}</p>
+                    <p class="text-xs text-yellow-600 mt-1">đang chờ xử lý</p>
+                </div>
+                <div class="bg-red-100 p-3 rounded-full">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-300">
+            <div class="flex items-center justify-between">
+                <div>
                     <p class="text-gray-600 text-sm">Doanh Thu Tháng</p>
                     <p class="text-2xl font-bold text-gray-800">{{ monthly_revenue }} tỷ</p>
                     <p class="text-xs text-green-600 mt-1">+4.2% tăng trưởng</p>
@@ -172,28 +198,32 @@
 let revenueChart, contractChart;
 
 // Hàm làm mới biểu đồ với API
-function refreshCharts() {
+function refreshCharts(event) {
     // Hiển thị loading
-    const refreshBtn = event.target;
+    const refreshBtn = event.target.closest('button');
     const originalHtml = refreshBtn.innerHTML;
     refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang cập nhật...';
     refreshBtn.disabled = true;
 
     fetch('/dashboard/data/')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('Dữ liệu nhận được:', data);
             updateCharts(data);
-            // Khôi phục nút
             refreshBtn.innerHTML = originalHtml;
             refreshBtn.disabled = false;
             showNotification('Dữ liệu đã được cập nhật thành công!', 'success');
         })
         .catch(error => {
             console.error('Lỗi khi cập nhật biểu đồ:', error);
-            // Khôi phục nút
             refreshBtn.innerHTML = originalHtml;
             refreshBtn.disabled = false;
-            showNotification('Có lỗi khi cập nhật dữ liệu', 'error');
+            showNotification('Có lỗi khi cập nhật dữ liệu. Vui lòng thử lại.', 'error');
         });
 }
 
