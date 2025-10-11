@@ -43,7 +43,9 @@ INSTALLED_APPS = [
     "claims",
     "payments",
     "notifications",
+    "dashboard",
     'widget_tweaks',
+    ]
 
 
 MIDDLEWARE = [
