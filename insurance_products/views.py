@@ -66,20 +66,16 @@ def edit_product_view(request, product_id):
     if request.method == 'POST':
         form = InsuranceProductForm(request.POST, instance=product)
         if form.is_valid():
-            form.save()
+            product = form.save(commit=False)
+            # ép kiểu bool
+            product.is_active = request.POST.get('is_active') == 'True'
+            product.save()
             return redirect('custom_products_admin')  # quay lại trang danh sách sản phẩm
     else:
         form = InsuranceProductForm(instance=product)
 
     return render(request, 'admin/edit_product.html', {'form': form, 'product': product})
-@login_required
-def delete_product(request, pk):
-    product = get_object_or_404(InsuranceProduct, pk=pk)
-    if request.method == "POST":
-        product.delete()
-        messages.success(request, f"Đã xóa sản phẩm '{product.product_name}' thành công!")
-        return redirect('custom_products_admin')
-    return redirect('edit_product', product_id=pk)
+
 
 
 def insurance_products_user(request):

@@ -48,9 +48,25 @@
       </div>
 
       <div>
-        <label class="block font-semibold mb-1 text-gray-700">Loại sản phẩm</label>
-        {% render_field form.product_type class="w-full border border-gray-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" %}
-      </div>
+    <label class="block font-semibold mb-1 text-gray-700">Loại sản phẩm</label>
+    <select name="product_type"
+            class="w-full border border-gray-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        <option value="basic" {% if form.product_type.value == 'basic' %}selected{% endif %}>Cơ bản</option>
+        <option value="standard" {% if form.product_type.value == 'standard' %}selected{% endif %}>Tiêu chuẩn</option>
+        <option value="premium" {% if form.product_type.value == 'premium' %}selected{% endif %}>Cao cấp</option>
+    </select>
+
+        <br><br>
+        <div>
+    <label class="block font-semibold mb-1 text-gray-700">Trạng thái sản phẩm</label>
+    <select name="is_active"
+            class="w-full border border-gray-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        <option value="True" {% if form.instance.is_active %}selected{% endif %}>Active</option>
+        <option value="False" {% if not form.instance.is_active %}selected{% endif %}>Inactive</option>
+    </select>
+</div>
+</div>
+
 
       <div class="flex justify-end space-x-3 pt-6">
         <a href="{% url 'custom_products_admin' %}"
@@ -66,19 +82,11 @@
       </div>
     </form>
 
-    <!-- FORM XÓA (TÁCH RIÊNG) -->
-    <form method="POST"
-          action="{% url 'delete_product' product.id %}"
-          onsubmit="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này không?');"
-          class="pt-4 text-right">
-      {% csrf_token %}
-      <button type="submit"
-              class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg transition">
-        🗑️ Xóa sản phẩm
-      </button>
-    </form>
+
+
 
   </div>
 </div>
+
 
 {% endblock %}
