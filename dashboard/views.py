@@ -192,3 +192,30 @@ def customer_delete(request, user_id):
         return redirect('custom_section')
 
     return render(request, 'admin/customer_confirm_delete.html', {'user': user})
+
+
+@admin_required
+def customer_convert_role(request, user_id):
+    """Chuyển đổi vai trò giữa customer và employee"""
+    user = get_object_or_404(User, pk=user_id)
+
+    if request.method == 'POST':
+        try:
+            if user.user_type == 'customer':
+                # Chuyển từ customer sang employee
+                user.user_type = 'employee'
+                user.is_staff = True  # Cấp quyền truy cập admin
+                messages.success(request, f'Đã chuyển {user.get_full_name()} từ khách hàng thành nhân viên!')
+
+            elif user.user_type == 'employee':
+                # Chuyển từ employee sang customer
+                user.user_type = 'customer'
+                user.is_staff = False  # Thu hồi quyền truy cập admin
+                messages.success(request, f'Đã chuyển {user.get_full_name()} từ nhân viên thành khách hàng!')
+
+            user.save()
+
+        except Exception as e:
+            messages.error(request, f'Lỗi khi chuyển đổi vai trò: {str(e)}')
+
+    return redirect('custom_section')

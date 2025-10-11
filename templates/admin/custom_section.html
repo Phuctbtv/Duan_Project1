@@ -63,7 +63,7 @@
             {% endif %}
         </div>
 
-        <!-- PHẦN DANH SÁCH KHÁCH HÀNG (giữ nguyên) -->
+        <!-- PHẦN DANH SÁCH KHÁCH HÀNG -->
         <div class="bg-gray-100">
             <div class="container mx-auto p-6">
                 <div class="bg-white rounded-lg shadow overflow-hidden">
@@ -89,6 +89,9 @@
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Trạng thái
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Phân quyền
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Thao tác
@@ -128,6 +131,42 @@
                                         {% endif %}
                                     </td>
 
+                                    <!-- CỘT PHÂN QUYỀN MỚI -->
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex flex-col space-y-2">
+                                            <!-- Hiển thị vai trò hiện tại -->
+                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
+                                                {% if user.user_type == 'admin' %}bg-red-100 text-red-800
+                                                {% elif user.user_type == 'employee' %}bg-blue-100 text-blue-800
+                                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                                {% if user.user_type == 'admin' %}Quản trị
+                                                {% elif user.user_type == 'employee' %}Nhân viên
+                                                {% else %}Khách hàng{% endif %}
+                                            </span>
+
+                                            <!-- Form chuyển đổi vai trò -->
+                                            {% if user.user_type == 'customer' %}
+                                            <form method="POST" action="{% url 'customer_convert_role' user.id %}" class="inline">
+                                                {% csrf_token %}
+                                                <button type="submit"
+                                                        class="text-xs bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 transition duration-200"
+                                                        onclick="return confirm('Chuyển khách hàng này thành nhân viên?')">
+                                                    <i class="fas fa-user-tie mr-1"></i>→ Nhân viên
+                                                </button>
+                                            </form>
+                                            {% elif user.user_type == 'employee' %}
+                                            <form method="POST" action="{% url 'customer_convert_role' user.id %}" class="inline">
+                                                {% csrf_token %}
+                                                <button type="submit"
+                                                        class="text-xs bg-gray-600 text-white px-2 py-1 rounded hover:bg-gray-700 transition duration-200"
+                                                        onclick="return confirm('Chuyển nhân viên này thành khách hàng?')">
+                                                    <i class="fas fa-user mr-1"></i>→ Khách hàng
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div class="flex space-x-3">
                                             <a href="{% url 'customer_detail' user.id %}" class="text-blue-600 hover:text-blue-900" title="Xem chi tiết">
@@ -154,7 +193,7 @@
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">
                                         {% if search_query or status_filter %}
                                         Không tìm thấy khách hàng nào phù hợp với tiêu chí tìm kiếm.
                                         {% else %}
