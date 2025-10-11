@@ -1,125 +1,209 @@
 {% extends 'admin/admin_home.html' %}
-
 {% load static %}
+
 {% block content %}
- <div  class="section p-6 ">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-gray-800">Quản Lý Khách Hàng</h2>
-                <button class="gradient-bg text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity" onclick="showAddUserModal()">
-                    <i class="fas fa-plus mr-2"></i>Thêm Khách Hàng
-                </button>
-            </div>
+<div class="section p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">Quản Lý Khách Hàng</h2>
+        <a href="{% url 'customer_create' %}" class="gradient-bg text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
+            <i class="fas fa-plus mr-2"></i>Thêm Khách Hàng
+        </a>
+    </div>
 
-            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-                <div class="p-6 border-b border-gray-200">
-                    <div class="flex flex-col sm:flex-row gap-4">
-                        <div class="flex-1">
-                            <input type="text" id="searchInput" placeholder="Tìm kiếm khách hàng..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" onkeyup="searchUsers()">
-                        </div>
-                        <select id="statusFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" onchange="filterUsers()">
-                            <option value="">Tất cả trạng thái</option>
-                            <option value="active">Hoạt động</option>
-                            <option value="suspended">Tạm khóa</option>
-                            <option value="pending">Chờ xác thực</option>
-                        </select>
-                    </div>
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <!-- PHẦN TÌM KIẾM VÀ FILTER -->
+        <div class="p-6 border-b border-gray-200">
+            <form method="GET" class="flex flex-col sm:flex-row gap-4 items-end">
+                <!-- Ô tìm kiếm -->
+                <div class="flex-1 min-w-[300px]">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tìm kiếm khách hàng</label>
+                    <input type="text" name="q" value="{{ search_query }}"
+                           placeholder="Tên, email, số điện thoại, username..."
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
 
-                <div class="bg-gray-100">
-                    <div class="container mx-auto p-6">
-                        <div class="bg-white rounded-lg shadow overflow-hidden">
-                            <div class="px-6 py-4 border-b border-gray-200">
-                                <h3 class="text-lg leading-6 font-medium text-gray-900">Danh Sách Khách Hàng</h3>
-                            </div>
-
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full divide-y divide-gray-200">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Khách hàng
-                                            </th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Email
-                                            </th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Điện thoại
-                                            </th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Ngày tham gia
-                                            </th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Trạng thái
-                                            </th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Thao tác
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="usersTableBody" class="bg-white divide-y divide-gray-200">
-                                    <tbody>
-                                        {% for user in users %}
-                                        <tr class="hover:bg-gray-50">
-                                            <!-- Avatar + tên -->
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                <div class="flex items-center">
-                                                    <div class="ml-4">
-                                                        <div class="text-sm font-medium text-gray-900">{{ user.get_full_name|default:user.username }}</div>
-                                                        <div class="text-sm text-gray-500">ID: #{{ user.id|add:"00000" }}</div>
-                                                    </div>
-                                                </div>
-                                            </td>
-
-                                            <!-- Email -->
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ user.email }}</td>
-
-                                            <!-- Phone (nếu có field phone, còn không thì để trống) -->
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {{ user.phone|default:"—" }}
-                                            </td>
-
-                                            <!-- Ngày tạo -->
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {{ user.date_joined|date:"d/m/Y" }}
-                                            </td>
-
-                                            <!-- Trạng thái -->
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                {% if user.is_active %}
-                                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-500 text-white">Hoạt động</span>
-                                                {% else %}
-                                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-500 text-white">Khóa</span>
-                                                {% endif %}
-                                            </td>
-
-                                            <!-- Actions -->
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <a href="" class="text-blue-600 hover:text-blue-900 mr-3" title="Xem chi tiết">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                <a href="" class="text-green-600 hover:text-green-900 mr-3" title="Chỉnh sửa">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                <form action="" method="post" style="display:inline;">
-                                                    {% csrf_token %}
-                                                    <button type="submit" class="text-red-600 hover:text-red-900" title="Xóa">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-
-
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
+                <!-- Dropdown filter trạng thái -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
+                    <select name="status" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Hoạt động</option>
+                        <option value="suspended" {% if status_filter == 'suspended' %}selected{% endif %}>Tạm khóa</option>
+                    </select>
                 </div>
 
+                <!-- Nút tìm kiếm -->
+                <div>
+                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-200">
+                        <i class="fas fa-search mr-2"></i>Tìm kiếm
+                    </button>
+                </div>
+
+                <!-- Nút reset -->
+                <div>
+                    <a href="{% url 'custom_section' %}" class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition duration-200 flex items-center">
+                        <i class="fas fa-refresh mr-2"></i>Reset
+                    </a>
+                </div>
+            </form>
+
+            <!-- Hiển thị kết quả tìm kiếm -->
+            {% if search_query or status_filter %}
+            <div class="mt-4 text-sm text-gray-600">
+                <p>
+                    {% if search_query %}Tìm kiếm: "<strong>{{ search_query }}</strong>"{% endif %}
+                    {% if status_filter %}{% if search_query %} • {% endif %}Trạng thái: <strong>
+                        {% if status_filter == 'active' %}Hoạt động
+                        {% elif status_filter == 'suspended' %}Tạm khóa
+                        {% endif %}
+                    </strong>{% endif %}
+                    • Tìm thấy <strong>{{ users.count }}</strong> khách hàng
+                </p>
             </div>
+            {% endif %}
         </div>
 
+        <!-- PHẦN DANH SÁCH KHÁCH HÀNG -->
+        <div class="bg-gray-100">
+            <div class="container mx-auto p-6">
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">Danh Sách Khách Hàng</h3>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Khách hàng
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Email
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Điện thoại
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Ngày tham gia
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Trạng thái
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Phân quyền
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Thao tác
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for user in users %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                                                {{ user.first_name|first|default:user.username|first }}{{ user.last_name|first|default:"" }}
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">{{ user.get_full_name|default:user.username }}</div>
+                                                <div class="text-sm text-gray-500">ID: #{{ user.id }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ user.email }}</td>
+
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {{ user.phone_number|default:"—" }}
+                                    </td>
+
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {{ user.date_joined|date:"d/m/Y" }}
+                                    </td>
+
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        {% if user.is_active %}
+                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Hoạt động</span>
+                                        {% else %}
+                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Tạm khóa</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- CỘT PHÂN QUYỀN MỚI -->
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex flex-col space-y-2">
+                                            <!-- Hiển thị vai trò hiện tại -->
+                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
+                                                {% if user.user_type == 'admin' %}bg-red-100 text-red-800
+                                                {% elif user.user_type == 'employee' %}bg-blue-100 text-blue-800
+                                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                                {% if user.user_type == 'admin' %}Quản trị
+                                                {% elif user.user_type == 'employee' %}Nhân viên
+                                                {% else %}Khách hàng{% endif %}
+                                            </span>
+
+                                            <!-- Form chuyển đổi vai trò -->
+                                            {% if user.user_type == 'customer' %}
+                                            <form method="POST" action="{% url 'customer_convert_role' user.id %}" class="inline">
+                                                {% csrf_token %}
+                                                <button type="submit"
+                                                        class="text-xs bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 transition duration-200"
+                                                        onclick="return confirm('Chuyển khách hàng này thành nhân viên?')">
+                                                    <i class="fas fa-user-tie mr-1"></i>→ Nhân viên
+                                                </button>
+                                            </form>
+                                            {% elif user.user_type == 'employee' %}
+                                            <form method="POST" action="{% url 'customer_convert_role' user.id %}" class="inline">
+                                                {% csrf_token %}
+                                                <button type="submit"
+                                                        class="text-xs bg-gray-600 text-white px-2 py-1 rounded hover:bg-gray-700 transition duration-200"
+                                                        onclick="return confirm('Chuyển nhân viên này thành khách hàng?')">
+                                                    <i class="fas fa-user mr-1"></i>→ Khách hàng
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <div class="flex space-x-3">
+                                            <a href="{% url 'customer_detail' user.id %}" class="text-blue-600 hover:text-blue-900" title="Xem chi tiết">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'customer_edit' user.id %}" class="text-green-600 hover:text-green-900" title="Chỉnh sửa">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form method="POST" action="{% url 'customer_toggle_status' user.id %}" class="inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="{% if user.is_active %}text-yellow-600 hover:text-yellow-900{% else %}text-green-600 hover:text-green-900{% endif %}"
+                                                        title="{% if user.is_active %}Tạm khóa{% else %}Kích hoạt{% endif %}">
+                                                    <i class="fas {% if user.is_active %}fa-lock{% else %}fa-unlock{% endif %}"></i>
+                                                </button>
+                                            </form>
+                                            <!-- Trong vòng lặp hiển thị users -->
+
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                                        {% if search_query or status_filter %}
+                                        Không tìm thấy khách hàng nào phù hợp với tiêu chí tìm kiếm.
+                                        {% else %}
+                                        Chưa có khách hàng nào trong hệ thống.
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

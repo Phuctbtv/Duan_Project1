@@ -1,98 +1,371 @@
 {% extends 'admin/admin_home.html' %}
 
 {% load static %}
+{% load humanize %}
 {% block content %}
 <div id="dashboard" class="section p-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">Tổng Quan Hệ Thống</h2>
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">Tổng Quan Hệ Thống</h2>
+        <div class="flex space-x-3">
+            <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors" onclick="refreshCharts(event)">
+                <i class="fas fa-sync-alt mr-2"></i>Cập Nhật
+            </button>
+            <button class="gradient-bg text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity" onclick="exportReport()">
+                <i class="fas fa-download mr-2"></i>Xuất Báo Cáo
+            </button>
+        </div>
+    </div>
 
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-300">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-600 text-sm">Tổng Khách Hàng</p>
-                            <p class="text-2xl font-bold text-gray-800">1,234</p>
-                        </div>
-                        <div class="bg-blue-100 p-3 rounded-full">
-                            <i class="fas fa-users text-blue-600 text-xl"></i>
-                        </div>
-                    </div>
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm">Tổng Khách Hàng</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ total_customers|intcomma }}</p>
+                    <p class="text-xs text-green-600 mt-1">{{ active_customers }} đang hoạt động</p>
                 </div>
-
-                <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-300">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-600 text-sm">Hợp Đồng Hiệu Lực</p>
-                            <p class="text-2xl font-bold text-gray-800">856</p>
-                        </div>
-                        <div class="bg-green-100 p-3 rounded-full">
-                            <i class="fas fa-file-contract text-green-600 text-xl"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-300">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-600 text-sm">Yêu Cầu Bồi Thường</p>
-                            <p class="text-2xl font-bold text-gray-800">42</p>
-                        </div>
-                        <div class="bg-yellow-100 p-3 rounded-full">
-                            <i class="fas fa-clipboard-list text-yellow-600 text-xl"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-300">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-600 text-sm">Doanh Thu Tháng</p>
-                            <p class="text-2xl font-bold text-gray-800">58.5 tỷ</p>
-                        </div>
-                        <div class="bg-purple-100 p-3 rounded-full">
-                            <i class="fas fa-chart-line text-purple-600 text-xl"></i>
-                        </div>
-                    </div>
+                <div class="bg-blue-100 p-3 rounded-full">
+                    <i class="fas fa-users text-blue-600 text-xl"></i>
                 </div>
             </div>
+        </div>
 
-            <!-- Recent Activities -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-white rounded-xl shadow-sm p-6">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Hoạt Động Gần Đây</h3>
-                    <div class="space-y-4">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <span class="text-sm text-gray-600">Khách hàng Nguyễn Văn An đã mua bảo hiểm ô tô</span>
-                        </div>
-                        <div class="flex items-center space-x-3">
-                            <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
-                            <span class="text-sm text-gray-600">Yêu cầu bồi thường #12345 đã được phê duyệt</span>
-                        </div>
-                        <div class="flex items-center space-x-3">
-                            <div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                            <span class="text-sm text-gray-600">Đánh giá rủi ro cho khách hàng mới đã hoàn thành</span>
-                        </div>
+        <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm">Hợp Đồng Đang Hoạt Động</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ active_policies_count }}</p>
+                    <p class="text-xs text-green-600 mt-1">{{ pending_policies }} chờ xử lý</p>
+                </div>
+                <div class="bg-green-100 p-3 rounded-full">
+                    <i class="fas fa-file-contract text-green-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm">Yêu Cầu Bồi Thường</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ pending_claims_count }}</p>
+                    <p class="text-xs text-yellow-600 mt-1">đang chờ xử lý</p>
+                </div>
+                <div class="bg-orange-100 p-3 rounded-full">
+                    <i class="fas fa-exclamation-triangle text-orange-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm">Doanh Thu Tháng</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ monthly_revenue }} tỷ</p>
+                    <p class="text-xs text-green-600 mt-1">từ {{ active_policies_count }} hợp đồng</p>
+                </div>
+                <div class="bg-purple-100 p-3 rounded-full">
+                    <i class="fas fa-chart-line text-purple-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Biểu Đồ -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Biểu đồ doanh thu -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Doanh Thu Theo Tháng</h3>
+            <div class="h-64">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Biểu đồ phân loại hợp đồng -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Phân Loại Hợp Đồng</h3>
+            <div class="h-64">
+                <canvas id="contractChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activities & Thống Kê -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Hoạt Động Gần Đây</h3>
+            <div class="space-y-4" id="recentActivities">
+                {% for activity in recent_activities %}
+                <div class="flex items-start space-x-3">
+                    <div class="w-2 h-2 {{ activity.color }} rounded-full mt-2"></div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-800">{{ activity.message }}</p>
+                        <p class="text-xs text-gray-500 mt-1">{{ activity.time }}</p>
                     </div>
                 </div>
+                {% empty %}
+                <div class="flex items-start space-x-3">
+                    <div class="w-2 h-2 bg-gray-400 rounded-full mt-2"></div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-800">Đang tải dữ liệu hoạt động...</p>
+                        <p class="text-xs text-gray-500 mt-1">{% now "H:i - d/m/Y" %}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
 
-                <div class="bg-white rounded-xl shadow-sm p-6">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Thống Kê Nhanh</h3>
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-600">Tỷ Lệ Phê Duyệt</span>
-                            <span class="text-sm font-semibold text-green-600">94.2%</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-600">Thời Gian Xử Lý TB</span>
-                            <span class="text-sm font-semibold text-blue-600">2.3 ngày</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-600">Hài Lòng Khách Hàng</span>
-                            <span class="text-sm font-semibold text-purple-600">4.8/5</span>
-                        </div>
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Thống Kê Hiệu Suất</h3>
+            <div class="space-y-4">
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-700">Tỷ Lệ Phê Duyệt</span>
+                        <span class="text-sm font-bold text-green-600">{{ approval_rate }}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-green-500 h-2 rounded-full" style="width: {{ approval_rate }}%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-700">Thời Gian Xử Lý TB</span>
+                        <span class="text-sm font-bold text-blue-600">{{ avg_processing_time }} ngày</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-500 h-2 rounded-full" style="width: {% widthratio avg_processing_time 7 100 %}%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-700">Hài Lòng Khách Hàng</span>
+                        <span class="text-sm font-bold text-purple-600">{{ customer_satisfaction }}/5</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-purple-500 h-2 rounded-full" style="width: {% widthratio customer_satisfaction 5 100 %}%"></div>
+                    </div>
+                </div>
+                <div class="pt-4 border-t border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium text-gray-700">Tổng số Quản trị viên</span>
+                        <span class="text-sm font-bold text-orange-600">{{ staff_users }} người</span>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<script>
+// Biến toàn cục cho biểu đồ
+let revenueChart, contractChart;
+
+// Hàm khởi tạo biểu đồ với dữ liệu
+function initializeCharts(data) {
+    // Biểu đồ doanh thu
+    const revenueCtx = document.getElementById('revenueChart');
+    if (revenueCtx) {
+        revenueChart = new Chart(revenueCtx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: data.revenue_chart?.labels || ['Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6'],
+                datasets: [{
+                    label: 'Doanh Thu (tỷ VNĐ)',
+                    data: data.revenue_chart?.data || [45, 52, 48, 55, 58.5, 62],
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Tỷ VNĐ'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Biểu đồ phân loại hợp đồng
+    const contractCtx = document.getElementById('contractChart');
+    if (contractCtx) {
+        contractChart = new Chart(contractCtx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: data.contract_chart?.labels || ['Bảo Hiểm Ô Tô', 'Bảo Hiểm Sức Khỏe', 'Bảo Hiểm Du Lịch', 'Bảo Hiểm Nhà Ở'],
+                datasets: [{
+                    data: data.contract_chart?.data || [45, 25, 15, 15],
+                    backgroundColor: [
+                        '#3b82f6',
+                        '#10b981',
+                        '#f59e0b',
+                        '#8b5cf6',
+                        '#ef4444',
+                        '#84cc16'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+}
+
+// Hàm làm mới biểu đồ với API
+function refreshCharts(event) {
+    // Hiển thị loading
+    const refreshBtn = event.target.closest('button');
+    const originalHtml = refreshBtn.innerHTML;
+    refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang cập nhật...';
+    refreshBtn.disabled = true;
+
+    fetch('/admin/data/')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Dữ liệu nhận được:', data);
+            updateCharts(data);
+            refreshBtn.innerHTML = originalHtml;
+            refreshBtn.disabled = false;
+            showNotification('Dữ liệu đã được cập nhật thành công!', 'success');
+        })
+        .catch(error => {
+            console.error('Lỗi khi cập nhật biểu đồ:', error);
+            refreshBtn.innerHTML = originalHtml;
+            refreshBtn.disabled = false;
+            showNotification('Có lỗi khi cập nhật dữ liệu. Vui lòng thử lại.', 'error');
+        });
+}
+
+// Hàm cập nhật biểu đồ với dữ liệu mới
+function updateCharts(data) {
+    if (revenueChart && data.revenue_chart) {
+        revenueChart.data.labels = data.revenue_chart.labels;
+        revenueChart.data.datasets[0].data = data.revenue_chart.data;
+        revenueChart.update('resize');
+    }
+
+    if (contractChart && data.contract_chart) {
+        contractChart.data.labels = data.contract_chart.labels;
+        contractChart.data.datasets[0].data = data.contract_chart.data;
+        contractChart.update('resize');
+    }
+}
+
+// Hàm xuất báo cáo
+function exportReport() {
+    showNotification('Đang chuẩn bị xuất báo cáo...', 'info');
+    // Tạo URL download
+    const url = '/admin/data/?format=excel'; // Bạn có thể thêm endpoint xuất Excel
+    setTimeout(() => {
+        showNotification('Báo cáo đã được xuất thành công!', 'success');
+        // Tự động download
+        window.open(url, '_blank');
+    }, 1500);
+}
+
+// Hàm hiển thị thông báo tốt hơn
+function showNotification(message, type = 'info') {
+    // Tạo toast notification
+    const toast = document.createElement('div');
+    toast.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 transform transition-all duration-300 ${
+        type === 'success' ? 'bg-green-500 text-white' :
+        type === 'error' ? 'bg-red-500 text-white' :
+        'bg-blue-500 text-white'
+    }`;
+
+    const icon = type === 'success' ? 'fa-check-circle' :
+                 type === 'error' ? 'fa-exclamation-circle' :
+                 'fa-info-circle';
+
+    toast.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas ${icon} mr-2"></i>
+            <span>${message}</span>
+        </div>
+    `;
+
+    document.body.appendChild(toast);
+
+    // Tự động xóa sau 4 giây
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    }, 4000);
+}
+
+// Khởi tạo biểu đồ khi trang load
+document.addEventListener('DOMContentLoaded', function() {
+    // Gọi API ngay khi trang load để lấy dữ liệu thực
+    fetch('/admin/data/')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Dữ liệu khởi tạo:', data);
+            initializeCharts(data);
+        })
+        .catch(error => {
+            console.error('Lỗi khi tải dữ liệu ban đầu:', error);
+            // Khởi tạo với dữ liệu mẫu nếu API lỗi
+            initializeCharts({});
+            showNotification('Đang sử dụng dữ liệu mẫu. Vui lòng cập nhật để lấy dữ liệu thực.', 'info');
+        });
+});
+</script>
+
+<style>
+.gradient-bg {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.card-hover:hover {
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+/* Animation cho loading */
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
 {% endblock %}

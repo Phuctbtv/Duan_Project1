@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'django.contrib.humanize',
     "users",
     "insurance_products",
     "policies",
@@ -43,7 +44,7 @@ INSTALLED_APPS = [
     "payments",
     "notifications",
     'widget_tweaks',
-]
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -83,7 +84,8 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "BaoHiem",
         "USER": "postgres",
-        "PASSWORD": "tuan",
+        
+        "PASSWORD": "27112004",
         "HOST": "localhost",
         "PORT": "5432",
         "OPTIONS": {

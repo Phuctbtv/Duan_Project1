@@ -1,10 +1,15 @@
-from datetime import timezone
-from django.db import models
 from datetime import timedelta
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from insurance_products.models import InsuranceProduct  # import model sản phẩm
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.db.models import Sum
+from .models import Policy
+from .forms import PolicyForm
+from insurance_products.models import InsuranceProduct
+
+
 @login_required
 def custom_policies_admin(request):
     query = request.GET.get('q', '')
@@ -20,7 +25,7 @@ def custom_policies_admin(request):
     # Cập nhật trạng thái expired nếu end_date < hôm nay
     today = timezone.now().date()
     for policy in policies:
-        if policy.end_date < today and policy.policy_status != "expired":
+        if policy.end_date and policy.end_date < today and policy.policy_status != "expired":
             policy.policy_status = "expired"
             policy.save(update_fields=["policy_status"])
 
@@ -37,12 +42,13 @@ def custom_policies_admin(request):
 
     context = {
         'policies': policies,
-        'products': products,  # gửi danh sách sản phẩm sang template
+        'products': products,
         'query': query,
         'status': status,
         'selected_product': product,
     }
     return render(request, 'admin/policies_section.html', context)
+
 
 @login_required
 def dashboard_view_user(request):
@@ -55,13 +61,14 @@ def dashboard_view_user(request):
     active_contracts = Policy.objects.filter(customer__user=user, policy_status="active").count()
 
     # Phí hàng năm
-    year_fee = Policy.objects.filter(customer__user=user).aggregate(total=models.Sum("premium_amount"))["total"] or 0
+    year_fee = Policy.objects.filter(customer__user=user).aggregate(total=Sum("premium_amount"))["total"] or 0
     year_fee_display = format_money(year_fee)
+
     # Tổng giá trị bảo hiểm
-    total_insurance = Policy.objects.filter(customer__user=user).aggregate(total=models.Sum("sum_insured"))["total"] or 0
+    total_insurance = Policy.objects.filter(customer__user=user).aggregate(total=Sum("sum_insured"))["total"] or 0
     total_insurance_display = format_money(total_insurance)
 
-    search_query = request.GET.get("q","")
+    search_query = request.GET.get("q", "")
     policies = Policy.objects.select_related("product").filter(customer__user=user)
     if search_query:
         policies = policies.filter(
@@ -76,9 +83,9 @@ def dashboard_view_user(request):
         "total_contracts": total_contracts,
         "active_contracts": active_contracts,
         "year_fee": year_fee_display,
-         "total_insurance": total_insurance_display,
+        "total_insurance": total_insurance_display,
         "policies": policies,
-        "search_query":search_query
+        "search_query": search_query
     }
     return render(request, "users/policies_users.html", context)
 
@@ -91,11 +98,14 @@ def format_money(value):
     elif value >= 1_000:
         return f"{value / 1_000:.1f}".rstrip("0").rstrip(".") + "K"
     return str(int(value))
+
+
 @login_required
 def policies_list_user(request):
     user = request.user
     policies = Policy.objects.select_related("product").filter(customer__user=user)
     return render(request, "policies_users.html", {"policies": policies})
+
 
 def search_policies(user, search_query=""):
     """
@@ -110,10 +120,7 @@ def search_policies(user, search_query=""):
         )
 
     return policies
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import Policy
-from .forms import PolicyForm
-from django.contrib import messages
+
 
 @login_required
 def admin_policy_list(request):
@@ -152,19 +159,53 @@ def admin_policy_create(request):
     if request.method == 'POST':
         form = PolicyForm(request.POST)
         if form.is_valid():
-            form.save()
+            # Validate ngày hiệu lực và ngày hết hạn
+            start_date = form.cleaned_data.get('start_date')
+            end_date = form.cleaned_data.get('end_date')
+
+            if start_date and end_date:
+                if start_date >= end_date:
+                    form.add_error('start_date', 'Ngày hiệu lực phải trước ngày hết hạn')
+                    form.add_error('end_date', 'Ngày hết hạn phải sau ngày hiệu lực')
+                    return render(request, 'admin/policies_form.html', {
+                        'form': form,
+                        'title': 'Tạo Hợp Đồng',
+                        'action': 'create'
+                    })
+
+                # Kiểm tra ngày hiệu lực không được là quá khứ (tùy chọn)
+                today = timezone.now().date()
+                if start_date < today:
+                    form.add_error('start_date', 'Ngày hiệu lực không được là ngày trong quá khứ')
+                    return render(request, 'admin/policies_form.html', {
+                        'form': form,
+                        'title': 'Tạo Hợp Đồng',
+                        'action': 'create'
+                    })
+
+            policy = form.save()
             messages.success(request, "Đã thêm hợp đồng thành công!")
-            return redirect('admin_policy_list')
+            return redirect('policy_detail', pk=policy.pk)
     else:
         form = PolicyForm()
-    return render(request, 'admin/policies_form.html', {'form': form, 'title': 'Tạo Hợp Đồng'})
+
+    context = {
+        'form': form,
+        'title': 'Tạo Hợp Đồng',
+        'action': 'create'
+    }
+    return render(request, 'admin/policies_form.html', context)
 
 
 @login_required
 def admin_policy_detail(request, pk):
     """Xem chi tiết"""
     policy = get_object_or_404(Policy, pk=pk)
-    return render(request, 'admin/policies_detail.html', {'policy': policy})
+    context = {
+        'policy': policy,
+        'now': timezone.now(),  # Thêm current time cho template
+    }
+    return render(request, 'admin/policies_detail.html', context)
 
 
 @login_required
@@ -183,7 +224,7 @@ def admin_policy_renew(request, pk):
         policy.save()
 
         messages.success(request, f"Hợp đồng {policy.policy_number} đã được gia hạn thành công!")
-        return redirect('admin_policy_list')
+        return redirect('policy_detail', pk=policy.pk)
 
     return render(request, 'admin/policies_confirm_renew.html', {'old_policy': policy})
 
@@ -196,5 +237,45 @@ def admin_policy_cancel(request, pk):
         policy.policy_status = "cancelled"
         policy.save()
         messages.warning(request, f"Hợp đồng {policy.policy_number} đã bị hủy.")
-        return redirect('admin_policy_list')
+        return redirect('policy_detail', pk=policy.pk)
     return render(request, 'admin/policies_confirm_cancel.html', {'policy': policy})
+
+
+@login_required
+def admin_policy_edit(request, pk):
+    """Chỉnh sửa hợp đồng"""
+    policy = get_object_or_404(Policy, pk=pk)
+
+    if request.method == 'POST':
+        form = PolicyForm(request.POST, instance=policy)
+        if form.is_valid():
+            # Validate ngày hiệu lực và ngày hết hạn
+            start_date = form.cleaned_data.get('start_date')
+            end_date = form.cleaned_data.get('end_date')
+
+            if start_date and end_date:
+                if start_date >= end_date:
+                    form.add_error('start_date', 'Ngày hiệu lực phải trước ngày hết hạn')
+                    form.add_error('end_date', 'Ngày hết hạn phải sau ngày hiệu lực')
+                    return render(request, 'admin/policies_form.html', {
+                        'form': form,
+                        'policy': policy,
+                        'title': f'Chỉnh sửa Hợp Đồng - {policy.policy_number}',
+                        'action': 'edit'
+                    })
+
+            form.save()
+            messages.success(request, f"Hợp đồng {policy.policy_number} đã được cập nhật thành công!")
+            return redirect('policy_detail', pk=policy.pk)
+        else:
+            messages.error(request, "Vui lòng sửa các lỗi dưới đây.")
+    else:
+        form = PolicyForm(instance=policy)
+
+    context = {
+        'form': form,
+        'policy': policy,
+        'title': f'Chỉnh sửa Hợp Đồng - {policy.policy_number}',
+        'action': 'edit'
+    }
+    return render(request, 'admin/policies_form.html', context)
