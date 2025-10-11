@@ -1,8 +1,8 @@
-
+from django.db import transaction
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
-from django.db.models import Count, Sum, Q
+from django.db.models import Count, Sum, Q, ProtectedError
 from django.utils import timezone
 from datetime import timedelta, datetime
 
@@ -260,6 +260,8 @@ def get_total_revenue():
     total = Payment.objects.filter(status='success').aggregate(total=Sum('amount'))['total'] or 0
     return float(total) / 1000000000  # Tỷ VNĐ
 
+
+
 def custom_section(request):
     users = User.objects.all()
     """Quản lý khách hàng - Tìm kiếm, phân loại"""
@@ -313,7 +315,7 @@ def customer_create(request):
             user = User.objects.create_user(
                 username=request.POST.get('username'),
                 email=request.POST.get('email'),
-                password=request.POST.get('password', '123456'),  # Password mặc định
+                password=request.POST.get('password', 'Dk123456'),  # Password mặc định
                 first_name=request.POST.get('first_name'),
                 last_name=request.POST.get('last_name'),
                 phone_number=request.POST.get('phone_number'),
@@ -418,21 +420,6 @@ def customer_toggle_status(request, user_id):
     messages.success(request, f'Đã {status} khách hàng {user.get_full_name()}')
 
     return redirect('custom_section')
-
-
-@admin_required
-def customer_delete(request, user_id):
-    """Xóa khách hàng"""
-    user = get_object_or_404(User, pk=user_id, user_type='customer')
-
-    if request.method == 'POST':
-        username = user.username
-        user.delete()
-        messages.success(request, f'Đã xóa khách hàng {username} thành công!')
-        return redirect('custom_section')
-
-    return render(request, 'admin/customer_confirm_delete.html', {'user': user})
-
 
 @admin_required
 def customer_convert_role(request, user_id):

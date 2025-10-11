@@ -182,12 +182,8 @@
                                                     <i class="fas {% if user.is_active %}fa-lock{% else %}fa-unlock{% endif %}"></i>
                                                 </button>
                                             </form>
-                                            <form method="POST" action="{% url 'customer_delete' user.id %}" class="inline" onsubmit="return confirm('Bạn có chắc muốn xóa khách hàng này?');">
-                                                {% csrf_token %}
-                                                <button type="submit" class="text-red-600 hover:text-red-900" title="Xóa">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
+                                            <!-- Trong vòng lặp hiển thị users -->
+
                                         </div>
                                     </td>
                                 </tr>
