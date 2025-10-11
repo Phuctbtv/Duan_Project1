@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "claims",
     "payments",
     "notifications",
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [
@@ -80,9 +81,9 @@ DATABASES = {
 
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "baohiem1",
+        "NAME": "BaoHiem",
         "USER": "postgres",
-        "PASSWORD": "123456",
+        "PASSWORD": "tuan",
         "HOST": "localhost",
         "PORT": "5432",
         "OPTIONS": {

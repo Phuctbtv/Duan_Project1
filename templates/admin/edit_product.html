@@ -1,0 +1,84 @@
+{% extends 'admin/admin_home.html' %}
+{% load widget_tweaks %}
+{% block content %}
+
+<div class="flex justify-center items-center py-10 bg-gray-50 min-h-screen">
+  <div class="bg-white shadow-xl rounded-2xl w-full max-w-2xl p-8 border border-gray-200">
+    <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">
+      ✏️ Sửa sản phẩm
+    </h2>
+
+    <!-- FORM CẬP NHẬT -->
+    <form method="POST" class="space-y-6" onsubmit="return confirm('Bạn có chắc chắn muốn cập nhật sản phẩm này không?')">
+      {% csrf_token %}
+
+      <div>
+        <label class="block font-semibold mb-1 text-gray-700">Tên sản phẩm</label>
+        {% render_field form.product_name class="w-full border border-gray-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" %}
+      </div>
+
+      <div>
+        <label class="block font-semibold mb-1 text-gray-700">Mô tả</label>
+        {% render_field form.description class="w-full border border-gray-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" %}
+      </div>
+
+      <div>
+        <label class="block font-semibold mb-1 text-gray-700">Chi tiết phạm vi bảo hiểm</label>
+        {% render_field form.coverage_details class="w-full border border-gray-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" %}
+      </div>
+
+      <div>
+        <label class="block font-semibold mb-1 text-gray-700">Điều khoản & điều kiện</label>
+        {% render_field form.terms_and_conditions class="w-full border border-gray-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" %}
+      </div>
+
+      <div>
+        <label class="block font-semibold mb-1 text-gray-700">Phí bảo hiểm cơ bản</label>
+        {% render_field form.premium_base_amount class="w-full border border-gray-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" %}
+      </div>
+
+      <div>
+        <label class="block font-semibold mb-1 text-gray-700">Loại tiền tệ</label>
+        {% render_field form.currency class="w-full border border-gray-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" %}
+      </div>
+
+      <div>
+        <label class="block font-semibold mb-1 text-gray-700">Số tiền bồi thường tối đa</label>
+        {% render_field form.max_claim_amount class="w-full border border-gray-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" %}
+      </div>
+
+      <div>
+        <label class="block font-semibold mb-1 text-gray-700">Loại sản phẩm</label>
+        {% render_field form.product_type class="w-full border border-gray-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" %}
+      </div>
+
+      <div class="flex justify-end space-x-3 pt-6">
+        <a href="{% url 'custom_products_admin' %}"
+           class="bg-gray-400 hover:bg-gray-500 text-white px-5 py-2 rounded-lg transition">
+          Hủy
+        </a>
+
+        <!-- Nút Cập nhật -->
+        <button type="submit"
+                class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg transition">
+          💾 Cập nhật
+        </button>
+      </div>
+    </form>
+
+    <!-- FORM XÓA (TÁCH RIÊNG) -->
+    <form method="POST"
+          action="{% url 'delete_product' product.id %}"
+          onsubmit="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này không?');"
+          class="pt-4 text-right">
+      {% csrf_token %}
+      <button type="submit"
+              class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg transition">
+        🗑️ Xóa sản phẩm
+      </button>
+    </form>
+
+  </div>
+</div>
+
+{% endblock %}
