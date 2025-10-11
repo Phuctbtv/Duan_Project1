@@ -8,14 +8,14 @@
 
         <nav class="mt-8">
             <div class="px-4 space-y-2">
-                <a href="{% url 'dashboard:admin_home' %}" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg transition-all duration-200
+                <a href="{% url 'admin_home' %}" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg transition-all duration-200
                     {% if request.resolver_match.url_name == 'admin_home' %} gradient-bg text-white {% else %} text-gray-700 {% endif %}" >
                     <i class="fas fa-tachometer-alt mr-3"></i>
                     Tổng Quan
                 </a>
-                <a href="{% url 'custom_users_admin' %}"
+                <a href="{% url 'custom_section' %}"
                    class="sidebar-item flex items-center px-4 py-3 rounded-lg transition-all duration-200
-                   {% if request.resolver_match.url_name == 'custom_users_admin' %} gradient-bg text-white {% else %} text-gray-700 {% endif %}">
+                   {% if request.resolver_match.url_name == 'custom_section' %} gradient-bg text-white {% else %} text-gray-700 {% endif %}">
                    <i class="fas fa-users mr-3"></i>
                    Quản Lý Khách Hàng
                 </a>

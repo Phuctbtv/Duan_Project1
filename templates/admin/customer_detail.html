@@ -1,0 +1,226 @@
+{% extends 'admin/admin_home.html' %}
+{% load static %}
+
+{% block content %}
+<div class="section p-6">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-800">Chi Tiết Khách Hàng</h2>
+                <p class="text-gray-600">Thông tin chi tiết và lịch sử của khách hàng</p>
+            </div>
+            <div class="flex space-x-3">
+                <a href="{% url 'customer_edit' user.id %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200">
+                    <i class="fas fa-edit mr-2"></i>Chỉnh sửa
+                </a>
+                <a href="{% url 'custom_section' %}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition duration-200">
+                    <i class="fas fa-arrow-left mr-2"></i>Quay lại
+                </a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Thông tin chính -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Thông tin cá nhân -->
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Thông Tin Cá Nhân</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">Họ và tên</label>
+                            <p class="mt-1 text-sm text-gray-900">{{ user.get_full_name|default:"Chưa cập nhật" }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">Tên đăng nhập</label>
+                            <p class="mt-1 text-sm text-gray-900">{{ user.username }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">Email</label>
+                            <p class="mt-1 text-sm text-gray-900">{{ user.email }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">Số điện thoại</label>
+                            <p class="mt-1 text-sm text-gray-900">{{ user.phone_number|default:"Chưa cập nhật" }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">Ngày sinh</label>
+                            <p class="mt-1 text-sm text-gray-900">{{ user.date_of_birth|date:"d/m/Y"|default:"Chưa cập nhật" }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">Trạng thái</label>
+                            <p class="mt-1">
+                                {% if user.is_active %}
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Hoạt động</span>
+                                {% else %}
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Tạm khóa</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-500">Địa chỉ</label>
+                        <p class="mt-1 text-sm text-gray-900">{{ user.address|default:"Chưa cập nhật" }}</p>
+                    </div>
+                </div>
+
+                <!-- Thông tin bổ sung -->
+                {% if customer %}
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Thông Tin Bổ Sung</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">Số CMND/CCCD</label>
+                            <p class="mt-1 text-sm text-gray-900">{{ customer.id_card_number }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">Giới tính</label>
+                            <p class="mt-1 text-sm text-gray-900">
+                                {% if customer.gender == 'male' %}Nam
+                                {% elif customer.gender == 'female' %}Nữ
+                                {% else %}Khác
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">Quốc tịch</label>
+                            <p class="mt-1 text-sm text-gray-900">{{ customer.nationality }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">Nghề nghiệp</label>
+                            <p class="mt-1 text-sm text-gray-900">{{ customer.job|default:"Chưa cập nhật" }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Hợp đồng bảo hiểm -->
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Hợp Đồng Bảo Hiểm ({{ policies|length }})</h3>
+                    {% if policies %}
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Số hợp đồng</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Sản phẩm</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Trạng thái</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Ngày hết hạn</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                {% for policy in policies %}
+                                <tr>
+                                    <td class="px-4 py-2 text-sm text-gray-900">{{ policy.policy_number }}</td>
+                                    <td class="px-4 py-2 text-sm text-gray-900">{{ policy.product.product_name }}</td>
+                                    <td class="px-4 py-2 text-sm">
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
+                                            {% if policy.policy_status == 'active' %}bg-green-100 text-green-800
+                                            {% elif policy.policy_status == 'expired' %}bg-red-100 text-red-800
+                                            {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                            {{ policy.get_policy_status_display }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-2 text-sm text-gray-900">{{ policy.end_date|date:"d/m/Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-gray-500 text-center py-4">Chưa có hợp đồng bảo hiểm</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Thông tin tóm tắt -->
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Tóm Tắt</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Ngày tham gia:</span>
+                            <span class="text-sm font-medium">{{ user.date_joined|date:"d/m/Y" }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Số hợp đồng:</span>
+                            <span class="text-sm font-medium">{{ policies|length }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Yêu cầu bồi thường:</span>
+                            <span class="text-sm font-medium">{{ claims|length }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Lần thanh toán:</span>
+                            <span class="text-sm font-medium">{{ payments|length }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thao tác nhanh -->
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Thao Tác</h3>
+                    <div class="space-y-2">
+                        <form method="POST" action="{% url 'customer_toggle_status' user.id %}" class="w-full">
+                            {% csrf_token %}
+                            <button type="submit" class="w-full text-left px-4 py-2 text-sm rounded-lg 
+                                {% if user.is_active %}bg-yellow-100 text-yellow-800 hover:bg-yellow-200
+                                {% else %}bg-green-100 text-green-800 hover:bg-green-200{% endif %}">
+                                <i class="fas {% if user.is_active %}fa-lock{% else %}fa-unlock{% endif %} mr-2"></i>
+                                {% if user.is_active %}Tạm khóa{% else %}Kích hoạt{% endif %} tài khoản
+                            </button>
+                        </form>
+                        
+                        <a href="{% url 'customer_edit' user.id %}" class="block w-full text-left px-4 py-2 text-sm bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200">
+                            <i class="fas fa-edit mr-2"></i>Chỉnh sửa thông tin
+                        </a>
+                        
+                        <button onclick="showDeleteModal()" class="w-full text-left px-4 py-2 text-sm bg-red-100 text-red-800 rounded-lg hover:bg-red-200">
+                            <i class="fas fa-trash mr-2"></i>Xóa khách hàng
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal xác nhận xóa -->
+<div id="deleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                <i class="fas fa-exclamation-triangle text-red-600"></i>
+            </div>
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mt-2">Xác nhận xóa</h3>
+            <div class="mt-2 px-7 py-3">
+                <p class="text-sm text-gray-500">
+                    Bạn có chắc chắn muốn xóa khách hàng "{{ user.get_full_name }}"?
+                </p>
+            </div>
+            <div class="flex justify-center space-x-4 mt-4">
+                <button onclick="hideDeleteModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">
+                    Hủy
+                </button>
+                <form method="POST" action="{% url 'customer_delete' user.id %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                        Xóa
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('hidden');
+}
+
+function hideDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+}
+</script>
+{% endblock %}

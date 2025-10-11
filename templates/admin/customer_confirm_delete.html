@@ -1,0 +1,62 @@
+{% extends 'admin/admin_home.html' %}
+{% load static %}
+
+{% block content %}
+<div class="section p-6">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <!-- Icon cảnh báo -->
+            <div class="text-center mb-6">
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+                </div>
+            </div>
+
+            <!-- Nội dung -->
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Xác Nhận Xóa</h2>
+                <p class="text-gray-600 mb-4">
+                    Bạn có chắc chắn muốn xóa khách hàng này?
+                </p>
+                
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                    <div class="flex items-center justify-center mb-3">
+                        <div class="flex-shrink-0 h-12 w-12 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                            {{ user.first_name|first|default:user.username|first }}{{ user.last_name|first|default:"" }}
+                        </div>
+                    </div>
+                    <h3 class="text-lg font-semibold text-red-800">{{ user.get_full_name|default:user.username }}</h3>
+                    <p class="text-sm text-red-600">ID: #{{ user.id }} • {{ user.email }}</p>
+                </div>
+
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-left">
+                    <h4 class="font-semibold text-yellow-800 mb-2">
+                        <i class="fas fa-exclamation-circle mr-2"></i>Cảnh báo
+                    </h4>
+                    <ul class="text-sm text-yellow-700 list-disc list-inside space-y-1">
+                        <li>Tất cả thông tin khách hàng sẽ bị xóa vĩnh viễn</li>
+                        <li>Các hợp đồng bảo hiểm liên quan sẽ bị ảnh hưởng</li>
+                        <li>Lịch sử giao dịch và yêu cầu bồi thường sẽ bị mất</li>
+                        <li>Hành động này không thể hoàn tác</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex justify-center space-x-4">
+                <a href="{% url 'customer_detail' user.id %}" 
+                   class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition duration-200 font-medium">
+                    <i class="fas fa-arrow-left mr-2"></i>Quay lại
+                </a>
+                <form method="POST" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-200 font-medium">
+                        <i class="fas fa-trash mr-2"></i>Xóa vĩnh viễn
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
