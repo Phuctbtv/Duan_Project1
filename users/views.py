@@ -11,6 +11,12 @@ from users.forms.RegisterForm import RegisterForm
 from users.forms.ChangePasswordForm import ChangePasswordForm
 from users.models import User, Customer
 
+from django.db.models import Count, Sum
+from django.utils import timezone
+from datetime import timedelta
+from django.http import JsonResponse
+# from .models import InsuranceProduct, InsuranceContract
+
 from django.contrib.auth.views import PasswordResetConfirmView
 from .forms.CustomSetPasswordForm import CustomSetPasswordForm
 def trangchu(request):
@@ -195,5 +201,133 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     success_url = '/login/'
 
 
+@login_required
+def admin_home(request):
+    """Dashboard cho admin"""
+    if not request.user.is_staff:
+        return redirect('trangchu')
 
+    # DÙNG DỮ LIỆU TĨNH
+    context = {
+        'total_customers': 1234,
+        'active_contracts': 856,
+        'monthly_revenue': 58.5,
+        'recent_claims': 42,
+        'approval_rate': 94.2,
+        'avg_processing_time': 2.3,
+        'customer_satisfaction': 4.8,
+    }
 
+    return render(request, "admin/admin_home.html", context)
+# @login_required
+# def admin_home(request):
+#     """Dashboard cho admin"""
+#     if not request.user.is_staff:
+#         return redirect("trangchu")
+#
+#     #lay thong ke tu database
+#     total_customers = Customer.objects.count()
+#     active_contracts = InsuranceContract.objects.filter(status='active').count()
+#
+#     #doanh thu thang hien tai
+#     current_month = timezone.now().month
+#     current_year = timezone.now().year
+#
+#     monthly_revenue = InsuranceContract.objects.filter(
+#         created_at__month=current_month,
+#         created_at__year=current_year,
+#         status='active'
+#     ).aggregate(total=Sum('total_premium'))['total'] or 0
+#
+#     #chuyen doi sang ty
+#     monthly_revenue_billion = float(monthly_revenue) / 1000000000 if monthly_revenue else 0
+#
+#     #hoat dong gan day (5 hop dong moi nhat)
+#     recent_activities = InsuranceContract.objects.select_related(
+#         'customer', 'product', 'customer__user'
+#     ).order_by('-created_at')[:5]
+#
+#     #du lieu cho bieu do
+#     monthly_data = get_monthly_revenue_data()
+#     contract_type_data = get_contract_type_data()
+#
+#     context = {
+#         'total_customers': total_customers,
+#         'active_contracts': active_contracts,
+#         'monthly_revenue': round(monthly_revenue_billion, 1),
+#         'recent_activities': recent_activities,
+#
+#         #du lieu bieu do
+#         'monthly_labels': monthly_data['labels'],
+#         'monthly_revenue': monthly_data['revenue'],
+#         'contract_types': contract_type_data['types'],
+#         'contract_counts': contract_type_data['counts'],
+#     }
+#
+#     return render(request, "users/admin_home.html", context)
+#
+#
+# def get_monthly_revenue_data():
+#     """Lấy dữ liệu doanh thu 6 tháng gần nhất"""
+#     months = []
+#     revenues = []
+#
+#     for i in range(5, -1, -1):
+#         date = timezone.now() - timedelta(days=30 * i)
+#         month_year = date.strftime('%m/%Y')
+#         months.append(month_year)
+#
+#         revenue = InsuranceContract.objects.filter(
+#             created_at__month=date.month,
+#             created_at__year=date.year,
+#             status='active'
+#         ).aggregate(total=Sum('total_premium'))['total'] or 0
+#
+#         revenues.append(float(revenue) / 1000000)  # Chuyển sang triệu VND
+#
+#     return {'labels': months, 'revenues': revenues}
+#
+#
+# def get_contract_type_data():
+#     """Lấy dữ liệu phân loại hợp đồng theo sản phẩm"""
+#     contracts_by_type = InsuranceContract.objects.filter(
+#         status='active'
+#     ).values('product__product_type').annotate(
+#         count=Count('id')
+#     )
+#
+#     types = []
+#     counts = []
+#
+#     type_names = {
+#         'auto': 'Ô Tô',
+#         'health': 'Sức Khỏe',
+#         'home': 'Nhà Ở',
+#         'life': 'Nhân Thọ'
+#     }
+#
+#     for item in contracts_by_type:
+#         type_key = item['product__product_type']
+#         types.append(type_names.get(type_key, type_key))
+#         counts.append(item['count'])
+#
+#     return {'types': types, 'counts': counts}
+#
+#
+# # API cho biểu đồ
+# @login_required
+# def dashboard_chart_data(request):
+#     """API cung cấp dữ liệu cho biểu đồ"""
+#     if not request.user.is_staff:
+#         return JsonResponse({'error': 'Unauthorized'}, status=403)
+#
+#     chart_type = request.GET.get('type', 'revenue')
+#
+#     if chart_type == 'revenue':
+#         data = get_monthly_revenue_data()
+#     elif chart_type == 'contracts':
+#         data = get_contract_type_data()
+#     else:
+#         data = {}
+#
+#     return JsonResponse(data)

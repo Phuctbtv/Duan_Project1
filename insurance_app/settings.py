@@ -36,12 +36,14 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'django.contrib.humanize',
     "users",
     "insurance_products",
     "policies",
     "claims",
     "payments",
     "notifications",
+    "dashboard",
 ]
 
 MIDDLEWARE = [
