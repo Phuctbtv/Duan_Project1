@@ -172,20 +172,17 @@ def get_recent_activities():
 
 
 @login_required
-@login_required
 def dashboard_data(request):
-    """API cung cấp dữ liệu cho biểu đồ từ database thực"""
     if not request.user.is_staff:
         return JsonResponse({'error': 'Unauthorized'}, status=403)
 
     try:
-        # Doanh thu 6 tháng gần nhất từ bảng payment
         revenue_data = []
         labels = []
 
         for i in range(5, -1, -1):
             target_date = timezone.now() - timedelta(days=30 * i)
-            month_year = target_date.strftime('Th%-m')
+            month_year = f"Th{target_date.month}"
             labels.append(month_year)
 
             try:
@@ -194,19 +191,11 @@ def dashboard_data(request):
                     payment_date__year=target_date.year,
                     status='success'
                 ).aggregate(total=Sum('amount'))['total'] or 0
-                # Nếu không có dữ liệu, dùng giá trị mẫu
-                if monthly_revenue == 0:
-                    # Tạo dữ liệu mẫu dựa trên tháng
-                    sample_data = [45, 52, 48, 55, 58.5, 62]
-                    monthly_revenue = sample_data[i] * 1000000000  # Nhân với 1 tỷ để có số thực
                 revenue_data.append(float(monthly_revenue) / 1000000000)  # Tỷ VNĐ
             except Exception as e:
                 print(f"Lỗi doanh thu tháng {month_year}: {e}")
-                # Dùng dữ liệu mẫu nếu có lỗi
-                sample_data = [45, 52, 48, 55, 58.5, 62]
-                revenue_data.append(sample_data[i] if i < len(sample_data) else 0)
+                revenue_data.append(0)
 
-        # Phân loại hợp đồng theo loại sản phẩm bảo hiểm
         try:
             policy_types_data = Policy.objects.values('product__product_name').annotate(
                 total=Count('id')
@@ -215,45 +204,43 @@ def dashboard_data(request):
             policy_labels = [item['product__product_name'] for item in policy_types_data]
             policy_data = [item['total'] for item in policy_types_data]
 
-            # Nếu không có dữ liệu, dùng fallback
             if not policy_labels:
-                policy_labels = ['Bảo Hiểm Ô Tô', 'Bảo Hiểm Sức Khỏe', 'Bảo Hiểm Du Lịch', 'Bảo Hiểm Nhà Ở']
-                policy_data = [45, 25, 15, 15]
+                policy_labels = ['Chưa có hợp đồng']
+                policy_data = [1]
 
         except Exception as e:
             print(f"Lỗi phân loại hợp đồng: {e}")
-            policy_labels = ['Bảo Hiểm Ô Tô', 'Bảo Hiểm Sức Khỏe', 'Bảo Hiểm Du Lịch', 'Bảo Hiểm Nhà Ở']
-            policy_data = [45, 25, 15, 15]
+            policy_labels = ['Lỗi tải dữ liệu']
+            policy_data = [1]
 
         data = {
             'revenue_chart': {
                 'labels': labels,
                 'data': [round(x, 2) for x in revenue_data],
-                'title': 'Doanh Thu Theo Tháng (tỷ VNĐ)'
             },
             'contract_chart': {
                 'labels': policy_labels[:6],
                 'data': policy_data[:6],
-                'title': 'Phân Loại Hợp Đồng'
             }
         }
+
+        print("=== DỮ LIỆU ĐỘNG THỰC TẾ ===")
+        print(f"Doanh thu: {revenue_data}")
+        print(f"Phân loại hợp đồng: {policy_labels} - {policy_data}")
+        print("=============================")
 
         return JsonResponse(data)
 
     except Exception as e:
         print(f"Lỗi API dashboard: {e}")
-        # Fallback data đơn giản
-        return JsonResponse({
-            'revenue_chart': {
-                'labels': ['Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6'],
-                'data': [45, 52, 48, 55, 58.5, 62],
-            },
-            'contract_chart': {
-                'labels': ['Bảo Hiểm Ô Tô', 'Bảo Hiểm Sức Khỏe', 'Bảo Hiểm Du Lịch', 'Bảo Hiểm Nhà Ở'],
-                'data': [45, 25, 15, 15],
-            }
-        })
+        import traceback
+        traceback.print_exc()
 
+        # Trả về lỗi để frontend biết
+        return JsonResponse({
+            'error': True,
+            'message': 'Không thể lấy dữ liệu từ hệ thống'
+        }, status=500)
 
 # Các hàm tiện ích bổ sung
 def get_active_policies_count():
