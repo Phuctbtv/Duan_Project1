@@ -4,8 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-
-from claims import models
+from django.db.models import Sum
 from .models import Policy
 from .forms import PolicyForm
 from insurance_products.models import InsuranceProduct
@@ -26,7 +25,7 @@ def custom_policies_admin(request):
     # Cập nhật trạng thái expired nếu end_date < hôm nay
     today = timezone.now().date()
     for policy in policies:
-        if policy.end_date < today and policy.policy_status != "expired":
+        if policy.end_date and policy.end_date < today and policy.policy_status != "expired":
             policy.policy_status = "expired"
             policy.save(update_fields=["policy_status"])
 
@@ -62,12 +61,11 @@ def dashboard_view_user(request):
     active_contracts = Policy.objects.filter(customer__user=user, policy_status="active").count()
 
     # Phí hàng năm
-    year_fee = Policy.objects.filter(customer__user=user).aggregate(total=models.Sum("premium_amount"))["total"] or 0
+    year_fee = Policy.objects.filter(customer__user=user).aggregate(total=Sum("premium_amount"))["total"] or 0
     year_fee_display = format_money(year_fee)
 
     # Tổng giá trị bảo hiểm
-    total_insurance = Policy.objects.filter(customer__user=user).aggregate(total=models.Sum("sum_insured"))[
-                          "total"] or 0
+    total_insurance = Policy.objects.filter(customer__user=user).aggregate(total=Sum("sum_insured"))["total"] or 0
     total_insurance_display = format_money(total_insurance)
 
     search_query = request.GET.get("q", "")
