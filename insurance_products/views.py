@@ -2,12 +2,82 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Q
+from django.shortcuts import render, redirect
+from django.core.paginator import Paginator
+from django.utils import timezone
+from django.contrib import messages
+from .forms import InsuranceProductForm
+from django.views.decorators.csrf import csrf_exempt
 from .models import InsuranceProduct
 from django.core.paginator import Paginator
+from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from policies.views import format_money
+from django.template.loader import render_to_string
+from django.http import JsonResponse
+
+@login_required
 def custom_products_admin(request):
-    return render(request, 'admin/products_section.html')
+    products_qs = InsuranceProduct.objects.all().order_by('-id')
+
+    # Lọc tên
+    q = request.GET.get('q', '')
+    if q:
+        products_qs = products_qs.filter(product_name__icontains=q)
+
+    # Lọc loại sản phẩm
+    product_type = request.GET.get('product_type', '')
+    if product_type:
+        products_qs = products_qs.filter(product_type=product_type)
+
+    # Phân trang bình thường (tuỳ chọn)
+    paginator = Paginator(products_qs, 9)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {'products': page_obj}
+
+    # Nếu là AJAX, trả về partial HTML
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        html = render_to_string('admin/products_list_partial.html', context, request=request)
+        return JsonResponse({'html': html})
+
+    return render(request, 'admin/products_section.html', context)
+
+
+
+def add_product_view(request):
+    if request.method == 'POST':
+        form = InsuranceProductForm(request.POST)
+        if form.is_valid():
+            product = form.save(commit=False)
+            product.is_active = True  # tự động Active
+            product.created_at = timezone.now()
+            product.updated_at = timezone.now()
+            product.save()
+            return redirect('custom_products_admin')  # quay lại danh sách
+    else:
+        form = InsuranceProductForm()
+
+    return render(request, 'admin/add_product.html', {'form': form})
+def edit_product_view(request, product_id):
+    product = get_object_or_404(InsuranceProduct, id=product_id)
+
+    if request.method == 'POST':
+        form = InsuranceProductForm(request.POST, instance=product)
+        if form.is_valid():
+            product = form.save(commit=False)
+            # ép kiểu bool
+            product.is_active = request.POST.get('is_active') == 'True'
+            product.save()
+            return redirect('custom_products_admin')  # quay lại trang danh sách sản phẩm
+    else:
+        form = InsuranceProductForm(instance=product)
+
+    return render(request, 'admin/edit_product.html', {'form': form, 'product': product})
+
+
+
 def insurance_products_user(request):
     # Lọc sản phẩm
     products = InsuranceProduct.objects.filter(is_active=True)

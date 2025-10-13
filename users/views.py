@@ -106,9 +106,7 @@ def login_view(request):
 @user_required
 def custom_users_user(request):
     return render(request, "users/quanlytaikhoan.html")
-def custom_users_admin(request):
-    users = User.objects.all()
-    return render(request, "admin/custom_section.html", {"users": users})
+
 def custom_contact_admin( request):
     return render(request, "admin/contact_section.html")
 

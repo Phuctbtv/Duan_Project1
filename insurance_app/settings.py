@@ -44,7 +44,9 @@ INSTALLED_APPS = [
     "payments",
     "notifications",
     "dashboard",
-]
+    'widget_tweaks',
+    ]
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -84,6 +86,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "BaoHiem",
         "USER": "postgres",
+        
         "PASSWORD": "27112004",
         "HOST": "localhost",
         "PORT": "5432",
