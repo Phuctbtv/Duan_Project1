@@ -1,14 +1,14 @@
-{% extends 'admin/admin_home.html' %}
-{% load static %}
+{% extends 'users/quanlytaikhoan.html' %}
 
-{% block content %}
+{% load static %}
+{% block users %}
 <div class="bg-gray-50 min-h-screen">
     <!-- Header -->
     <header class="bg-white shadow-sm border-b no-print">
         <div class="max-w-7xl mx-auto px-4 py-4">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-4">
-                    <a href="{% url 'custom_policies_admin' %}" class="text-gray-600 hover:text-gray-800">
+                    <a href="{% url 'custom_policies_users' %}" class="text-gray-600 hover:text-gray-800">
                         <i class="fas fa-arrow-left text-xl"></i>
                     </a>
                     <div class="flex items-center space-x-3">
@@ -44,9 +44,6 @@
                             {{ policy.get_policy_status_display }}
                         </span>
                     </div>
-                    <div class="flex items-center space-x-6 text-sm text-gray-600">
-                        <span><i class="fas fa-calendar mr-2"></i>Hiệu lực: {{ policy.start_date|date:"d/m/Y" }} - {{ policy.end_date|date:"d/m/Y" }}</span>
-                    </div>
                 </div>
 
                 <div class="flex flex-wrap gap-3">
@@ -56,15 +53,6 @@
                     <button onclick="downloadPDF()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700 transition">
                         <i class="fas fa-download mr-2"></i>Tải PDF
                     </button>
-
-                    <a href="{% url 'policy_edit' policy.pk %}" class="bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-yellow-700 transition">
-                         <i class="fas fa-edit mr-2"></i>Chỉnh sửa
-                    </a>
-                    {% if policy.policy_status != 'cancelled' %}
-                    <button onclick="cancelContract()" class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700 transition">
-                        <i class="fas fa-times mr-2"></i>Hủy hợp đồng
-                    </button>
-                    {% endif %}
                 </div>
             </div>
         </div>
@@ -216,27 +204,7 @@
 
             <!-- Sidebar -->
             <div class="lg:col-span-1 no-print">
-                <!-- Quick Actions -->
-                <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Thao tác nhanh</h3>
-                    <div class="space-y-3">
-                        <button onclick="sendEmail()" class="w-full bg-blue-50 text-blue-700 py-3 px-4 rounded-lg text-sm font-medium hover:bg-blue-100 transition">
-                            <i class="fas fa-envelope mr-2"></i>Gửi email cho khách hàng
-                        </button>
-                        <button onclick="addNote()" class="w-full bg-yellow-50 text-yellow-700 py-3 px-4 rounded-lg text-sm font-medium hover:bg-yellow-100 transition">
-                            <i class="fas fa-sticky-note mr-2"></i>Thêm ghi chú
-                        </button>
-                        <button onclick="viewHistory()" class="w-full bg-green-50 text-green-700 py-3 px-4 rounded-lg text-sm font-medium hover:bg-green-100 transition">
-                            <i class="fas fa-history mr-2"></i>Lịch sử thay đổi
-                        </button>
-                        {% if policy.policy_status == 'active' or policy.policy_status == 'expired' %}
-                        <!-- SỬA 2: Thay admin_policy_renew bằng policy_renew -->
-                        <a href="{% url 'policy_renew' policy.pk %}" class="w-full bg-purple-50 text-purple-700 py-3 px-4 rounded-lg text-sm font-medium hover:bg-purple-100 transition block text-center">
-                            <i class="fas fa-redo mr-2"></i>Gia hạn hợp đồng
-                        </a>
-                        {% endif %}
-                    </div>
-                </div>
+
 
                 <!-- Contract Summary -->
                 <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
@@ -290,43 +258,11 @@
                     </div>
                 </div>
 
-                <!-- Recent Activities -->
-                <div class="bg-white rounded-xl shadow-sm p-6">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Hoạt động gần đây</h3>
-                    <div class="space-y-4">
-                        <div class="flex items-start space-x-3">
-                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                <i class="fas fa-check text-green-600 text-xs"></i>
-                            </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-800">Hợp đồng được tạo</p>
-                                <p class="text-xs text-gray-500">{{ policy.created_at|date:"d/m/Y - H:i"|default:policy.start_date|date:"d/m/Y" }}</p>
-                            </div>
-                        </div>
-                        {% if policy.payment_status == 'paid' %}
-                        <div class="flex items-start space-x-3">
-                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                <i class="fas fa-credit-card text-blue-600 text-xs"></i>
-                            </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-800">Thanh toán thành công</p>
-                                <p class="text-xs text-gray-500">{{ policy.start_date|date:"d/m/Y" }}</p>
-                            </div>
-                        </div>
-                        {% endif %}
-                        <div class="flex items-start space-x-3">
-                            <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                                <i class="fas fa-envelope text-yellow-600 text-xs"></i>
-                            </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-800">Email xác nhận đã gửi</p>
-                                <p class="text-xs text-gray-500">{{ policy.start_date|date:"d/m/Y" }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
+
+
+
     </div>
 
     <!-- Cancel Contract Modal -->

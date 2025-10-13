@@ -20,57 +20,52 @@ def admin_home(request):
         from django.shortcuts import redirect
         return redirect('trangchu')
 
+    total_customers = total_users = staff_users = 0
+    active_customers = new_customers_this_month = 0
+    monthly_revenue = approval_rate = avg_processing_time = 0
+    active_policies_count = pending_claims_count = pending_policies = 0
+    recent_activities = []
+
     try:
-        # Lấy dữ liệu thống kê từ database THỰC TẾ
+        # Lấy dữ liệu thống kê từ database
         total_customers = Customer.objects.count()
         total_users = User.objects.count()
         staff_users = User.objects.filter(is_staff=True).count()
 
-        # Khách hàng đang hoạt động (dựa trên user is_active)
         active_customers = Customer.objects.filter(user__is_active=True).count()
 
-        # Khách hàng mới tháng này
         current_month = timezone.now().month
         current_year = timezone.now().year
+
         new_customers_this_month = Customer.objects.filter(
             user__date_joined__month=current_month,
             user__date_joined__year=current_year
         ).count()
 
-        # Doanh thu tháng từ bảng payment (chỉ tính các payment thành công)
         monthly_revenue_payments = Payment.objects.filter(
             payment_date__month=current_month,
             payment_date__year=current_year,
             status='success'
         ).aggregate(total=Sum('amount'))['total'] or 0
-        monthly_revenue = float(monthly_revenue_payments) / 1000000000  # Chuyển sang tỷ VNĐ
+        monthly_revenue = float(monthly_revenue_payments) / 1_000_000_000
 
-        # Tỷ lệ phê duyệt claims từ bảng claims
         total_claims = Claim.objects.count()
         if total_claims > 0:
             approved_claims = Claim.objects.filter(claim_status='approved').count()
             approval_rate = round((approved_claims / total_claims) * 100, 1)
-        else:
-            approval_rate = 0
 
-        # Thời gian xử lý trung bình từ bảng claims (tính từ claim_date đến updated_at)
-        avg_processing_time = 2.3
         settled_claims = Claim.objects.filter(
             claim_status__in=['approved', 'rejected', 'settled'],
             updated_at__isnull=False
         )
         if settled_claims.exists():
-            total_seconds = 0
-            count = 0
-            for claim in settled_claims:
-                if claim.updated_at and claim.claim_date:
-                    seconds = (claim.updated_at - claim.claim_date).total_seconds()
-                    total_seconds += seconds
-                    count += 1
-            if count > 0:
-                avg_processing_time = round((total_seconds / count) / (24 * 3600), 1)
+            total_seconds = sum(
+                (claim.updated_at - claim.claim_date).total_seconds()
+                for claim in settled_claims if claim.updated_at and claim.claim_date
+            )
+            count = settled_claims.count()
+            avg_processing_time = round((total_seconds / count) / (24 * 3600), 1)
 
-        # Lấy hoạt động gần đây
         recent_activities = get_recent_activities()
 
         active_policies_count = Policy.objects.filter(policy_status='active').count()
@@ -79,14 +74,11 @@ def admin_home(request):
 
     except Exception as e:
         print(f"Lỗi khi lấy dữ liệu: {e}")
-        # Fallback values
         total_customers = Customer.objects.count() or 1234
         total_users = User.objects.count() or 1500
         staff_users = User.objects.filter(is_staff=True).count() or 15
         active_customers = total_customers
-        new_customers_this_month = Customer.objects.filter(
-            user__date_joined__month=current_month
-        ).count() or 45
+        new_customers_this_month = Customer.objects.filter(user__date_joined__month=current_month).count() or 45
         monthly_revenue = 58.5
         approval_rate = 94.2
         avg_processing_time = 2.3
@@ -109,7 +101,6 @@ def admin_home(request):
     }
 
     return render(request, "admin/dashboard_section.html", context)
-
 
 def get_recent_activities():
     """Lấy hoạt động gần đây từ database thực tế"""
@@ -244,7 +235,6 @@ def dashboard_data(request):
             'message': 'Không thể lấy dữ liệu từ hệ thống'
         }, status=500)
 
-# Các hàm tiện ích bổ sung
 def get_active_policies_count():
     """Lấy số hợp đồng đang hoạt động"""
     return Policy.objects.filter(policy_status='active').count()

@@ -169,7 +169,7 @@ def process_payment(request):
                 customer=user.customer,
                 product=product,
                 policy_number=f"HĐ-{uuid.uuid4().hex[:8].upper()}",
-                premium_amount=product.premium_base_amount,
+                premium_amount=amount,
                 payment_status="pending",
                 policy_status="pending",
                 sum_insured=product.max_claim_amount,

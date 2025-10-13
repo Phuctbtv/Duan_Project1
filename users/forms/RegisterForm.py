@@ -2,11 +2,10 @@ from django import forms
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
-
+from datetime import date
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
 import re
-
 
 class RegisterForm(UserCreationForm):
     username = forms.CharField(
@@ -137,6 +136,22 @@ class RegisterForm(UserCreationForm):
             raise ValidationError("Email này đã được sử dụng.")
         return email
 
+    def clean_date_of_birth(self):
+        dob = self.cleaned_data.get("date_of_birth")
+        today = date.today()
+
+        if not dob:
+            raise ValidationError("Vui lòng nhập ngày sinh.")
+
+        if dob > today:
+            raise ValidationError("Ngày sinh không hợp lệ (không thể ở tương lai).")
+
+
+        age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+        if age < 18:
+            raise ValidationError("Bạn phải đủ 18 tuổi để đăng ký.")
+
+        return dob
     def clean_phone_number(self):
         phone = self.cleaned_data.get("phone_number")
         if not re.match(r"^\d{10,11}$", phone):
@@ -151,6 +166,8 @@ class RegisterForm(UserCreationForm):
             raise ValidationError("Mật khẩu phải có ít nhất 1 chữ hoa.")
         if not re.search(r"\d", password):
             raise ValidationError("Mật khẩu phải có ít nhất 1 số.")
+        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+            raise ValidationError("Mật khẩu phải có ít nhất 1 ký tự đặc biệt (!@#$%^&*...).")
         return password
 
     def save(self, commit=True):

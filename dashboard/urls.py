@@ -1,6 +1,11 @@
+
+
+
+
 from django.urls import path
 from . import views
 from .views import custom_section
+
 
 urlpatterns = [
     path('', views.admin_home, name='admin_home'),

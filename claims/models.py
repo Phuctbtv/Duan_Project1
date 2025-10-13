@@ -20,6 +20,9 @@ class Claim(models.Model):
     customer = models.ForeignKey(
         Customer, on_delete=models.CASCADE, verbose_name="Khách hàng"
     )
+    claim_number = models.CharField(
+        max_length=50, unique=True, null=True, blank=True, verbose_name="Số yêu cầu bồi thường"
+    )
     claim_date = models.DateTimeField(
         auto_now_add=True, verbose_name="Ngày gửi yêu cầu"
     )
@@ -27,6 +30,13 @@ class Claim(models.Model):
     description = models.TextField(verbose_name="Mô tả sự cố")
     requested_amount = models.DecimalField(
         max_digits=10, decimal_places=2, verbose_name="Số tiền yêu cầu"
+    )
+    claimed_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        verbose_name="Tổng số tiền đã chi trả",
+        null=True, blank=True
     )
     claim_status = models.CharField(
         max_length=15,

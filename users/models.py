@@ -5,7 +5,6 @@ from django.core.validators import RegexValidator
 
 from insurance_products.models import InsuranceProduct
 
-
 class User(AbstractUser):
     """Model người dùng mở rộng từ AbstractUser"""
 
@@ -79,49 +78,4 @@ class Customer(models.Model):
 
     def __str__(self):
         return f"{self.user.first_name} {self.user.last_name} - {self.id_card_number}"
-class InsuranceProduct(models.Model):
-    """Model sản phẩm bảo hiểm"""
-    PRODUCT_TYPES = [
-        ('auto','Bảo Hiểm Ô Tô'),
-        ('health', 'Bảo Hiểm Sức Khỏe'),
-        ('home', 'Bảo Hiểm Nhà Ở'),
-        ('life', 'Bảo Hiểm Nhân Thọ'),
-    ]
 
-    name = models.CharField(max_length=100, verbose_name="Tên sản phẩm")
-    product_type = models.CharField(max_length=20, choices=PRODUCT_TYPES, verbose_name="Loại bảo hiểm")
-    description = models.TextField(verbose_name="Mô tả")
-    base_rate = models.FloatField(verbose_name="Tỷ lệ phí cơ bản")
-    is_active= models.BooleanField(default = True, verbose_name = "Đang hoạt động")
-
-    class Meta:
-        db_table = "insurance_products"
-        verbose_name = "Sản phẩm bảo hiểm"
-        verbose_name_plural = "Sản phẩm bảo hiểm"
-
-    def __str__(self):
-        return self.name
-
-    class InsuranceContract(models.Model):
-        """Model hợp đồng bảo hiểm"""
-        STATUS_CHOICES =[
-            ('draft', 'Nháp'),
-            ('active', 'Đang hiệu lực'),
-            ('expired', 'Đã hết hạn'),
-        ]
-
-        contract_number = models.CharField(max_length = 20, verbose_name="Số hợp đồng")
-        customer = models.ForeignKey(Customer, on_delete=models.CASCADE, verbose_name="Khách hàng")
-        product = models.ForeignKey(InsuranceProduct, on_delete=models.CASCADE, verbose_name="Sản phẩm")
-        insurance_amount =  models.DecimalField(max_digits=15, decimal_places=2, verbose_name="Số tiền bảo hiểm")
-        total_premium = models.DecimalField(max_digits=15, decimal_places=2, verbose_name="Tổng phí")
-        status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft', verbose_name="Trạng thái")
-        created_at = models.DateTimeField(auto_now_add=True)
-
-        class Meta:
-            db_table = "insurance_contracts"
-            verbose_name = "Hợp đồng bảo hiểm"
-            verbose_name_plural = "Hợp đồng bảo hiểm"
-
-        def __str__(self):
-            return f"{self.contract_number} - {self.customer.user.get_full_name()}"

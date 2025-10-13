@@ -18,7 +18,6 @@ class PolicyForm(forms.ModelForm):
             "policy_document_url",
             "payment_status",
             "policy_status",
-            "claimed_amount",  # thêm vào đây
         ]
         widgets = {
             "customer": forms.Select(attrs={
@@ -58,8 +57,5 @@ class PolicyForm(forms.ModelForm):
             "policy_status": forms.Select(attrs={
                 "class": "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             }),
-            "claimed_amount": forms.NumberInput(attrs={  # widget cho claimed_amount
-                "class": "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500",
-                "placeholder": "Nhập tổng số tiền đã chi trả"
-            }),
+
         }

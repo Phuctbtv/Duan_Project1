@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.db.models import Sum
-from .models import Policy
+from .models import Policy, PolicyHolder
 from .forms import PolicyForm
 from insurance_products.models import InsuranceProduct
 
@@ -199,13 +199,23 @@ def admin_policy_create(request):
 
 @login_required
 def admin_policy_detail(request, pk):
-    """Xem chi tiết"""
+    """Xem chi tiết hợp đồng (policy)"""
     policy = get_object_or_404(Policy, pk=pk)
+    policyHolder = PolicyHolder(policy=policy)
     context = {
         'policy': policy,
-        'now': timezone.now(),  # Thêm current time cho template
+        'now': timezone.now(),
+        'policyHolder': policyHolder,
     }
-    return render(request, 'admin/policies_detail.html', context)
+
+    # Nếu người dùng là admin hoặc nhân viên (is_staff = True)
+    if request.user.is_staff:
+        return render(request, 'admin/policies_detail.html', context)
+
+    # Nếu không phải admin thì chuyển hướng về trang người dùng
+    else:
+        return render(request, 'users/components/policy/policies_detail.html', context)
+
 
 
 @login_required
