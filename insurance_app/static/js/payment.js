@@ -115,7 +115,6 @@ function calculateAge(birthId, ageId) {
         }
 
         document.getElementById(ageId).value = age;
-        personalInfo.age =age
     }
 }
 // Save personal info
@@ -123,7 +122,7 @@ function savePersonalInfo(data) {
     personalInfo = {
         fullName: data.personalInfo.fullname,
         birthDate: data.personalInfo.birthDate,
-        age:personalInfo.age,
+        age:data.personalInfo.age,
         id_card_number:data.personalInfo.id_card_number,
         gender:data.personalInfo.gender,
         occupation:data.personalInfo.occupation,
@@ -197,7 +196,7 @@ async function showInfo() {
 
     } catch (err) {
         console.error('Error:', err);
-        showPopup('Có lỗi xảy ra khi tải thông tin người dùng.');
+        showPopup('Vui lòng cập nhật thông tin cá nhân.');
     }
 }
 
@@ -243,7 +242,6 @@ function submitToDjangoForCalculation() {
     .then(res => {
         if (!res.ok) {
             return res.json().then(errorData => {
-                // Ném một lỗi để nhảy vào khối .catch() với dữ liệu lỗi chi tiết
                 throw errorData;
             });
         }
@@ -624,17 +622,15 @@ function startOver() {
     // Reset all data
     selectedProduct = null;
     personalInfo = {};
+    personal_benefic={};
     final_premium=0;
     selectedPaymentMethod = null;
-
     // Reset forms
-    document.getElementById('personal-info-form').reset();
+    document.getElementById('health-info-form').reset();
 
     // Go back to step 1
     goToStep(1);
 
-    // Hide selected product
-    document.getElementById('selected-product').classList.add('hidden');
 
     // Disable continue button
     document.getElementById('continue-step-1').disabled = true;
@@ -646,7 +642,9 @@ document.getElementById('sameBeneficiary').addEventListener('change', async (e) 
     const birthInput = document.querySelector('#birthDate_benefic');
     const ageDisplay = document.querySelector('#ageDisplay_benefic');
     const id_card_number = document.querySelector('#id_card_number_benefic');
-   // const relationshipSelect = document.getElementById("relationship_to_customer");
+    const relationshipSelect = document.getElementById("relationship_to_customer");
+
+
 
     if (checked) {
         try {
@@ -655,7 +653,6 @@ document.getElementById('sameBeneficiary').addEventListener('change', async (e) 
             nameInput.value = data.full_name || '';
             birthInput.value = data.birth_date || '';
             id_card_number.value = data.id_card_number ||'';
-           // relationshipSelect.disabled = true;
             calculateAge('birthDate_benefic', 'ageDisplay_benefic');
         } catch (err) {
             console.error('Lỗi khi lấy user info:', err);
@@ -666,7 +663,6 @@ document.getElementById('sameBeneficiary').addEventListener('change', async (e) 
         birthInput.value = '';
         ageDisplay.value = '';
         id_card_number.value ='';
-       // relationshipSelect.disabled = false;
     }
 });
 

@@ -55,7 +55,7 @@
         }
 
         function saveProfile(event) {
-            // Simulate saving
+
             const saveBtn = event.target;
             const originalText = saveBtn.innerHTML;
             saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang lưu...';

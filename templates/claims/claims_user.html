@@ -1,0 +1,345 @@
+{% extends 'users/quanlytaikhoan.html' %}
+
+{% load static %}
+{% block users %}
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .status-pending { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .status-approved { background: linear-gradient(135deg, #10b981, #059669); }
+        .status-rejected { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .status-processing { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .status-completed { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .notification-dot { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .sidebar-item { transition: all 0.3s ease; }
+        .sidebar-item:hover { background: rgba(59, 130, 246, 0.1); }
+        .sidebar-item.active { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; }
+        .filter-active { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; }
+        .filter-inactive { background: white; color: #6b7280; border: 1px solid #e5e7eb; }
+        .filter-inactive:hover { background: #f9fafb; }
+        .claim-card {
+            border-left: 4px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .claim-card.pending { border-left-color: #f59e0b; }
+        .claim-card.approved { border-left-color: #10b981; }
+        .claim-card.rejected { border-left-color: #ef4444; }
+        .claim-card.processing { border-left-color: #3b82f6; }
+        .claim-card.completed { border-left-color: #8b5cf6; }
+        .progress-bar {
+            background: linear-gradient(90deg, #e5e7eb, #d1d5db);
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+        .progress-pending { background: linear-gradient(90deg, #f59e0b, #d97706); width: 25%; }
+        .progress-processing { background: linear-gradient(90deg, #3b82f6, #1d4ed8); width: 50%; }
+        .progress-approved { background: linear-gradient(90deg, #10b981, #059669); width: 100%; }
+        .progress-rejected { background: linear-gradient(90deg, #ef4444, #dc2626); width: 75%; }
+        .progress-completed { background: linear-gradient(90deg, #8b5cf6, #7c3aed); width: 100%; }
+        .timeline-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 0 3px #e5e7eb;
+        }
+        .timeline-dot.active {
+            box-shadow: 0 0 0 3px #3b82f6;
+            background: #3b82f6;
+        }
+        .timeline-dot.completed {
+            box-shadow: 0 0 0 3px #10b981;
+            background: #10b981;
+        }
+        .timeline-dot.rejected {
+            box-shadow: 0 0 0 3px #ef4444;
+            background: #ef4444;
+        }
+    </style>
+
+    <div class="flex">
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8">
+            <!-- Header -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-3">
+                        <button onclick="goBack()" class="text-gray-600 hover:text-gray-800">
+                            <i class="fas fa-arrow-left text-xl"></i>
+                        </button>
+                        <h1 class="text-3xl font-bold text-gray-800">Yêu cầu bồi thường</h1>
+                    </div>
+                    <button class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition" onclick="createNewClaim()">
+                        <i class="fas fa-plus mr-2"></i>Tạo yêu cầu mới
+                    </button>
+                </div>
+                <p class="text-gray-600">Quản lý và theo dõi các yêu cầu bồi thường của bạn</p>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-2xl font-bold text-gray-800">{{total_claims}}</div>
+                            <div class="text-sm text-gray-600">Tổng yêu cầu</div>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-file-medical text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-2xl font-bold text-green-600">{{approved_claims}}</div>
+                            <div class="text-sm text-gray-600">Đã duyệt</div>
+                        </div>
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-2xl font-bold text-orange-600">{{pending_claims}}</div>
+                            <div class="text-sm text-gray-600">Chờ xử lý</div>
+                        </div>
+                        <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-clock text-orange-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-2xl font-bold text-gray-800">{{total_paid}}</div>
+                            <div class="text-sm text-gray-600">Tổng bồi thường (VNĐ)</div>
+                        </div>
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-money-bill-wave text-purple-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters and Search -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+                    <!-- Search -->
+                    <div class="flex-1 lg:max-w-md">
+                        <div class="relative">
+                            <input type="text" placeholder="Tìm kiếm theo mã yêu cầu, loại bảo hiểm..." class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </div>
+
+                    <!-- Status Filters -->
+                    <div class="flex flex-wrap gap-2">
+                        <button class="filter-active px-4 py-2 rounded-lg font-medium transition text-sm" onclick="filterClaims('all')">
+                            Tất cả
+                        </button>
+                        <button class="filter-inactive px-4 py-2 rounded-lg font-medium transition text-sm" onclick="filterClaims('pending')">
+                            Chờ xử lý
+                        </button>
+                        <button class="filter-inactive px-4 py-2 rounded-lg font-medium transition text-sm" onclick="filterClaims('in_progress')">
+                            Đang xử lý
+                        </button>
+                        <button class="filter-inactive px-4 py-2 rounded-lg font-medium transition text-sm" onclick="filterClaims('approved')">
+                            Đã duyệt
+                        </button>
+                        <button class="filter-inactive px-4 py-2 rounded-lg font-medium transition text-sm" onclick="filterClaims('rejected')">
+                            Từ chối
+                        </button>
+                        <button class="filter-inactive px-4 py-2 rounded-lg font-medium transition text-sm" onclick="filterClaims('settled')">
+                            Đã giải quyết
+                        </button>
+                    </div>
+
+                    <!-- Sort -->
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm text-gray-600">Sắp xếp:</span>
+                        <select class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="newest">Mới nhất</option>
+                            <option value="oldest">Cũ nhất</option>
+                            <option value="amount-high">Số tiền cao nhất</option>
+                            <option value="amount-low">Số tiền thấp nhất</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <!--            Claims list         -->
+            <div id="claims_list">
+              {% include "claims/claims_list.html" %}
+            </div>
+            <!-- Pagination -->
+            <div class="flex items-center justify-between mt-8">
+                <div class="text-sm text-gray-600">
+                </div>
+                <div class="flex space-x-2">
+                    <button class="px-3 py-2 border border-gray-300 rounded-lg text-gray-500 cursor-not-allowed">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="px-3 py-2 bg-blue-600 text-white rounded-lg">1</button>
+                    <button class="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">2</button>
+                    <button class="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+
+        function createNewClaim() {
+            alert('🆕 Chuyển đến trang tạo yêu cầu bồi thường mới...');
+        }
+
+        function viewClaimDetail(claimId) {
+            alert(`📋 Chuyển đến trang chi tiết yêu cầu ${claimId}...`);
+        }
+        const searchInput = document.querySelector('input[placeholder="Tìm kiếm theo mã yêu cầu, loại bảo hiểm..."]');
+
+        const sortSelect = document.querySelector('select');
+        let currentStatus = "all";
+
+        // Hàm gọi AJAX
+        function loadClaims() {
+            const q = searchInput.value;
+            const sort = sortSelect.value;
+            const url = `/custom_claims/api/filter/?q=${encodeURIComponent(q)}&status=${currentStatus}&sort=${sort}`;
+
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("claims_list").innerHTML = data.html;
+                })
+                .catch(err => console.error(err));
+        }
+
+
+        // Khi bấm filter
+        function filterClaims(status) {
+          currentStatus = status;
+           document.querySelectorAll('.filter-active, .filter-inactive').forEach(btn => {
+                    btn.className = btn.className.replace('filter-active', 'filter-inactive');
+                });
+
+                // Add active class to clicked button
+                event.target.className = event.target.className.replace('filter-inactive', 'filter-active');
+          loadClaims();
+        }
+
+        // Khi nhập tìm kiếm
+        searchInput.addEventListener("input", () => {
+          clearTimeout(window._searchTimeout);
+          window._searchTimeout = setTimeout(loadClaims, 400);
+        });
+
+        // Khi chọn sắp xếp
+        sortSelect.addEventListener("change", loadClaims);
+
+        // Handle button clicks
+        document.addEventListener('click', function(e) {
+            const button = e.target.closest('button');
+            if (!button) return;
+
+            const buttonText = button.textContent.trim();
+
+            if (buttonText.includes('Chỉnh sửa')) {
+                alert('✏️ Chuyển đến trang chỉnh sửa yêu cầu bồi thường...');
+            } else if (buttonText.includes('Liên hệ')) {
+                alert('📞 Kết nối với chuyên viên phụ trách Trần Thị B...');
+            } else if (buttonText.includes('Tải quyết định')) {
+                alert('📄 Đang tải xuống quyết định bồi thường...');
+            } else if (buttonText.includes('Khiếu nại')) {
+                if (confirm('⚖️ Bạn có muốn gửi khiếu nại về quyết định từ chối này?')) {
+                    alert('📝 Chuyển đến trang gửi khiếu nại...');
+                }
+            } else if (buttonText.includes('Đánh giá')) {
+                alert('⭐ Chuyển đến trang đánh giá dịch vụ...');
+            }
+        });
+
+        // Notification bell
+        document.querySelector('.fa-bell').closest('button').addEventListener('click', function() {
+            alert('🔔 Bạn có 2 thông báo mới:\n• Yêu cầu #BC2024007 đang được thẩm định\n• Yêu cầu #BC2024006 đã được chuyển khoản');
+        });
+
+        // Sort functionality
+        document.querySelector('select').addEventListener('change', function(e) {
+            const sortBy = e.target.value;
+            const claimsList = document.getElementById('claimsList');
+            const claims = Array.from(claimsList.children);
+
+            claims.sort((a, b) => {
+                switch(sortBy) {
+                    case 'newest':
+                        // Sort by date created (newest first)
+                        const dateA = new Date(a.querySelector('.text-gray-500').textContent.split(': ')[1]);
+                        const dateB = new Date(b.querySelector('.text-gray-500').textContent.split(': ')[1]);
+                        return dateB - dateA;
+                    case 'oldest':
+                        // Sort by date created (oldest first)
+                        const dateA2 = new Date(a.querySelector('.text-gray-500').textContent.split(': ')[1]);
+                        const dateB2 = new Date(b.querySelector('.text-gray-500').textContent.split(': ')[1]);
+                        return dateA2 - dateB2;
+                    case 'amount-high':
+                        // Sort by amount (highest first)
+                        const amountA = parseInt(a.querySelector('.text-lg.font-bold').textContent.replace(/[^\d]/g, ''));
+                        const amountB = parseInt(b.querySelector('.text-lg.font-bold').textContent.replace(/[^\d]/g, ''));
+                        return amountB - amountA;
+                    case 'amount-low':
+                        // Sort by amount (lowest first)
+                        const amountA2 = parseInt(a.querySelector('.text-lg.font-bold').textContent.replace(/[^\d]/g, ''));
+                        const amountB2 = parseInt(b.querySelector('.text-lg.font-bold').textContent.replace(/[^\d]/g, ''));
+                        return amountA2 - amountB2;
+                    default:
+                        return 0;
+                }
+            });
+
+            // Re-append sorted claims
+            claims.forEach(claim => claimsList.appendChild(claim));
+
+            // Show sort message
+            const sortNames = {
+                'newest': 'mới nhất',
+                'oldest': 'cũ nhất',
+                'amount-high': 'số tiền cao nhất',
+                'amount-low': 'số tiền thấp nhất'
+            };
+
+            // Temporary sort message
+            const tempMsg = document.createElement('div');
+            tempMsg.className = 'bg-green-50 border border-green-200 rounded-lg p-3 mb-4 text-green-800 text-sm';
+            tempMsg.innerHTML = `<i class="fas fa-sort mr-2"></i>Đã sắp xếp theo ${sortNames[sortBy]}`;
+            claimsList.parentNode.insertBefore(tempMsg, claimsList);
+
+            setTimeout(() => tempMsg.remove(), 3000);
+        });
+    </script>
+
+{% endblock %}

@@ -15,8 +15,9 @@
                 <i class="fas fa-credit-card mr-3"></i>
                 <span>Thanh toán</span>
             </a>
-            <a href="#"
-               class="sidebar-item flex items-center px-4 py-3 rounded-lg text-gray-700 hover:text-blue-600">
+            <a href="{% url 'custom_claims_user' %}"
+               class="sidebar-item flex items-center px-4 py-3 rounded-lg text-gray-700 hover:text-blue-600
+                {% if request.resolver_match.url_name == 'custom_claims_user' %} gradient-bg text-white {% else %} text-gray-700 {% endif %}">
                 <i class="fas fa-file-medical mr-3"></i>
                 <span>Yêu cầu bồi thường</span>
             </a>

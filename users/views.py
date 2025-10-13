@@ -11,13 +11,11 @@ from users.forms.RegisterForm import RegisterForm
 from users.forms.ChangePasswordForm import ChangePasswordForm
 from users.models import User, Customer
 
-from django.db.models import Count, Sum
-from django.utils import timezone
-from datetime import timedelta
 from django.http import JsonResponse
-# from .models import InsuranceProduct, InsuranceContract
 
 from django.contrib.auth.views import PasswordResetConfirmView
+
+from .forms.ProfileUpdateForm import ProfileUpdateForm
 from .forms.CustomSetPasswordForm import CustomSetPasswordForm
 def trangchu(request):
     return render(request, "base/trangchu_base.html")
@@ -92,8 +90,6 @@ def login_view(request):
                     request,
                     f"Xin chào {user.get_username()}, bạn đã đăng nhập thành công!"
                 )
-
-                # Sau khi đăng nhập xong phân quyền
                 if user.is_staff:
                     return redirect("admin_home")
                 else:
@@ -130,27 +126,45 @@ def profile_view(request):
 
 @login_required
 def update_profile(request):
+    user = request.user
+    customer = getattr(user, 'customer', None)  # tránh lỗi nếu user chưa có customer
+
     if request.method == "POST":
-        user = request.user
-        # Cập nhật thông tin user
-        user.first_name = request.POST.get("first_name")
-        user.last_name = request.POST.get("last_name")
-        user.email = request.POST.get("email")
-        user.phone_number = request.POST.get("phone_number")
-        user.address = request.POST.get("address")
-        user.date_of_birth = request.POST.get("date_of_birth")
-        user.save()
+        form = ProfileUpdateForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Cập nhật thông tin thành công!")
+            return redirect("custom_profile_user")
+        else:
+            all_errors = []
+            for field, errors in form.errors.items():
+                for error in errors:
+                    all_errors.append(error)
 
-        # Cập nhật hoặc tạo Customer
-        customer, created = Customer.objects.get_or_create(user=user)
-        customer.gender = request.POST.get("gender")
-        customer.id_card_number = request.POST.get("id_card_number")
-        customer.job = request.POST.get("job")
-        customer.save()
-        messages.success(request, " Cập nhật thông tin thành công!")
-        return redirect("custom_profile_user")
 
-    return redirect("custom_profile_user")
+            error_text = " ".join(all_errors)
+            messages.error(request, f"LỖI : {error_text}")
+            return render(
+                request,
+                'users/profile_user.html',
+                {'form': form, 'active_tab': 'profile_info'}
+            )
+
+    else:
+        initial_data = {}
+        if customer:
+            initial_data = {
+                "gender": customer.gender,
+                "id_card_number": customer.id_card_number,
+                "job": customer.job,
+            }
+        form = ProfileUpdateForm(instance=user, initial=initial_data)
+
+    return render(
+        request,
+        'users/profile_user.html',
+        {'form': form, 'active_tab': 'profile_info'}
+    )
 
 @login_required(login_url="login")
 def change_password(request):
@@ -201,133 +215,3 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     success_url = '/login/'
 
 
-@login_required
-def admin_home(request):
-    """Dashboard cho admin"""
-    if not request.user.is_staff:
-        return redirect('trangchu')
-
-    # DÙNG DỮ LIỆU TĨNH
-    context = {
-        'total_customers': 1234,
-        'active_contracts': 856,
-        'monthly_revenue': 58.5,
-        'recent_claims': 42,
-        'approval_rate': 94.2,
-        'avg_processing_time': 2.3,
-        'customer_satisfaction': 4.8,
-    }
-
-    return render(request, "admin/admin_home.html", context)
-# @login_required
-# def admin_home(request):
-#     """Dashboard cho admin"""
-#     if not request.user.is_staff:
-#         return redirect("trangchu")
-#
-#     #lay thong ke tu database
-#     total_customers = Customer.objects.count()
-#     active_contracts = InsuranceContract.objects.filter(status='active').count()
-#
-#     #doanh thu thang hien tai
-#     current_month = timezone.now().month
-#     current_year = timezone.now().year
-#
-#     monthly_revenue = InsuranceContract.objects.filter(
-#         created_at__month=current_month,
-#         created_at__year=current_year,
-#         status='active'
-#     ).aggregate(total=Sum('total_premium'))['total'] or 0
-#
-#     #chuyen doi sang ty
-#     monthly_revenue_billion = float(monthly_revenue) / 1000000000 if monthly_revenue else 0
-#
-#     #hoat dong gan day (5 hop dong moi nhat)
-#     recent_activities = InsuranceContract.objects.select_related(
-#         'customer', 'product', 'customer__user'
-#     ).order_by('-created_at')[:5]
-#
-#     #du lieu cho bieu do
-#     monthly_data = get_monthly_revenue_data()
-#     contract_type_data = get_contract_type_data()
-#
-#     context = {
-#         'total_customers': total_customers,
-#         'active_contracts': active_contracts,
-#         'monthly_revenue': round(monthly_revenue_billion, 1),
-#         'recent_activities': recent_activities,
-#
-#         #du lieu bieu do
-#         'monthly_labels': monthly_data['labels'],
-#         'monthly_revenue': monthly_data['revenue'],
-#         'contract_types': contract_type_data['types'],
-#         'contract_counts': contract_type_data['counts'],
-#     }
-#
-#     return render(request, "users/admin_home.html", context)
-#
-#
-# def get_monthly_revenue_data():
-#     """Lấy dữ liệu doanh thu 6 tháng gần nhất"""
-#     months = []
-#     revenues = []
-#
-#     for i in range(5, -1, -1):
-#         date = timezone.now() - timedelta(days=30 * i)
-#         month_year = date.strftime('%m/%Y')
-#         months.append(month_year)
-#
-#         revenue = InsuranceContract.objects.filter(
-#             created_at__month=date.month,
-#             created_at__year=date.year,
-#             status='active'
-#         ).aggregate(total=Sum('total_premium'))['total'] or 0
-#
-#         revenues.append(float(revenue) / 1000000)  # Chuyển sang triệu VND
-#
-#     return {'labels': months, 'revenues': revenues}
-#
-#
-# def get_contract_type_data():
-#     """Lấy dữ liệu phân loại hợp đồng theo sản phẩm"""
-#     contracts_by_type = InsuranceContract.objects.filter(
-#         status='active'
-#     ).values('product__product_type').annotate(
-#         count=Count('id')
-#     )
-#
-#     types = []
-#     counts = []
-#
-#     type_names = {
-#         'auto': 'Ô Tô',
-#         'health': 'Sức Khỏe',
-#         'home': 'Nhà Ở',
-#         'life': 'Nhân Thọ'
-#     }
-#
-#     for item in contracts_by_type:
-#         type_key = item['product__product_type']
-#         types.append(type_names.get(type_key, type_key))
-#         counts.append(item['count'])
-#
-#     return {'types': types, 'counts': counts}
-#
-#
-# # API cho biểu đồ
-# @login_required
-# def dashboard_chart_data(request):
-#     """API cung cấp dữ liệu cho biểu đồ"""
-#     if not request.user.is_staff:
-#         return JsonResponse({'error': 'Unauthorized'}, status=403)
-#
-#     chart_type = request.GET.get('type', 'revenue')
-#
-#     if chart_type == 'revenue':
-#         data = get_monthly_revenue_data()
-#     elif chart_type == 'contracts':
-#         data = get_contract_type_data()
-#     else:
-#         data = {}
-#
-#     return JsonResponse(data)
