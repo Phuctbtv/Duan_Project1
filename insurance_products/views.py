@@ -77,7 +77,6 @@ def edit_product_view(request, product_id):
     return render(request, 'admin/edit_product.html', {'form': form, 'product': product})
 
 
-
 def insurance_products_user(request):
     # Lọc sản phẩm
     products = InsuranceProduct.objects.filter(is_active=True)

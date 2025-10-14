@@ -1,0 +1,911 @@
+{% extends 'users/quanlytaikhoan.html' %}
+
+{% load static %}
+{% block users %}
+<style>
+
+        .step-indicator {
+            transition: all 0.3s ease;
+        }
+
+        .step-indicator.active {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            transform: scale(1.1);
+        }
+
+        .step-indicator.completed {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .form-section {
+            transition: all 0.3s ease;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .policy-card {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .policy-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .policy-card.selected {
+            border-color: #3b82f6;
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+        }
+
+        .file-upload-area {
+            border: 2px dashed #d1d5db;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload-area:hover {
+            border-color: #3b82f6;
+            background-color: #f8fafc;
+        }
+
+        .file-upload-area.dragover {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+
+        .uploaded-file {
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+    </style>
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-6xl mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <button onclick="goBack()" class="text-gray-600 hover:text-gray-800">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </button>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-plus-circle text-white"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-bold text-gray-800">Tạo yêu cầu bồi thường</h1>
+                            <p class="text-sm text-gray-600">Bảo hiểm sức khỏe </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Progress Steps -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between max-w-2xl mx-auto">
+                <div class="flex items-center">
+                    <div id="step1" class="step-indicator active w-10 h-10 rounded-full flex items-center justify-center text-white font-bold">1</div>
+                    <span class="ml-2 text-sm font-semibold text-blue-600">Chọn hợp đồng</span>
+                </div>
+                <div class="flex-1 h-1 bg-gray-200 mx-4" id="line1"></div>
+                <div class="flex items-center">
+                    <div id="step2" class="step-indicator w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold">2</div>
+                    <span class="ml-2 text-sm text-gray-500">Thông tin sự cố</span>
+                </div>
+                <div class="flex-1 h-1 bg-gray-200 mx-4" id="line2"></div>
+                <div class="flex items-center">
+                    <div id="step3" class="step-indicator w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold">3</div>
+                    <span class="ml-2 text-sm text-gray-500">Tài liệu</span>
+                </div>
+                <div class="flex-1 h-1 bg-gray-200 mx-4" id="line3"></div>
+                <div class="flex items-center">
+                    <div id="step4" class="step-indicator w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold">4</div>
+                    <span class="ml-2 text-sm text-gray-500">Xác nhận</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 1: Select Policy -->
+        <div id="stepContent1" class="form-section fade-in">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Thông tin hợp đồng yêu cầu bồi thường</h2>
+                </div>
+
+                <div class=" mb-8">
+                    <!-- Policy  -->
+                    <div class="policy-card bg-white rounded-xl shadow-sm p-6 border-2 border-gray-200" >
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-shield-alt text-blue-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-gray-800">{{policy.product.product_name}}</h3>
+                                    <p class="text-sm text-gray-600">Hợp đồng cá nhân</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3 mb-4">
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-600">Số hợp đồng:</span>
+                                <span class="text-sm font-semibold">{{policy.policy_number}}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-600">Người được bảo hiểm:</span>
+                                <span class="text-sm font-semibold">{{policy.customer.user.get_full_name}}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-600">Người thụ hưởng:</span>
+                                <span class="text-sm font-semibold">{{policyHolder.full_name}}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-600">Hiệu lực:</span>
+                                <span class="text-sm font-semibold text-green-600">{{policy.start_date|date:"d/m/Y"}} - {{policy.end_date|date:"d/m/Y"}}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-600">Số tiền bảo hiểm:</span>{% load humanize %}
+                                <span class="text-sm font-semibold text-blue-600">{{policy.sum_insured|floatformat:0|intcomma}} VNĐ</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-600">Phí bảo hiểm:</span>
+                                <span class="text-sm font-semibold text-orange-600"> {{policy.premium_amount|floatformat:0|intcomma}}VNĐ</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-green-50 rounded-lg p-3">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-check-circle text-green-600"></i>
+                                <span class="text-sm font-semibold text-green-800">Hợp đồng đang có hiệu lực</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="flex justify-end">
+                    <button id="nextStep1" onclick="nextStep()" class="bg-blue-300 text-gray-500 px-8 py-3 rounded-lg font-semibold ">
+                        Tiếp theo <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Incident Information -->
+        <div id="stepContent2" class="form-section hidden">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Thông tin sự cố y tế</h2>
+                    <p class="text-gray-600">Vui lòng cung cấp thông tin chi tiết về sự cố và quá trình điều trị</p>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-6">Thông tin cơ bản</h3>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Ngày xảy ra sự cố *</label>
+                            <input type="date" id="incidentDate" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Loại điều trị *</label>
+                            <select id="treatmentType" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Chọn loại điều trị</option>
+                                <option value="outpatient">Ngoại trú</option>
+                                <option value="inpatient">Nội trú</option>
+                                <option value="emergency">Cấp cứu</option>
+                                <option value="surgery">Phẫu thuật</option>
+                                <option value="dental">Nha khoa</option>
+                                <option value="maternity">Thai sản</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Bệnh viện/Phòng khám *</label>
+                            <input type="text" id="hospitalName" required placeholder="Tên bệnh viện hoặc phòng khám" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Bác sĩ điều trị</label>
+                            <input type="text" id="doctorName" placeholder="Tên bác sĩ điều trị" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-6">Chi tiết y tế</h3>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Triệu chứng ban đầu *</label>
+                            <textarea id="symptoms" required rows="3" placeholder="Mô tả chi tiết các triệu chứng ban đầu..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Chẩn đoán của bác sĩ *</label>
+                            <textarea id="diagnosis" required rows="3" placeholder="Chẩn đoán chính thức từ bác sĩ..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Ngày nhập viện (nếu có)</label>
+                                <input type="date" id="admissionDate" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Ngày xuất viện (nếu có)</label>
+                                <input type="date" id="dischargeDate" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-6">Chi phí điều trị</h3>
+
+                    <div class="space-y-4">
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Tổng chi phí điều trị *</label>
+                                <input type="number" id="totalCost" required placeholder="0" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Số tiền BHXH đã chi trả (nếu có)</label>
+                                <input type="number" id="socialInsurance" placeholder="0" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Phân tích chi phí</label>
+                            <div class="space-y-3">
+                                <div class="flex items-center space-x-4">
+                                    <label class="w-32 text-sm text-gray-600">Viện phí:</label>
+                                    <input type="number" id="hospitalFee" placeholder="0" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div class="flex items-center space-x-4">
+                                    <label class="w-32 text-sm text-gray-600">Thuốc men:</label>
+                                    <input type="number" id="medicationFee" placeholder="0" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div class="flex items-center space-x-4">
+                                    <label class="w-32 text-sm text-gray-600">Xét nghiệm:</label>
+                                    <input type="number" id="testFee" placeholder="0" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div class="flex items-center space-x-4">
+                                    <label class="w-32 text-sm text-gray-600">Khác:</label>
+                                    <input type="number" id="otherFee" placeholder="0" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between">
+                    <button onclick="prevStep()" class="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-300">
+                        <i class="fas fa-arrow-left mr-2"></i>Quay lại
+                    </button>
+                    <button id="nextStep2" onclick="nextStep()" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700">
+                        Tiếp theo <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Documents -->
+        <div id="stepContent3" class="form-section hidden">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Tải lên tài liệu</h2>
+                    <p class="text-gray-600">Vui lòng tải lên các tài liệu cần thiết để xử lý yêu cầu bồi thường</p>
+                </div>
+
+                <!-- Required Documents -->
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-6">Tài liệu bắt buộc</h3>
+
+                    <div class="space-y-6">
+                        <!-- Medical Bill -->
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-file-invoice text-blue-600 text-xl"></i>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800">Hóa đơn viện phí *</h4>
+                                        <p class="text-sm text-gray-600">Hóa đơn chi tiết các khoản chi phí điều trị</p>
+                                    </div>
+                                </div>
+                                <span class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full">Bắt buộc</span>
+                            </div>
+
+                            <div class="file-upload-area rounded-lg p-6 text-center" onclick="document.getElementById('medicalBill').click()">
+                                <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+                                <p class="text-gray-600 mb-2">Kéo thả file hoặc click để chọn</p>
+                                <p class="text-sm text-gray-500">Hỗ trợ: PDF, JPG, PNG (tối đa 10MB)</p>
+                                <input type="file" id="medicalBill" class="hidden" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileUpload(this, 'medicalBillList')">
+                            </div>
+                            <div id="medicalBillList" class="mt-4 space-y-2"></div>
+                        </div>
+
+                        <!-- Medical Records -->
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-file-medical text-green-600 text-xl"></i>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800">Hồ sơ bệnh án *</h4>
+                                        <p class="text-sm text-gray-600">Giấy ra viện, tóm tắt bệnh án</p>
+                                    </div>
+                                </div>
+                                <span class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full">Bắt buộc</span>
+                            </div>
+
+                            <div class="file-upload-area rounded-lg p-6 text-center" onclick="document.getElementById('medicalRecords').click()">
+                                <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+                                <p class="text-gray-600 mb-2">Kéo thả file hoặc click để chọn</p>
+                                <p class="text-sm text-gray-500">Hỗ trợ: PDF, JPG, PNG (tối đa 10MB)</p>
+                                <input type="file" id="medicalRecords" class="hidden" accept=".pdf,.jpg,.jpeg,.png" multiple onchange="handleFileUpload(this, 'medicalRecordsList')">
+                            </div>
+                            <div id="medicalRecordsList" class="mt-4 space-y-2"></div>
+                        </div>
+
+                        <!-- Prescription -->
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-pills text-purple-600 text-xl"></i>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800">Đơn thuốc & hóa đơn mua thuốc</h4>
+                                        <p class="text-sm text-gray-600">Đơn thuốc của bác sĩ và hóa đơn mua thuốc</p>
+                                    </div>
+                                </div>
+                                <span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">Tùy chọn</span>
+                            </div>
+
+                            <div class="file-upload-area rounded-lg p-6 text-center" onclick="document.getElementById('prescription').click()">
+                                <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+                                <p class="text-gray-600 mb-2">Kéo thả file hoặc click để chọn</p>
+                                <p class="text-sm text-gray-500">Hỗ trợ: PDF, JPG, PNG (tối đa 10MB)</p>
+                                <input type="file" id="prescription" class="hidden" accept=".pdf,.jpg,.jpeg,.png" multiple onchange="handleFileUpload(this, 'prescriptionList')">
+                            </div>
+                            <div id="prescriptionList" class="mt-4 space-y-2"></div>
+                        </div>
+
+                        <!-- Test Results -->
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-x-ray text-orange-600 text-xl"></i>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800">Kết quả xét nghiệm/chẩn đoán hình ảnh</h4>
+                                        <p class="text-sm text-gray-600">X-quang, CT, MRI, xét nghiệm máu...</p>
+                                    </div>
+                                </div>
+                                <span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">Tùy chọn</span>
+                            </div>
+
+                            <div class="file-upload-area rounded-lg p-6 text-center" onclick="document.getElementById('testResults').click()">
+                                <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+                                <p class="text-gray-600 mb-2">Kéo thả file hoặc click để chọn</p>
+                                <p class="text-sm text-gray-500">Hỗ trợ: PDF, JPG, PNG (tối đa 10MB)</p>
+                                <input type="file" id="testResults" class="hidden" accept=".pdf,.jpg,.jpeg,.png" multiple onchange="handleFileUpload(this, 'testResultsList')">
+                            </div>
+                            <div id="testResultsList" class="mt-4 space-y-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Documents -->
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Tài liệu bổ sung (nếu có)</h3>
+
+                    <div class="file-upload-area rounded-lg p-6 text-center" onclick="document.getElementById('additionalDocs').click()">
+                        <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+                        <p class="text-gray-600 mb-2">Tải lên các tài liệu bổ sung khác</p>
+                        <p class="text-sm text-gray-500">Hỗ trợ: PDF, JPG, PNG (tối đa 10MB mỗi file)</p>
+                        <input type="file" id="additionalDocs" class="hidden" accept=".pdf,.jpg,.jpeg,.png" multiple onchange="handleFileUpload(this, 'additionalDocsList')">
+                    </div>
+                    <div id="additionalDocsList" class="mt-4 space-y-2"></div>
+                </div>
+
+                <div class="flex justify-between">
+                    <button onclick="prevStep()" class="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-300">
+                        <i class="fas fa-arrow-left mr-2"></i>Quay lại
+                    </button>
+                    <button id="nextStep3" onclick="nextStep()" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700">
+                        Tiếp theo <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Confirmation -->
+        <div id="stepContent4" class="form-section hidden">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Xác nhận thông tin</h2>
+                    <p class="text-gray-600">Vui lòng kiểm tra lại thông tin trước khi gửi yêu cầu bồi thường</p>
+                </div>
+
+                <!-- Summary -->
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-6">Tóm tắt yêu cầu</h3>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-sm text-gray-600">Hợp đồng bảo hiểm</label>
+                                <p class="font-semibold text-gray-800" id="summaryPolicy">-</p>
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-600">Người được bồi thường</label>
+                                <p class="font-semibold text-gray-800" id="summaryBeneficiary">-</p>
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-600">Ngày xảy ra sự cố</label>
+                                <p class="font-semibold text-gray-800" id="summaryIncidentDate">-</p>
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-600">Loại điều trị</label>
+                                <p class="font-semibold text-gray-800" id="summaryTreatmentType">-</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-sm text-gray-600">Bệnh viện</label>
+                                <p class="font-semibold text-gray-800" id="summaryHospital">-</p>
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-600">Chẩn đoán</label>
+                                <p class="font-semibold text-gray-800" id="summaryDiagnosis">-</p>
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-600">Tổng chi phí</label>
+                                <p class="font-semibold text-red-600 text-lg" id="summaryTotalCost">-</p>
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-600">Số tài liệu đã tải</label>
+                                <p class="font-semibold text-gray-800" id="summaryDocuments">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Terms and Conditions -->
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Điều khoản và cam kết</h3>
+
+                    <div class="space-y-4">
+                        <label class="flex items-start space-x-3">
+                            <input type="checkbox" id="agreeTerms" class="mt-1 w-4 h-4 text-blue-600">
+                            <span class="text-sm text-gray-700">
+                                Tôi xác nhận rằng tất cả thông tin và tài liệu đã cung cấp là chính xác và đầy đủ.
+                                Tôi hiểu rằng việc cung cấp thông tin sai lệch có thể dẫn đến từ chối yêu cầu bồi thường.
+                            </span>
+                        </label>
+
+                        <label class="flex items-start space-x-3">
+                            <input type="checkbox" id="agreeProcess" class="mt-1 w-4 h-4 text-blue-600">
+                            <span class="text-sm text-gray-700">
+                                Tôi đồng ý với quy trình xử lý yêu cầu bồi thường và thời gian xử lý từ 5-10 ngày làm việc.
+                            </span>
+                        </label>
+
+                        <label class="flex items-start space-x-3">
+                            <input type="checkbox" id="agreeContact" class="mt-1 w-4 h-4 text-blue-600">
+                            <span class="text-sm text-gray-700">
+                                Tôi đồng ý để VietCare Plus liên hệ với tôi qua email, điện thoại để cập nhật tiến độ xử lý.
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex justify-between">
+                    <button onclick="prevStep()" class="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-300">
+                        <i class="fas fa-arrow-left mr-2"></i>Quay lại
+                    </button>
+                    <button id="submitClaim" onclick="submitClaim()" disabled class="bg-gray-300 text-gray-500 px-8 py-3 rounded-lg font-semibold cursor-not-allowed">
+                        <i class="fas fa-paper-plane mr-2"></i>Gửi yêu cầu
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 text-center">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-check text-green-600 text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Gửi yêu cầu thành công!</h3>
+            <p class="text-gray-600 mb-4">Yêu cầu bồi thường của bạn đã được gửi thành công</p>
+            <div class="bg-blue-50 rounded-lg p-4 mb-6">
+                <p class="text-sm text-blue-800 font-semibold">Mã yêu cầu: <span id="claimId">CLM-2024-123456</span></p>
+                <p class="text-sm text-blue-600 mt-1">Thời gian xử lý dự kiến: 5-7 ngày làm việc</p>
+            </div>
+            <div class="space-y-3">
+                <button onclick="viewClaimDetails()" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
+                    Xem chi tiết yêu cầu
+                </button>
+                <button onclick="createNewClaim()" class="w-full bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300">
+                    Tạo yêu cầu mới
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let selectedPolicy = null;
+        let uploadedFiles = {};
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStepValidation();
+        });
+
+        // Next step
+        function nextStep() {
+            if (!validateCurrentStep()) return;
+
+            // Hide current step
+            document.getElementById(`stepContent${currentStep}`).classList.add('hidden');
+
+            // Update step indicator
+            const currentStepEl = document.getElementById(`step${currentStep}`);
+            currentStepEl.classList.remove('active');
+            currentStepEl.classList.add('completed');
+            currentStepEl.innerHTML = '<i class="fas fa-check"></i>';
+
+            // Update line
+            if (currentStep < 4) {
+                document.getElementById(`line${currentStep}`).classList.add('bg-green-500');
+                document.getElementById(`line${currentStep}`).classList.remove('bg-gray-200');
+            }
+
+            // Move to next step
+            currentStep++;
+
+            // Show next step
+            document.getElementById(`stepContent${currentStep}`).classList.remove('hidden');
+            document.getElementById(`stepContent${currentStep}`).classList.add('fade-in');
+
+            // Update step indicator
+            const nextStepEl = document.getElementById(`step${currentStep}`);
+            nextStepEl.classList.add('active');
+            nextStepEl.classList.remove('bg-gray-200', 'text-gray-600');
+
+            // Update step text colors
+            updateStepTexts();
+
+            // Populate summary if on step 4
+            if (currentStep === 4) {
+                populateSummary();
+            }
+
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        // Previous step
+        function prevStep() {
+            if (currentStep <= 1) return;
+
+            // Hide current step
+            document.getElementById(`stepContent${currentStep}`).classList.add('hidden');
+
+            // Update step indicator
+            const currentStepEl = document.getElementById(`step${currentStep}`);
+            currentStepEl.classList.remove('active');
+            currentStepEl.classList.add('bg-gray-200', 'text-gray-600');
+            currentStepEl.textContent = currentStep;
+
+            // Move to previous step
+            currentStep--;
+
+            // Show previous step
+            document.getElementById(`stepContent${currentStep}`).classList.remove('hidden');
+
+            // Update step indicator
+            const prevStepEl = document.getElementById(`step${currentStep}`);
+            prevStepEl.classList.remove('completed');
+            prevStepEl.classList.add('active');
+            prevStepEl.textContent = currentStep;
+
+            // Update line
+            if (currentStep < 4) {
+                document.getElementById(`line${currentStep}`).classList.remove('bg-green-500');
+                document.getElementById(`line${currentStep}`).classList.add('bg-gray-200');
+            }
+
+            // Update step text colors
+            updateStepTexts();
+
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        // Update step text colors
+        function updateStepTexts() {
+            for (let i = 1; i <= 4; i++) {
+                const stepEl = document.getElementById(`step${i}`);
+                const textEl = stepEl.nextElementSibling;
+
+                if (stepEl.classList.contains('active')) {
+                    textEl.classList.remove('text-gray-500');
+                    textEl.classList.add('text-blue-600', 'font-semibold');
+                } else if (stepEl.classList.contains('completed')) {
+                    textEl.classList.remove('text-gray-500');
+                    textEl.classList.add('text-green-600', 'font-semibold');
+                } else {
+                    textEl.classList.add('text-gray-500');
+                    textEl.classList.remove('text-blue-600', 'text-green-600', 'font-semibold');
+                }
+            }
+        }
+
+        // Validate current step
+        function validateCurrentStep() {
+            switch (currentStep) {
+
+
+                case 2:
+                    const requiredFields = ['incidentDate', 'treatmentType', 'hospitalName', 'symptoms', 'diagnosis', 'totalCost'];
+                    return requiredFields.every(field => {
+                        const element = document.getElementById(field);
+                        return element && element.value.trim() !== '';
+                    });
+
+                case 3:
+                    return uploadedFiles.medicalBill && uploadedFiles.medicalRecords;
+
+                case 4:
+                    return document.getElementById('agreeTerms').checked &&
+                           document.getElementById('agreeProcess').checked &&
+                           document.getElementById('agreeContact').checked;
+
+                default:
+                    return true;
+            }
+        }
+
+        // Update step validation
+        function updateStepValidation() {
+            const isValid = validateCurrentStep();
+            const nextButton = document.getElementById(`nextStep${currentStep}`);
+            const submitButton = document.getElementById('submitClaim');
+
+            if (nextButton) {
+                if (isValid) {
+                    nextButton.disabled = false;
+                    nextButton.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+                    nextButton.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-700');
+                } else {
+                    nextButton.disabled = true;
+                    nextButton.classList.add('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+                    nextButton.classList.remove('bg-blue-600', 'text-white', 'hover:bg-blue-700');
+                }
+            }
+
+            if (submitButton) {
+                if (isValid) {
+                    submitButton.disabled = false;
+                    submitButton.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+                    submitButton.classList.add('bg-green-600', 'text-white', 'hover:bg-green-700');
+                } else {
+                    submitButton.disabled = true;
+                    submitButton.classList.add('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+                    submitButton.classList.remove('bg-green-600', 'text-white', 'hover:bg-green-700');
+                }
+            }
+        }
+
+        // Handle file upload
+        function handleFileUpload(input, listId) {
+            const files = Array.from(input.files);
+            const listContainer = document.getElementById(listId);
+
+            files.forEach(file => {
+                if (file.size > 10 * 1024 * 1024) {
+                    alert(`File ${file.name} quá lớn. Vui lòng chọn file nhỏ hơn 10MB.`);
+                    return;
+                }
+
+                const fileItem = document.createElement('div');
+                fileItem.className = 'uploaded-file flex items-center justify-between p-3 bg-gray-50 rounded-lg';
+                fileItem.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-file-alt text-blue-600"></i>
+                        <div>
+                            <p class="font-semibold text-gray-800">${file.name}</p>
+                            <p class="text-sm text-gray-600">${formatFileSize(file.size)}</p>
+                        </div>
+                    </div>
+                    <button onclick="removeFile(this)" class="text-red-600 hover:text-red-800">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+
+                listContainer.appendChild(fileItem);
+            });
+
+            // Store files
+            const fieldName = input.id;
+            if (!uploadedFiles[fieldName]) {
+                uploadedFiles[fieldName] = [];
+            }
+            uploadedFiles[fieldName] = uploadedFiles[fieldName].concat(files);
+
+            updateStepValidation();
+        }
+
+        // Remove file
+        function removeFile(button) {
+            button.parentElement.remove();
+            updateStepValidation();
+        }
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Populate summary
+        function populateSummary() {
+            const policyNames = {
+                policy1: 'VietCare Plus Premium (VIE-2024-123456)',
+                policy2: 'VietCare Family (VIE-2024-789012)'
+            };
+
+            const treatmentTypes = {
+                outpatient: 'Ngoại trú',
+                inpatient: 'Nội trú',
+                emergency: 'Cấp cứu',
+                surgery: 'Phẫu thuật',
+                dental: 'Nha khoa',
+                maternity: 'Thai sản'
+            };
+
+            document.getElementById('summaryPolicy').textContent = policyNames[selectedPolicy] || '-';
+
+            let beneficiary = 'Nguyễn Văn A';
+            if (selectedPolicy === 'policy2') {
+                const selectedBeneficiary = document.querySelector('input[name="beneficiary"]:checked');
+                if (selectedBeneficiary) {
+                    const beneficiaryNames = {
+                        member1: 'Nguyễn Văn A (Chủ hợp đồng)',
+                        member2: 'Trần Thị B (Vợ)',
+                        member3: 'Nguyễn Văn C (Con)',
+                        member4: 'Nguyễn Thị D (Con)'
+                    };
+                    beneficiary = beneficiaryNames[selectedBeneficiary.value];
+                }
+            }
+            document.getElementById('summaryBeneficiary').textContent = beneficiary;
+
+            document.getElementById('summaryIncidentDate').textContent = formatDate(document.getElementById('incidentDate').value);
+            document.getElementById('summaryTreatmentType').textContent = treatmentTypes[document.getElementById('treatmentType').value] || '-';
+            document.getElementById('summaryHospital').textContent = document.getElementById('hospitalName').value || '-';
+            document.getElementById('summaryDiagnosis').textContent = document.getElementById('diagnosis').value || '-';
+            document.getElementById('summaryTotalCost').textContent = formatCurrency(document.getElementById('totalCost').value);
+
+            const totalDocs = Object.values(uploadedFiles).reduce((sum, files) => sum + files.length, 0);
+            document.getElementById('summaryDocuments').textContent = `${totalDocs} tài liệu`;
+        }
+
+        // Submit claim
+        function submitClaim() {
+            if (!validateCurrentStep()) return;
+
+            // Show success modal
+            document.getElementById('successModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+
+            // Generate claim ID
+            const claimId = 'CLM-' + new Date().getFullYear() + '-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+            document.getElementById('claimId').textContent = claimId;
+        }
+
+        // Modal functions
+        function viewClaimDetails() {
+            alert('Chuyển đến trang chi tiết yêu cầu bồi thường...');
+            document.getElementById('successModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function createNewClaim() {
+            location.reload();
+        }
+
+        function goBack() {
+                window.history.back();
+        }
+
+        // Helper functions
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            return new Date(dateString).toLocaleDateString('vi-VN');
+        }
+
+        function formatCurrency(amount) {
+            if (!amount) return '0 VNĐ';
+            return new Intl.NumberFormat('vi-VN', {
+                style: 'decimal',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount) + ' VNĐ';
+        }
+
+        // Add event listeners for form validation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add change listeners to all form inputs
+            const inputs = document.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                input.addEventListener('change', updateStepValidation);
+                input.addEventListener('input', updateStepValidation);
+            });
+
+            // Add change listener to checkboxes
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateStepValidation);
+            });
+        });
+
+        // Drag and drop functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadAreas = document.querySelectorAll('.file-upload-area');
+
+            uploadAreas.forEach(area => {
+                area.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    this.classList.add('dragover');
+                });
+
+                area.addEventListener('dragleave', function(e) {
+                    e.preventDefault();
+                    this.classList.remove('dragover');
+                });
+
+                area.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.classList.remove('dragover');
+
+                    const files = e.dataTransfer.files;
+                    const input = this.querySelector('input[type="file"]');
+
+                    // Create a new FileList
+                    const dt = new DataTransfer();
+                    for (let file of files) {
+                        dt.items.add(file);
+                    }
+                    input.files = dt.files;
+
+                    // Trigger change event
+                    input.dispatchEvent(new Event('change'));
+                });
+            });
+        });
+    </script>
+{% endblock %}

@@ -15,7 +15,7 @@ class Claim(models.Model):
     ]
 
     policy = models.ForeignKey(
-        Policy, on_delete=models.CASCADE, verbose_name="Hợp đồng bảo hiểm"
+        Policy, on_delete=models.CASCADE,related_name="claims", verbose_name="Hợp đồng bảo hiểm"
     )
     customer = models.ForeignKey(
         Customer, on_delete=models.CASCADE, verbose_name="Khách hàng"
@@ -65,6 +65,37 @@ class Claim(models.Model):
 
     def __str__(self):
         return f"Yêu cầu #{self.id} - {self.customer.user.first_name} {self.customer.user.last_name}"
+
+class ClaimMedicalInfo(models.Model):
+    """Thông tin y tế liên quan đến yêu cầu bồi thường"""
+
+    TREATMENT_TYPE_CHOICES = [
+        ("inpatient", "Điều trị nội trú"),
+        ("outpatient", "Điều trị ngoại trú"),
+        ("surgery", "Phẫu thuật"),
+        ("death", "Tử vong"),
+        ("other", "Khác"),
+    ]
+
+    claim = models.ForeignKey(Claim, on_delete=models.CASCADE, related_name="claim_medical_info")
+    treatment_type = models.CharField(max_length=20, choices=TREATMENT_TYPE_CHOICES, verbose_name="Loại điều trị")
+    hospital_name = models.CharField(max_length=255, verbose_name="Tên bệnh viện / cơ sở y tế")
+    doctor_name = models.CharField(max_length=255, blank=True, null=True, verbose_name="Bác sĩ điều trị")
+    hospital_address = models.CharField(max_length=255, blank=True, null=True, verbose_name="Địa chỉ bệnh viện")
+    diagnosis = models.TextField(blank=True, null=True, verbose_name="Chẩn đoán / bệnh lý")
+    admission_date = models.DateField(blank=True, null=True, verbose_name="Ngày nhập viện")
+    discharge_date = models.DateField(blank=True, null=True, verbose_name="Ngày xuất viện")
+
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Ngày cập nhật")
+
+    class Meta:
+        db_table = "claim_medical_info"
+        verbose_name = "Thông tin y tế"
+        verbose_name_plural = "Thông tin y tế"
+
+    def __str__(self):
+        return f"Y tế cho yêu cầu #{self.claim.id} - {self.hospital_name}"
 
 
 class ClaimDocument(models.Model):

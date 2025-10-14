@@ -1,10 +1,11 @@
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
 
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
+from policies.models import Policy, PolicyHolder
 from policies.views import format_money
 from .models import Claim
 from django.contrib.auth.models import User
@@ -90,3 +91,13 @@ def filter_claims_ajax(request):
 
     html = render_to_string("claims/claims_list.html", {"claims": claims})
     return JsonResponse({"html": html})
+@login_required
+def create_claims(request,pk):
+    policy = get_object_or_404(Policy, pk=pk)
+    policyHolder = PolicyHolder.objects.filter(policy=policy).first()
+
+    context = {
+        "policy": policy,
+        "policyHolder": policyHolder,
+    }
+    return  render(request, "claims/create_claims.html", context)

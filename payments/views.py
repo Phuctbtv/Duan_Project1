@@ -1,12 +1,10 @@
-from datetime import timezone
 
-from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import render, get_object_or_404, redirect
 import uuid
 
 from django.views.decorators.http import require_http_methods, require_POST
-
+import json
 from insurance_products.models import InsuranceProduct
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, Http404
@@ -14,7 +12,9 @@ from django.contrib import messages
 
 from payments.forms import HealthInfoForm
 from payments.models import Payment
-from policies.models import Policy
+from policies.models import Policy, PolicyHolder
+
+
 def payments_users(request):
     recent_products_ids = request.session.get("recent_products", [])
     recent_products = InsuranceProduct.objects.filter(id__in=recent_products_ids)
@@ -23,7 +23,6 @@ def payments_users(request):
 
 
 def calculate_premium_logic(product, cleaned_data):
-    # --- Định nghĩa các hằng số để dễ quản lý ---
     AGE_THRESHOLD = 50
     AGE_SURCHARGE_RATE = 0.20
     SMOKER_SURCHARGE_RATE = 0.12
@@ -183,6 +182,18 @@ def process_payment(request):
                 payment_method=payment_method,
                 transaction_id=transaction_id,
                 status="pending",
+            )
+
+            # Thông tin người thụ hưởng
+            personal_benefic_json = request.POST.get("personalInfo_benefic")
+            personal_benefic = json.loads(personal_benefic_json)
+
+            PolicyHolder.objects.create(
+                policy=policy,
+                full_name=personal_benefic["fullname"],
+                date_of_birth=personal_benefic["birthDate"],
+                id_card_number=personal_benefic["id_card_number"],
+                relationship_to_customer=personal_benefic["relationship_to_customer"],
             )
 
         return JsonResponse({

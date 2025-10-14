@@ -110,7 +110,7 @@
                             <div class="space-y-2 text-sm">
                                 <p><strong>Họ tên:</strong> {{ policyHolder.full_name|default:"Chưa cập nhật" }}</p>
                                 <p><strong>Ngày Sinh:</strong> {{ policyHolder.date_of_birth|date:"d/m/Y"|default:"Chưa cập nhật" }}</p>
-                                <p><strong>Mối quan hệ:</strong> {{ policyHolder.date_of_birth.get_relationship_to_customer_display|default:"Chưa cập nhật" }}</p>
+                                <p><strong>Mối quan hệ:</strong> {{ policyHolder.get_relationship_to_customer_display|default:"Chưa cập nhật" }}</p>
                                 <p><strong>CCCD/CMND:</strong> {{ policyHolder.id_card_number|default:"Chưa cập nhật" }}</p>
 
                             </div>
