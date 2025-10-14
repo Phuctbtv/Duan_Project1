@@ -201,22 +201,17 @@ def admin_policy_create(request):
 def admin_policy_detail(request, pk):
     """Xem chi tiết hợp đồng (policy)"""
     policy = get_object_or_404(Policy, pk=pk)
-    policyHolder = PolicyHolder(policy=policy)
+    policyHolder = PolicyHolder.objects.filter(policy=policy).first()
     context = {
         'policy': policy,
         'now': timezone.now(),
         'policyHolder': policyHolder,
     }
 
-    # Nếu người dùng là admin hoặc nhân viên (is_staff = True)
     if request.user.is_staff:
         return render(request, 'admin/policies_detail.html', context)
-
-    # Nếu không phải admin thì chuyển hướng về trang người dùng
     else:
         return render(request, 'users/components/policy/policies_detail.html', context)
-
-
 
 @login_required
 def admin_policy_renew(request, pk):

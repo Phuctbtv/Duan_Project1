@@ -68,9 +68,7 @@ def register_view(request):
 
 
 @csrf_protect
-@csrf_protect
 def login_view(request):
-    #
     if request.user.is_authenticated:
         if request.user.is_staff:
             return redirect("admin_home")
@@ -85,7 +83,14 @@ def login_view(request):
 
             user = authenticate(username=username, password=password)
             if user is not None:
+                #  Kiểm tra nếu tài khoản bị khóa
+                if not user.is_active:
+                    messages.error(request, "Tài khoản của bạn đang bị tạm khóa. Vui lòng liên hệ quản trị viên.")
+                    return redirect("login")
+
+                # Đăng nhập thành công
                 login(request, user)
+                list(messages.get_messages(request))
                 messages.success(
                     request,
                     f"Xin chào {user.get_username()}, bạn đã đăng nhập thành công!"
@@ -94,6 +99,7 @@ def login_view(request):
                     return redirect("admin_home")
                 else:
                     return redirect("trangchu")
+
             else:
                 messages.error(request, "Tên đăng nhập hoặc mật khẩu không chính xác.")
         else:
@@ -102,6 +108,7 @@ def login_view(request):
         form = AuthenticationForm()
 
     return render(request, "users/login.html", {"form": form})
+
 
 @user_required
 def custom_users_user(request):
@@ -125,7 +132,7 @@ def profile_view(request):
 @login_required
 def update_profile(request):
     user = request.user
-    customer = getattr(user, 'customer', None)  # tránh lỗi nếu user chưa có customer
+    customer = getattr(user, 'customer', None)
 
     if request.method == "POST":
         form = ProfileUpdateForm(request.POST, instance=user)

@@ -445,7 +445,7 @@ async function processPayment() {
         displayContract_Customer(paymentDataFromFirstCall); // Dùng lại data đã lưu
 
         document.getElementById("continue-btn").addEventListener("click", (event) => {
-        event.stopPropagation(); // Ngăn sự kiện lan truyền lên các phần tử cha
+        event.stopPropagation();
         forceGoToStep(5);
         });
 
@@ -475,6 +475,7 @@ async function processPayment() {
     formData.append('payment_method', selectedPaymentMethod);
     formData.append('final_premium', final_premium);
     formData.append('csrfmiddlewaretoken', getCSRFToken());
+    formData.append('personalInfo_benefic', JSON.stringify(personalInfo_benefic));
 
     try {
         showLoading('Đang xử lý thanh toán');

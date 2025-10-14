@@ -26,7 +26,36 @@
 <body class="bg-gray-50">
     <!-- Sidebar -->
     {% include 'admin/components/sidebar_admin.html' %}
-
+                 {% if messages %}
+            <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-3">
+                {% for message in messages %}
+                <div class="toast px-4 py-3 rounded-lg shadow-md text-sm font-medium
+                            transition-opacity duration-500 ease-out
+                            {% if message.tags == 'success' %} bg-green-50 text-green-800 border-l-4 border-green-500
+                            {% elif message.tags == 'error' %} bg-red-50 text-red-800 border-l-4 border-red-500
+                            {% elif message.tags == 'warning' %} bg-yellow-50 text-yellow-800 border-l-4 border-yellow-500
+                            {% else %} bg-blue-50 text-blue-800 border-l-4 border-blue-500 {% endif %}">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            {% if message.tags == 'success' %}
+                            <i class="fas fa-check-circle text-green-500"></i>
+                            {% elif message.tags == 'error' %}
+                            <i class="fas fa-exclamation-circle text-red-500"></i>
+                            {% elif message.tags == 'warning' %}
+                            <i class="fas fa-exclamation-triangle text-yellow-500"></i>
+                            {% else %}
+                            <i class="fas fa-info-circle text-blue-500"></i>
+                            {% endif %}
+                            <span>{{ message }}</span>
+                        </div>
+                        <button onclick="this.closest('.toast').remove()" class="ml-3 text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
     <!-- Main Content -->
     <div class="lg:ml-64">
         <!-- Header -->
@@ -305,7 +334,16 @@
     </div>
 
 <script>
-
+document.addEventListener('DOMContentLoaded', function () {
+            const toasts = document.querySelectorAll('#toast-container .toast');
+            toasts.forEach(function (toast) {
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateY(-10px)';
+                    setTimeout(() => toast.remove(), 500);
+                }, 2000);
+            });
+        });
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     sidebar.classList.toggle('-translate-x-full');
