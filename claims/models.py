@@ -29,10 +29,10 @@ class Claim(models.Model):
     incident_date = models.DateField(verbose_name="Ngày xảy ra sự cố")
     description = models.TextField(verbose_name="Mô tả sự cố")
     requested_amount = models.DecimalField(
-        max_digits=10, decimal_places=2, verbose_name="Số tiền yêu cầu"
+        max_digits=15, decimal_places=2, verbose_name="Số tiền yêu cầu"
     )
     claimed_amount = models.DecimalField(
-        max_digits=12,
+        max_digits=15,
         decimal_places=2,
         default=0,
         verbose_name="Tổng số tiền đã chi trả",
@@ -45,7 +45,7 @@ class Claim(models.Model):
         verbose_name="Trạng thái yêu cầu",
     )
     approved_amount = models.DecimalField(
-        max_digits=10,
+        max_digits=15,
         decimal_places=2,
         null=True,
         blank=True,
@@ -86,6 +86,10 @@ class ClaimMedicalInfo(models.Model):
     admission_date = models.DateField(blank=True, null=True, verbose_name="Ngày nhập viện")
     discharge_date = models.DateField(blank=True, null=True, verbose_name="Ngày xuất viện")
 
+    total_treatment_cost = models.DecimalField(
+        max_digits=15, decimal_places=2, null=True, blank=True, verbose_name="Tổng chi phí điều trị"
+    )
+
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Ngày cập nhật")
 
@@ -105,7 +109,7 @@ class ClaimDocument(models.Model):
         Claim, on_delete=models.CASCADE, verbose_name="Yêu cầu bồi thường"
     )
     document_type = models.CharField(max_length=50, verbose_name="Loại tài liệu")
-    file_url = models.URLField(verbose_name="URL file")
+    file_url = models.FileField(verbose_name="URL file")
     uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tải lên")
     ocr_extracted_text = models.TextField(blank=True, verbose_name="Văn bản OCR")
     ai_analysis_result = models.JSONField(

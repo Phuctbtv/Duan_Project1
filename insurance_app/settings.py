@@ -142,7 +142,6 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "insurance_app/static"),
 ]
 
-# (Tùy chọn) Thư mục sẽ chứa static files khi chạy collectstatic
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 AUTH_USER_MODEL = "users.User"
 
@@ -179,3 +178,6 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'nguyendacminh2711@gmail.com'
 EMAIL_HOST_PASSWORD = 'eznbcmqyteccodtb'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
