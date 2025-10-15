@@ -1,16 +1,18 @@
-from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404
+
 from django.template.loader import render_to_string
-
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-
 from policies.models import Policy, PolicyHolder
 from policies.views import format_money
 from .models import Claim
 from django.contrib.auth.models import User
 from django.db.models import Sum, Q
-
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.core.files.storage import FileSystemStorage
+from django.utils import timezone
+import uuid
+from .models import Claim, ClaimMedicalInfo, ClaimDocument
+from policies.models import Policy
 @login_required
 
 def custom_claims_user(request):
@@ -91,13 +93,81 @@ def filter_claims_ajax(request):
 
     html = render_to_string("claims/claims_list.html", {"claims": claims})
     return JsonResponse({"html": html})
+
 @login_required
-def create_claims(request,pk):
-    policy = get_object_or_404(Policy, pk=pk)
+def create_claims(request, pk):
+    policy = get_object_or_404(Policy, id=pk, customer__user=request.user)
     policyHolder = PolicyHolder.objects.filter(policy=policy).first()
+    if request.method == 'POST':
+        try:
+            # Lấy dữ liệu từ form
+            data = request.POST
+
+            # Tạo claim number
+            claim_number = f"CLM-{timezone.now().strftime('%Y%m%d')}-{str(uuid.uuid4())[:8].upper()}"
+
+            # Tạo yêu cầu bồi thường
+            claim = Claim.objects.create(
+                policy=policy,
+                customer=policy.customer,
+                claim_number=claim_number,
+                incident_date=data.get('incidentDate'),
+                description=data.get('description'),
+                requested_amount=data.get('totalCost'),  #xem lại
+                claim_status='pending'
+            )
+
+            # Tạo thông tin y tế
+            ClaimMedicalInfo.objects.create(
+                claim=claim,
+                treatment_type=data.get('treatmentType'),
+                hospital_name=data.get('hospitalName'),
+                doctor_name=data.get('doctorName'),
+                hospital_address=data.get('hospital_address'),
+                diagnosis=data.get('diagnosis'),
+                admission_date=data.get('admissionDate') or None,
+                discharge_date=data.get('dischargeDate') or None,
+                total_treatment_cost=data.get('totalCost')
+            )
+
+            # Xử lý file upload
+            if request.FILES:
+                fs = FileSystemStorage()
+                document_mapping = {
+                    'medicalBill': 'Hóa đơn viện phí',
+                    'medicalRecords': 'Hồ sơ bệnh án',
+                    'prescription': 'Đơn thuốc',
+                    'testResults': 'Kết quả xét nghiệm',
+                    'additionalDocs': 'Tài liệu bổ sung'
+                }
+
+                for field_name, document_type in document_mapping.items():
+                    files = request.FILES.getlist(field_name)
+                    for file in files:
+                        filename = fs.save(f'claims/claim_{claim.id}/{file.name}', file)
+                        file_url = fs.url(filename)
+
+                        ClaimDocument.objects.create(
+                            claim=claim,
+                            document_type=document_type,
+                            file_url=file_url
+                        )
+
+            return JsonResponse({
+                'success': True,
+                'claim_id': claim.claim_number,
+                'message': 'Gửi yêu cầu bồi thường thành công!'
+            })
+
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Có lỗi xảy ra: {str(e)}'
+            })
 
     context = {
         "policy": policy,
         "policyHolder": policyHolder,
+        'treatment_types': ClaimMedicalInfo.TREATMENT_TYPE_CHOICES
     }
     return  render(request, "claims/create_claims.html", context)

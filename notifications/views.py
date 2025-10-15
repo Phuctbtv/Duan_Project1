@@ -1,3 +1,4 @@
 from django.shortcuts import render
 
-# Create your views here.
+def support_users(request):
+    return render(request, "support/support_user.html")
