@@ -106,7 +106,7 @@ class ClaimDocument(models.Model):
     """Model tài liệu bồi thường"""
 
     claim = models.ForeignKey(
-        Claim, on_delete=models.CASCADE, verbose_name="Yêu cầu bồi thường"
+        Claim, on_delete=models.CASCADE, verbose_name="Yêu cầu bồi thường", related_name="claim_documents"
     )
     document_type = models.CharField(max_length=50, verbose_name="Loại tài liệu")
     file_url = models.FileField(verbose_name="URL file")
@@ -123,6 +123,20 @@ class ClaimDocument(models.Model):
 
     def __str__(self):
         return f"{self.document_type} - Yêu cầu #{self.claim.id}"
+
+class ClaimPayment(models.Model):
+    claim = models.OneToOneField("Claim", on_delete=models.CASCADE)
+    bank_name = models.CharField(max_length=100, verbose_name="Ngân hàng")
+    account_number = models.CharField(max_length=30, verbose_name="Số tài khoản")
+    account_holder_name = models.CharField(max_length=100, verbose_name="Chủ tài khoản")
+
+    class Meta:
+        db_table = "claim_payment"
+        verbose_name = "Tài khoản nhận bồi thường"
+        verbose_name_plural = "Tài khoản nhận bồi thường"
+
+    def __str__(self):
+        return f"{self.account_holder_name} - {self.bank_name}"
 
 
 class RiskAssessment(models.Model):

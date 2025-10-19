@@ -1,0 +1,1081 @@
+{% extends 'users/quanlytaikhoan.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block users %}
+<style>
+    /* Giữ nguyên CSS từ template trước */
+    body { box-sizing: border-box; }
+    .timeline-item { position: relative; }
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: 15px;
+        top: 40px;
+        bottom: -20px;
+        width: 2px;
+        background: #e5e7eb;
+    }
+    .timeline-item:last-child::before { display: none; }
+    .timeline-dot { position: relative; z-index: 10; }
+    .status-progress { transition: all 0.3s ease; }
+    .document-card { transition: all 0.2s ease; }
+    .document-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); }
+    .fade-in { animation: fadeIn 0.5s ease; }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .pulse-animation { animation: pulse 2s infinite; }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+
+    #documentContent img {
+        transition: transform 0.3s ease;
+        max-width: 100%;
+        height: auto;
+    }
+
+    .document-viewer {
+        cursor: zoom-in;
+    }
+
+    .document-viewer.zoomed {
+        cursor: grab;
+    }
+
+    .document-viewer.zoomed:active {
+        cursor: grabbing;
+    }
+
+    /* Custom scrollbar cho modal */
+    #documentModal ::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    #documentModal ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    #documentModal ::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+    }
+
+    #documentModal ::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+    .document-type-card.selected {
+        border-color: #3b82f6;
+        background-color: #eff6ff;
+    }
+
+    .file-upload-area.dragover {
+        border-color: #3b82f6;
+        background-color: #eff6ff;
+    }
+
+    .file-item {
+        animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    /* Custom scrollbar */
+    #selectedFilesList::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    #selectedFilesList::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+
+    #selectedFilesList::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+    }
+
+    #selectedFilesList::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+
+    .modal-container {
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .modal-header {
+        flex-shrink: 0;
+    }
+
+    .modal-body {
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    .modal-footer {
+        flex-shrink: 0;
+        background: #f9fafb;
+    }
+</style>
+
+<div class="bg-gray-50 min-h-screen">
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <div class="flex items-center space-x-3">
+            <button onclick="goBack()" class="text-gray-600 hover:text-gray-800">
+                <i class="fas fa-arrow-left text-xl"></i>
+            </button>
+            <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                <i class="fas fa-file-medical text-white"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold text-gray-800">Chi tiết yêu cầu bồi thường</h1>
+                <p class="text-sm text-gray-600">Mã: {{ claim.claim_number }}</p>
+            </div>
+        </div>
+
+        <!-- Status Banner -->
+        <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-6 mb-8 text-white fade-in">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="flex items-center space-x-3 mb-2">
+                        <div class="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-clock text-white"></i>
+                        </div>
+                        <span class="text-lg font-semibold">{{ claim.get_claim_status_display }}</span>
+                    </div>
+                    <p class="text-blue-100">
+                        {% if claim.claim_status == 'pending' %}
+                        Yêu cầu của bạn đang chờ được xử lý
+                        {% elif claim.claim_status == 'in_progress' %}
+                        Yêu cầu của bạn đang được xem xét bởi đội ngũ chuyên viên
+                        {% elif claim.claim_status == 'approved' %}
+                        Yêu cầu của bạn đã được phê duyệt
+                        {% elif claim.claim_status == 'settled' %}
+                        Yêu cầu của bạn đã được giải quyết hoàn tất
+                        {% elif claim.claim_status == 'rejected' %}
+                        Yêu cầu của bạn đã bị từ chối
+                        {% endif %}
+                    </p>
+                    <p class="text-sm text-blue-200 mt-1">Thời gian xử lý dự kiến: 5-7 ngày làm việc</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-2xl font-bold">{{ claim.requested_amount|floatformat:0|intcomma }} VNĐ</p>
+                    <p class="text-blue-200">Số tiền yêu cầu</p>
+                    {% if claim.approved_amount %}
+                    <p class="text-lg font-semibold text-green-300 mt-2">{{ claim.approved_amount|floatformat:0|intcomma }} VNĐ</p>
+                    <p class="text-blue-200">Số tiền được duyệt</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Main Content -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Progress Timeline -->
+                <div class="bg-white rounded-xl shadow-sm p-6 fade-in">
+                    <h2 class="text-xl font-bold text-gray-800 mb-6">Tiến độ xử lý</h2>
+                    <div class="space-y-6">
+                        {% for item in timeline %}
+                        <div class="timeline-item flex items-start space-x-4">
+                            <div class="timeline-dot w-8 h-8
+                                {% if item.status == 'completed' %}bg-green-500
+                                {% elif item.status == 'in_progress' %}bg-blue-500 pulse-animation
+                                {% else %}bg-gray-300{% endif %}
+                                rounded-full flex items-center justify-center">
+                                <i class="fas {{ item.icon }} text-white text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="font-semibold
+                                        {% if item.status == 'pending' %}text-gray-500{% else %}text-gray-800{% endif %}">
+                                        {{ item.title }}
+                                    </h3>
+                                    <span class="text-sm
+                                        {% if item.status == 'pending' %}text-gray-400
+                                        {% elif item.status == 'in_progress' %}text-blue-600
+                                        {% else %}text-gray-500{% endif %}">
+                                        {{ item.date }}
+                                    </span>
+                                </div>
+                                <p class="{% if item.status == 'pending' %}text-gray-400{% else %}text-gray-600{% endif %} text-sm mt-1">
+                                    {{ item.description }}
+                                </p>
+                                {% if item.status == 'completed' %}
+                                <div class="flex items-center mt-2 text-sm text-green-600">
+                                    <i class="fas fa-check-circle mr-1"></i>
+                                    <span>Hoàn thành</span>
+                                </div>
+                                {% elif item.status == 'in_progress' %}
+                                <div class="flex items-center mt-2 text-sm text-blue-600">
+                                    <i class="fas fa-clock mr-1"></i>
+                                    <span>Đang xử lý</span>
+                                </div>
+                                {% else %}
+                                <div class="flex items-center mt-2 text-sm text-gray-400">
+                                    <i class="fas fa-clock mr-1"></i>
+                                    <span>Chờ xử lý</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Claim Details -->
+                <div class="bg-white rounded-xl shadow-sm p-6 fade-in">
+                    <h2 class="text-xl font-bold text-gray-800 mb-6">Thông tin yêu cầu</h2>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-sm text-gray-600">Người yêu cầu bồi thường</label>
+                                <p class="font-semibold text-gray-800">
+                                    {{ claim.customer.user.get_full_name }} (Bản thân)
+                                </p>
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-600">Ngày xảy ra sự cố</label>
+                                <p class="font-semibold text-gray-800">{{ claim.incident_date|date:"d/m/Y" }}</p>
+                            </div>
+                            {% if medical_info %}
+                            <div>
+                                <label class="text-sm text-gray-600">Loại điều trị</label>
+                                <p class="font-semibold text-gray-800">{{ medical_info.get_treatment_type_display }}</p>
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-600">Bệnh viện</label>
+                                <p class="font-semibold text-gray-800">{{ medical_info.hospital_name }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="space-y-4">
+                            {% if medical_info %}
+                            <div>
+                                <label class="text-sm text-gray-600">Chẩn đoán</label>
+                                <p class="font-semibold text-gray-800">{{ medical_info.diagnosis|default:"-" }}</p>
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-600">Bác sĩ điều trị</label>
+                                <p class="font-semibold text-gray-800">{{ medical_info.doctor_name|default:"-" }}</p>
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-600">Ngày nhập viện</label>
+                                <p class="font-semibold text-gray-800">
+                                    {% if medical_info.admission_date %}{{ medical_info.admission_date|date:"d/m/Y" }}{% else %}-{% endif %}
+                                </p>
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-600">Ngày xuất viện</label>
+                                <p class="font-semibold text-gray-800">
+                                    {% if medical_info.discharge_date %}{{ medical_info.discharge_date|date:"d/m/Y" }}{% else %}-{% endif %}
+                                </p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <label class="text-sm text-gray-600">Mô tả sự cố</label>
+                        <p class="font-semibold text-gray-800 mt-1">{{ claim.description }}</p>
+                    </div>
+                    <div class="mt-6">
+                        <label class="text-sm text-gray-600">Thông tin nhận tiền</label>
+                        <p class="font-semibold text-gray-800 mt-1">STK:{{claim_payment.account_number}} - {{claim_payment.bank_name}}</p>
+                    </div>
+                </div>
+
+                <!-- Documents -->
+                <div class="bg-white rounded-xl shadow-sm p-6 fade-in">
+                    <h2 class="text-xl font-bold text-gray-800 mb-6">Tài liệu đã nộp</h2>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        {% for document in documents %}
+                        <div class="document-card bg-gray-50 rounded-lg p-4 cursor-pointer"
+                             onclick="viewDocument('{{ document.id }}', '{{ document.document_type }}', '{{ document.file_url.url }}')">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10
+                                        {% if document.document_type == 'Hóa đơn viện phí' %}bg-blue-100
+                                        {% elif document.document_type == 'Hồ sơ bệnh án' %}bg-green-100
+                                        {% elif document.document_type == 'Đơn thuốc' %}bg-purple-100
+                                        {% else %}bg-orange-100{% endif %}
+                                        rounded-lg flex items-center justify-center">
+                                        <i class="fas
+                                            {% if document.document_type == 'Hóa đơn viện phí' %}fa-file-invoice text-blue-600
+                                            {% elif document.document_type == 'Hồ sơ bệnh án' %}fa-file-medical text-green-600
+                                            {% elif document.document_type == 'Đơn thuốc' %}fa-pills text-purple-600
+                                            {% else %}fa-x-ray text-orange-600{% endif %}"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold text-gray-800">{{ document.document_type }}</h3>
+                                        <p class="text-sm text-gray-600">
+                                            {% with document.file_url.name|slice:"-3:"|upper as ext %}
+                                                {{ ext }} • {{ document.file_url.size|filesizeformat }}
+                                            {% endwith %}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Đã xác thực</span>
+                                    <i class="fas fa-eye text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-span-2 text-center py-8">
+                            <i class="fas fa-folder-open text-4xl text-gray-400 mb-4"></i>
+                            <p class="text-gray-500">Chưa có tài liệu nào được tải lên</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-xl shadow-sm p-6 fade-in">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Thao tác nhanh</h3>
+                    <div class="space-y-3">
+                        <button onclick="contactSupport('{{ claim.claim_number }}')" class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors">
+                            <i class="fas fa-headset mr-2"></i>Liên hệ hỗ trợ
+                        </button>
+                        <button onclick="addDocuments('{{ claim.claim_number }}')" class="w-full bg-yellow-600 text-white py-3 rounded-lg font-semibold hover:bg-yellow-700 transition-colors">
+                            <i class="fas fa-plus mr-2"></i>Bổ sung tài liệu
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Policy Information -->
+                <div class="bg-white rounded-xl shadow-sm p-6 fade-in">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Thông tin hợp đồng</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-sm text-gray-600">Số hợp đồng</label>
+                            <p class="font-semibold text-gray-800">{{ claim.policy.policy_number }}</p>
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-600">Sản phẩm</label>
+                            <p class="font-semibold text-gray-800">{{ claim.policy.product.product_name }}</p>
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-600">Hiệu lực</label>
+                            <p class="font-semibold text-gray-800">
+                                {{ claim.policy.start_date|date:"d/m/Y" }} - {{ claim.policy.end_date|date:"d/m/Y" }}
+                            </p>
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-600">Số tiền bảo hiểm</label>
+                            <p class="font-semibold text-green-600">{{ claim.policy.sum_insured|floatformat:0|intcomma }} VNĐ</p>
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-600">Số tiền đã chi trả</label>
+                            <p class="font-semibold text-orange-600">{{ claim.claimed_amount|floatformat:0|intcomma }} VNĐ</p>
+                        </div>
+                    </div>
+                </div>
+
+                    <!-- Support Modal -->
+                <div id="supportModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+                    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full">
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-xl font-bold text-gray-800">Liên hệ hỗ trợ</h3>
+                                <button onclick="closeSupportModal()" class="text-gray-500 hover:text-gray-700">
+                                    <i class="fas fa-times text-xl"></i>
+                                </button>
+                            </div>
+
+                            <div class="space-y-4">
+                                <button onclick="callSupport()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 flex items-center justify-center">
+                                    <i class="fas fa-phone mr-2"></i>Gọi điện: 1900 1234
+                                </button>
+
+                                <button onclick="emailSupport()" class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 flex items-center justify-center">
+                                    <i class="fas fa-envelope mr-2"></i>Gửi email
+                                </button>
+
+                                <button onclick="startChat()" class="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 flex items-center justify-center">
+                                    <i class="fas fa-comments mr-2"></i>Chat trực tuyến
+                                </button>
+                            </div>
+
+                            <div class="mt-6 p-4 bg-yellow-50 rounded-lg">
+                                <div class="flex items-start space-x-2">
+                                    <i class="fas fa-info-circle text-yellow-600 mt-1"></i>
+                                    <div>
+                                        <p class="text-sm font-semibold text-yellow-800">Thông tin cần chuẩn bị:</p>
+                                        <ul class="text-sm text-yellow-700 mt-1 space-y-1">
+                                            <li>• Mã yêu cầu: {{claim.claim_number}}</li>
+                                            <li>• Số hợp đồng: {{claim.policy.policy_number}}</li>
+                                            <li>• Số CMND/CCCD</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Document Viewer Modal -->
+                <div id="documentModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+                    <div class="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+                        <div class="flex items-center justify-between p-6 border-b">
+                            <h3 class="text-xl font-bold text-gray-800" id="documentTitle">Xem tài liệu</h3>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="zoomIn()" class="text-gray-500 hover:text-gray-700 p-2">
+                                    <i class="fas fa-search-plus"></i>
+                                </button>
+                                <button onclick="zoomOut()" class="text-gray-500 hover:text-gray-700 p-2">
+                                    <i class="fas fa-search-minus"></i>
+                                </button>
+                                <button onclick="closeDocumentModal()" class="text-gray-500 hover:text-gray-700 p-2">
+                                    <i class="fas fa-times text-xl"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-6 max-h-[calc(90vh-80px)] overflow-auto">
+                            <div id="documentContent" class="flex justify-center items-center min-h-64">
+                                <div class="text-center text-gray-500">
+                                    <i class="fas fa-spinner fa-spin text-4xl mb-4"></i>
+                                    <p>Đang tải tài liệu...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="bg-white rounded-xl shadow-sm p-6 fade-in">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Thông tin liên hệ</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-phone text-blue-600"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">Hotline</p>
+                                <p class="font-semibold text-gray-800">1900 1234</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-envelope text-green-600"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">Email</p>
+                                <p class="font-semibold text-gray-800">support@vietcare.vn</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-comments text-purple-600"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">Live Chat</p>
+                                <p class="font-semibold text-gray-800">8:00 - 22:00</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Documents Modal -->
+
+                <div id="addDocumentsModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+                    <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full modal-container">
+                        <!-- Header -->
+                        <div class="modal-header flex items-center justify-between p-6 border-b">
+                            <h3 class="text-xl font-bold text-gray-800">Bổ sung tài liệu</h3>
+                            <button onclick="closeAddDocumentsModal()" class="text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-times text-xl"></i>
+                            </button>
+                        </div>
+
+                        <!-- Body - Scrollable -->
+                        <div class="modal-body p-6 overflow-y-auto">
+                            <!-- Form upload -->
+                            <form id="addDocumentsForm" enctype="multipart/form-data">
+                                {% csrf_token %}
+
+                                <!-- Document Type Selection -->
+                                <div class="mb-6">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-3">Loại tài liệu *</label>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <!-- Các option document type giữ nguyên -->
+                                        <label class="document-type-card flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                                            <input type="radio" name="document_type" value="Hóa đơn viện phí" class="hidden" checked>
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                                    <i class="fas fa-file-invoice text-blue-600"></i>
+                                                </div>
+                                                <span class="font-semibold text-gray-800">Hóa đơn viện phí</span>
+                                            </div>
+                                        </label>
+
+                                        <label class="document-type-card flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-green-500 transition-colors">
+                                            <input type="radio" name="document_type" value="Hồ sơ bệnh án" class="hidden">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                                                    <i class="fas fa-file-medical text-green-600"></i>
+                                                </div>
+                                                <span class="font-semibold text-gray-800">Hồ sơ bệnh án</span>
+                                            </div>
+                                        </label>
+
+                                        <label class="document-type-card flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-purple-500 transition-colors">
+                                            <input type="radio" name="document_type" value="Đơn thuốc" class="hidden">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                                                    <i class="fas fa-pills text-purple-600"></i>
+                                                </div>
+                                                <span class="font-semibold text-gray-800">Đơn thuốc</span>
+                                            </div>
+                                        </label>
+
+                                        <label class="document-type-card flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-orange-500 transition-colors">
+                                            <input type="radio" name="document_type" value="Kết quả xét nghiệm" class="hidden">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                                                    <i class="fas fa-x-ray text-orange-600"></i>
+                                                </div>
+                                                <span class="font-semibold text-gray-800">Kết quả xét nghiệm</span>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- File Upload Area -->
+                                <div class="mb-6">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-3">Tải lên tài liệu *</label>
+                                    <div class="file-upload-area border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 transition-colors"
+                                         onclick="document.getElementById('fileInput').click()">
+                                        <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
+                                        <p class="text-gray-600 font-semibold mb-1">Kéo thả file hoặc click để chọn</p>
+                                        <p class="text-sm text-gray-500">Hỗ trợ: PDF, JPG, PNG (tối đa 10MB mỗi file)</p>
+                                        <input type="file" id="fileInput" class="hidden" multiple accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelection(this.files)">
+                                    </div>
+
+                                    <!-- Selected Files List -->
+                                    <div id="selectedFilesList" class="mt-4 space-y-2 max-h-32 overflow-y-auto hidden">
+                                        <h4 class="text-sm font-semibold text-gray-700 mb-2">File đã chọn:</h4>
+                                        <!-- Files will be added here dynamically -->
+                                    </div>
+                                </div>
+
+                                <!-- Additional Notes -->
+                                <div class="mb-6">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Ghi chú (tùy chọn)</label>
+                                    <textarea name="notes" rows="3" placeholder="Thêm ghi chú về tài liệu này..."
+                                              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"></textarea>
+                                </div>
+
+                                <!-- Requirements -->
+                                <div class="bg-blue-50 rounded-lg p-4">
+                                    <div class="flex items-start space-x-2">
+                                        <i class="fas fa-info-circle text-blue-600 mt-1"></i>
+                                        <div>
+                                            <p class="text-sm font-semibold text-blue-800 mb-2">Yêu cầu tài liệu:</p>
+                                            <ul class="text-sm text-blue-700 space-y-1">
+                                                <li>• File phải rõ nét, không bị mờ</li>
+                                                <li>• Đầy đủ thông tin và chữ ký (nếu có)</li>
+                                                <li>• Định dạng PDF, JPG, PNG</li>
+                                                <li>• Dung lượng tối đa 10MB mỗi file</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Footer - Fixed at bottom -->
+                        <div class="modal-footer flex items-center justify-between p-6 border-t">
+                            <button onclick="closeAddDocumentsModal()" class="px-6 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors">
+                                Hủy
+                            </button>
+                            <button onclick="submitAdditionalDocuments()" id="submitDocumentsBtn"
+                                    class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed" disabled>
+                                <i class="fas fa-upload mr-2"></i>Tải lên tài liệu
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script>
+        // Go back function
+        function goBack() {
+
+                window.history.back();
+        }
+
+        // View document
+        function viewDocument(documentId, documentType, fileUrl) {
+            const titles = {
+                'medical-bill': 'Hóa đơn viện phí',
+                'discharge-summary': 'Giấy ra viện',
+                'prescription': 'Đơn thuốc',
+                'test-results': 'Kết quả xét nghiệm',
+                'Hóa đơn viện phí': 'Hóa đơn viện phí',
+                'Hồ sơ bệnh án': 'Hồ sơ bệnh án',
+                'Đơn thuốc': 'Đơn thuốc',
+                'Kết quả xét nghiệm': 'Kết quả xét nghiệm',
+                'additional': 'Tài liệu bổ sung'
+            };
+
+            const title = titles[documentType] || documentType;
+            document.getElementById('documentTitle').textContent = title;
+
+            // Lấy phần mở rộng file
+            const fileExtension = fileUrl.split('.').pop().toLowerCase();
+            const isImage = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(fileExtension);
+            const isPDF = fileExtension === 'pdf';
+
+            let contentHTML = '';
+
+            if (isImage) {
+                // Hiển thị ảnh
+                contentHTML = `
+                    <div class="text-center">
+                        <img src="${fileUrl}" alt="${title}"
+                             class="max-w-full max-h-80 mx-auto rounded-lg shadow-md mb-4"
+                             onerror="this.style.display='none'; document.getElementById('fallbackContent').style.display='block';">
+                        <div id="fallbackContent" style="display: none;">
+                            <i class="fas fa-file-image text-6xl text-blue-600 mb-4"></i>
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">${title}</h3>
+                            <p class="text-gray-600 mb-4">Không thể hiển thị ảnh. Vui lòng tải xuống.</p>
+                        </div>
+                        <div class="flex justify-center space-x-4 mt-6">
+                            <button onclick="downloadDocument('${fileUrl}', '${title}')"
+                                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-download mr-2"></i>Tải xuống
+                            </button>
+                            <button onclick="printDocument('${fileUrl}')"
+                                    class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors">
+                                <i class="fas fa-print mr-2"></i>In tài liệu
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else if (isPDF) {
+                // Hiển thị PDF (sử dụng embed)
+                contentHTML = `
+                    <div class="text-center">
+                        <embed src="${fileUrl}#toolbar=0"
+                               type="application/pdf"
+                               width="100%"
+                               height="500px"
+                               class="mb-4 border rounded-lg">
+                        <div class="flex justify-center space-x-4 mt-4">
+                            <button onclick="downloadDocument('${fileUrl}', '${title}')"
+                                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-download mr-2"></i>Tải xuống
+                            </button>
+                            <button onclick="printDocument('${fileUrl}')"
+                                    class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors">
+                                <i class="fas fa-print mr-2"></i>In tài liệu
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Hiển thị fallback cho các loại file khác
+                contentHTML = `
+                    <div class="text-center py-12">
+                        <i class="fas fa-file-alt text-6xl text-blue-600 mb-4"></i>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">${title}</h3>
+                        <p class="text-gray-600 mb-4">Đây là file ${fileExtension.toUpperCase()}. Vui lòng tải xuống để xem.</p>
+                        <div class="flex justify-center space-x-4">
+                            <button onclick="downloadDocument('${fileUrl}', '${title}')"
+                                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-download mr-2"></i>Tải xuống
+                            </button>
+                            <button class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors" disabled>
+                                <i class="fas fa-print mr-2"></i>In tài liệu
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('documentContent').innerHTML = contentHTML;
+            document.getElementById('documentModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Download document
+        function downloadDocument(fileUrl, fileName) {
+            // Tạo link tải xuống
+            const link = document.createElement('a');
+            link.href = fileUrl;
+            link.download = fileName || 'document';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Print document
+        function printDocument(fileUrl) {
+            const printWindow = window.open(fileUrl, '_blank');
+            printWindow.onload = function() {
+                printWindow.print();
+            };
+        }
+
+        // Close document modal
+        function closeDocumentModal() {
+            document.getElementById('documentModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Download report
+        function downloadReport() {
+            alert('Đang tải báo cáo chi tiết yêu cầu bồi thường...');
+        }
+
+        // Contact support
+        function contactSupport() {
+            document.getElementById('supportModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close support modal
+        function closeSupportModal() {
+            document.getElementById('supportModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Support actions
+        function callSupport() {
+            alert('Đang kết nối đến hotline 1900 1234...');
+            closeSupportModal();
+        }
+
+        function emailSupport() {
+            alert('Đang mở ứng dụng email...');
+            closeSupportModal();
+        }
+
+        function startChat() {
+            alert('Đang kết nối chat trực tuyến...');
+            closeSupportModal();
+        }
+        let currentScale = 1;
+
+        function zoomIn() {
+            const img = document.querySelector('#documentContent img');
+            if (img) {
+                currentScale += 0.1;
+                img.style.transform = `scale(${currentScale})`;
+            }
+        }
+
+        function zoomOut() {
+            const img = document.querySelector('#documentContent img');
+            if (img && currentScale > 0.5) {
+                currentScale -= 0.1;
+                img.style.transform = `scale(${currentScale})`;
+            }
+        }
+
+        function resetZoom() {
+            currentScale = 1;
+            const img = document.querySelector('#documentContent img');
+            if (img) {
+                img.style.transform = 'scale(1)';
+            }
+        }
+
+        function closeDocumentModal() {
+            document.getElementById('documentModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            resetZoom();
+        }
+        // Add documents
+        function addDocuments() {
+            if (confirm('Bạn có muốn bổ sung thêm tài liệu cho yêu cầu này?')) {
+                alert('Chuyển đến trang bổ sung tài liệu...');
+            }
+        }
+
+        // Close modals on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeDocumentModal();
+                closeSupportModal();
+            }
+        });
+
+        setInterval(function() {
+
+            console.log('Checking for status updates...');
+        }, 30000);
+
+        let selectedFiles = [];
+
+// Mở modal bổ sung tài liệu
+function addDocuments(claimNumber) {
+    document.getElementById('addDocumentsModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    window.currentClaimNumber = claimNumber;
+
+    // Reset form
+    resetAddDocumentsForm();
+}
+
+// Đóng modal
+function closeAddDocumentsModal() {
+    document.getElementById('addDocumentsModal').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+    selectedFiles = [];
+}
+
+// Reset form
+function resetAddDocumentsForm() {
+    document.getElementById('addDocumentsForm').reset();
+    document.getElementById('selectedFilesList').innerHTML = '';
+    document.getElementById('selectedFilesList').classList.add('hidden');
+    document.getElementById('submitDocumentsBtn').disabled = true;
+    selectedFiles = [];
+
+    // Reset document type selection
+    document.querySelectorAll('.document-type-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    document.querySelector('.document-type-card input[type="radio"]').checked = true;
+    document.querySelector('.document-type-card').classList.add('selected');
+}
+
+// Xử lý chọn loại tài liệu
+document.addEventListener('DOMContentLoaded', function() {
+    // Document type selection
+    document.querySelectorAll('.document-type-card').forEach(card => {
+        card.addEventListener('click', function() {
+            document.querySelectorAll('.document-type-card').forEach(c => {
+                c.classList.remove('selected');
+            });
+            this.classList.add('selected');
+            this.querySelector('input[type="radio"]').checked = true;
+        });
+    });
+
+    // Drag and drop functionality
+    const uploadArea = document.querySelector('.file-upload-area');
+    if (uploadArea) {
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            handleFileSelection(e.dataTransfer.files);
+        });
+    }
+});
+
+// Xử lý chọn file
+function handleFileSelection(files) {
+    const filesList = document.getElementById('selectedFilesList');
+    const submitBtn = document.getElementById('submitDocumentsBtn');
+
+    for (let file of files) {
+        // Kiểm tra kích thước file
+        if (file.size > 10 * 1024 * 1024) {
+
+            continue;
+        }
+
+        // Kiểm tra định dạng file
+        const allowedExtensions = ['.pdf', '.jpg', '.jpeg', '.png'];
+        const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+        if (!allowedExtensions.includes(fileExtension)) {
+
+            continue;
+        }
+
+        // Thêm file vào danh sách
+        if (!selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+            selectedFiles.push(file);
+
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item flex items-center justify-between p-3 bg-gray-50 rounded-lg';
+            fileItem.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <i class="fas ${getFileIcon(fileExtension)} text-blue-600"></i>
+                    <div>
+                        <p class="font-semibold text-gray-800 text-sm">${file.name}</p>
+                        <p class="text-xs text-gray-600">${formatFileSize(file.size)}</p>
+                    </div>
+                </div>
+                <button type="button" onclick="removeSelectedFile('${file.name}', ${file.size})" class="text-red-600 hover:text-red-800">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+
+            filesList.appendChild(fileItem);
+        }
+    }
+
+    // Hiển thị danh sách file nếu có file
+    if (selectedFiles.length > 0) {
+        filesList.classList.remove('hidden');
+        submitBtn.disabled = false;
+    } else {
+        filesList.classList.add('hidden');
+        submitBtn.disabled = true;
+    }
+}
+
+// Lấy icon cho file
+function getFileIcon(extension) {
+    const icons = {
+        '.pdf': 'fa-file-pdf',
+        '.jpg': 'fa-file-image',
+        '.jpeg': 'fa-file-image',
+        '.png': 'fa-file-image'
+    };
+    return icons[extension] || 'fa-file-alt';
+}
+
+// Xóa file khỏi danh sách
+function removeSelectedFile(fileName, fileSize) {
+    selectedFiles = selectedFiles.filter(file => !(file.name === fileName && file.size === fileSize));
+
+    // Cập nhật UI
+    const filesList = document.getElementById('selectedFilesList');
+    filesList.innerHTML = '<h4 class="text-sm font-semibold text-gray-700 mb-2">File đã chọn:</h4>';
+
+    if (selectedFiles.length > 0) {
+        selectedFiles.forEach(file => {
+            const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item flex items-center justify-between p-3 bg-gray-50 rounded-lg';
+            fileItem.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <i class="fas ${getFileIcon(fileExtension)} text-blue-600"></i>
+                    <div>
+                        <p class="font-semibold text-gray-800 text-sm">${file.name}</p>
+                        <p class="text-xs text-gray-600">${formatFileSize(file.size)}</p>
+                    </div>
+                </div>
+                <button type="button" onclick="removeSelectedFile('${file.name}', ${file.size})" class="text-red-600 hover:text-red-800">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            filesList.appendChild(fileItem);
+        });
+        document.getElementById('submitDocumentsBtn').disabled = false;
+    } else {
+        filesList.classList.add('hidden');
+        document.getElementById('submitDocumentsBtn').disabled = true;
+    }
+}
+
+        // Gửi tài liệu bổ sung
+        function submitAdditionalDocuments() {
+            if (selectedFiles.length === 0) {
+
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitDocumentsBtn');
+            const originalText = submitBtn.innerHTML;
+
+            // Hiển thị loading
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang tải lên...';
+            submitBtn.disabled = true;
+
+            const formData = new FormData();
+            const documentType = document.querySelector('input[name="document_type"]:checked').value;
+            const notes = document.querySelector('textarea[name="notes"]').value;
+
+            // Thêm files
+            selectedFiles.forEach(file => {
+                formData.append('documents', file);
+            });
+
+            formData.append('document_type', documentType);
+            formData.append('notes', notes);
+
+            fetch(`/custom_claims/add-documents/${window.currentClaimNumber}/`, {
+
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+
+                    closeAddDocumentsModal();
+
+                    // Reload page sau 2 giây để hiển thị tài liệu mới
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error adding documents:', error);
+
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+        }
+
+
+        // Hàm lấy CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+    </script>
+{% endblock %}

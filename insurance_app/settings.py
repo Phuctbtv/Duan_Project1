@@ -179,5 +179,12 @@ EMAIL_HOST_USER = 'nguyendacminh2711@gmail.com'
 EMAIL_HOST_PASSWORD = 'eznbcmqyteccodtb'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
+
+import os
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+

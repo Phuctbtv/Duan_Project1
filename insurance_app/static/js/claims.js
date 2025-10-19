@@ -3,11 +3,6 @@ let currentStep = 1;
 let selectedPolicy = null;
 let uploadedFiles = {};
 
-// Initialize
-document.addEventListener('DOMContentLoaded', function() {
-    updateStepValidation();
-});
-
 // Next step với validation và thông báo lỗi
 function nextStep() {
     if (!validateCurrentStep()) {
@@ -84,6 +79,19 @@ function showStepError() {
                 return;
             }
 
+            // Validate số tiền yêu cầu
+            const requested_amount = parseFloat(document.getElementById('requested_amount').value);
+            if (isNaN(requested_amount) || requested_amount <= 0) {
+                showPopup('Số tiền yêu cầu bồi thường phải là số lớn hơn 0', 'warning');
+                document.getElementById('requested_amount').focus();
+                return;
+            }
+
+            if (requested_amount > 99999999.99) {
+                showPopup('Số tiền không được vượt quá 99,999,999 VNĐ', 'warning');
+                document.getElementById('requested_amount').focus();
+                return;
+            }
             // Validate ngày xảy ra sự cố
             const incidentDate = new Date(document.getElementById('incidentDate').value);
             const today = new Date();
@@ -182,14 +190,21 @@ function showStepError() {
             }
             break;
 
-        case 4:
-            const checkboxes = ['agreeTerms', 'agreeProcess', 'agreeContact'];
-            const unchecked = checkboxes.filter(id => !document.getElementById(id).checked);
-            if (unchecked.length > 0) {
-                showPopup('Vui lòng đồng ý với tất cả điều khoản và cam kết', 'warning');
-                return;
+        case 4: {
+            const requiredCheckboxes = ['agreeTerms', 'agreeProcess', 'agreeContact'];
+            const requiredFields = ['accountHolderName', 'accountNumber', 'bankName'];
+
+            const missingFields = requiredFields.filter(id => !document.getElementById(id)?.value.trim());
+            const uncheckedBoxes = requiredCheckboxes.filter(id => !document.getElementById(id)?.checked);
+
+            if (missingFields.length) {
+                return showPopup('Vui lòng điền đầy đủ thông tin nhận tiền', 'warning');
+            }
+            if (uncheckedBoxes.length) {
+                return showPopup('Vui lòng đồng ý với tất cả điều khoản và cam kết', 'warning');
             }
             break;
+        }
     }
 }
 
@@ -203,6 +218,7 @@ function getFieldName(fieldId) {
         'description': 'Mô tả sự cố',
         'diagnosis': 'Chẩn đoán',
         'totalCost': 'Tổng chi phí',
+        'requested_amount': 'Số tiền yêu cầu bồi thường',
         'admissionDate': 'Ngày nhập viện',
         'dischargeDate': 'Ngày xuất viện',
         'doctorName': 'Tên bác sĩ'
@@ -275,7 +291,7 @@ function validateCurrentStep() {
 
         case 2:
         // Kiểm tra các trường bắt buộc có giá trị
-            const requiredFields = ['incidentDate', 'treatmentType', 'hospitalName', 'hospital_address', 'description', 'diagnosis', 'totalCost'];
+            const requiredFields = ['incidentDate', 'treatmentType', 'hospitalName', 'hospital_address', 'description', 'diagnosis', 'totalCost','requested_amount'];
             for (let field of requiredFields) {
                 const element = document.getElementById(field);
                 if (!element || !element.value.trim()) {
@@ -340,7 +356,14 @@ function validateCurrentStep() {
                    uploadedFiles.medicalRecords && uploadedFiles.medicalRecords.length > 0;
 
         case 4:
-            // Chỉ kiểm tra checkboxes
+
+            const requiredField = ['bankName','accountNumber','accountHolderName'];
+            for (let field of requiredField) {
+                const element = document.getElementById(field);
+                if (!element || !element.value.trim()) {
+                    return false;
+                }
+            }
             return document.getElementById('agreeTerms').checked &&
                    document.getElementById('agreeProcess').checked &&
                    document.getElementById('agreeContact').checked;
@@ -367,7 +390,6 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 this.classList.remove('border-red-500', 'bg-red-50');
             }
-            updateStepValidation();
         });
     }
 
@@ -392,7 +414,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.classList.remove('border-red-500', 'bg-red-50');
             }
 
-            if (!hasError) updateStepValidation();
+
         });
     }
 
@@ -423,7 +445,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.classList.remove('border-red-500', 'bg-red-50');
             }
 
-            if (!hasError) updateStepValidation();
+
         });
     }
 
@@ -441,8 +463,8 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 this.classList.remove('border-yellow-500', 'bg-yellow-50', 'border-green-500', 'bg-green-50');
             }
-            updateStepValidation();
-        }, 800)); // Tăng thời gian debounce để tránh popup quá nhiều
+
+        }, 800));
     }
 
     // Validate độ dài chẩn đoán
@@ -459,7 +481,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 this.classList.remove('border-yellow-500', 'bg-yellow-50', 'border-green-500', 'bg-green-50');
             }
-            updateStepValidation();
+
         }, 800));
     }
 
@@ -477,7 +499,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 this.classList.remove('border-yellow-500', 'bg-yellow-50', 'border-green-500', 'bg-green-50');
             }
-            updateStepValidation();
+
         }, 800));
     }
 
@@ -495,7 +517,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 this.classList.remove('border-yellow-500', 'bg-yellow-50', 'border-green-500', 'bg-green-50');
             }
-            updateStepValidation();
+
         }, 800));
     }
 
@@ -513,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 this.classList.remove('border-yellow-500', 'bg-yellow-50', 'border-green-500', 'bg-green-50');
             }
-            updateStepValidation();
+
         }, 800));
     }
 
@@ -536,7 +558,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 this.classList.remove('border-red-500', 'bg-red-50', 'border-green-500', 'bg-green-50');
             }
-            updateStepValidation();
+
         }, 800));
     }
 });
@@ -545,14 +567,16 @@ document.addEventListener('DOMContentLoaded', function() {
 function debounce(func, wait) {
     let timeout;
     return function executedFunction(...args) {
+        const context = this;
         const later = () => {
             clearTimeout(timeout);
-            func(...args);
+            func.apply(context, args);
         };
         clearTimeout(timeout);
         timeout = setTimeout(later, wait);
     };
 }
+
 
 // Handle file upload
 function handleFileUpload(input, listId) {
@@ -590,7 +614,7 @@ function handleFileUpload(input, listId) {
     }
     uploadedFiles[fieldName] = uploadedFiles[fieldName].concat(files);
 
-    updateStepValidation();
+
 }
 
 // Cập nhật hàm remove file
@@ -603,7 +627,7 @@ function removeFile(button, fieldName) {
     }
 
     button.parentElement.remove();
-    updateStepValidation();
+
 }
 
 // Format file size
@@ -644,7 +668,7 @@ function submitClaim() {
         const formFields = [
             'incidentDate', 'treatmentType', 'hospitalName', 'hospital_address',
             'doctorName', 'description', 'diagnosis', 'admissionDate',
-            'dischargeDate', 'totalCost'
+            'dischargeDate', 'totalCost','requested_amount','bankName','accountNumber','accountHolderName'
         ];
 
         formFields.forEach(field => {
@@ -683,8 +707,11 @@ function submitClaim() {
         })
         .then(data => {
             if (data.success) {
-                document.getElementById('claimId').textContent = data.claim_id;
+                document.getElementById('claim_number').textContent = data.claim_number;
                 document.getElementById('successModal').classList.remove('hidden');
+                // Cập nhật link xem chi tiết
+                const detailLink = document.getElementById('viewClaimDetail');
+
                 document.body.style.overflow = 'hidden';
             } else {
                 showPopup('Lỗi: ' + (data.message || 'Không thể gửi yêu cầu'), 'error');
@@ -729,11 +756,7 @@ function getCookie(name) {
     return cookieValue;
 }
 // Modal functions
-function viewClaimDetails() {
-    alert('Chuyển đến trang chi tiết yêu cầu bồi thường...');
-    document.getElementById('successModal').classList.add('hidden');
-    document.body.style.overflow = 'auto';
-}
+
 
 function populateSummary() {
     const incidentDate = document.getElementById('incidentDate').value;
@@ -897,21 +920,6 @@ function formatCurrency(amount) {
     }).format(amount) + ' VNĐ';
 }
 
-// Add event listeners for form validation
-document.addEventListener('DOMContentLoaded', function() {
-    // Add change listeners to all form inputs
-    const inputs = document.querySelectorAll('input, select, textarea');
-    inputs.forEach(input => {
-        input.addEventListener('change', updateStepValidation);
-        input.addEventListener('input', updateStepValidation);
-    });
-
-    // Add change listener to checkboxes
-    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-    checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', updateStepValidation);
-    });
-});
 
 // Drag and drop functionality
 document.addEventListener('DOMContentLoaded', function() {
