@@ -20,7 +20,7 @@ class Payment(models.Model):
     ]
 
     policy = models.ForeignKey(
-        Policy, on_delete=models.CASCADE, verbose_name="Hợp đồng bảo hiểm"
+        Policy, on_delete=models.CASCADE, verbose_name="Hợp đồng bảo hiểm", related_name="payments"
     )
     amount = models.DecimalField(
         max_digits=10, decimal_places=2, verbose_name="Số tiền"
