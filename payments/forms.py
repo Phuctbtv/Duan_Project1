@@ -52,7 +52,11 @@ class HealthInfoForm(forms.Form):
     phone = forms.CharField(label='Số điện thoại', max_length=11, required=True)
     email = forms.EmailField(label='Email', required=True)
     address = forms.CharField(label='Địa chỉ', max_length=255, required=True)
-
+    # --- File upload ---
+    cccd_front = forms.FileField(label='Ảnh CCCD mặt trước', required=True)
+    cccd_back = forms.FileField(label='Ảnh CCCD mặt sau', required=True)
+    selfie = forms.FileField(label='Ảnh selfie với CCCD', required=True)
+    health_certificate = forms.FileField(label='Giấy khám sức khỏe', required=False)
     # --- Validate logic phức tạp ---
     def clean(self):
         cleaned_data = super().clean()
@@ -79,3 +83,31 @@ class HealthInfoForm(forms.Form):
                 self.add_error('birthDate', 'Bạn phải đủ 18 tuổi để mua bảo hiểm.')
 
         return cleaned_data
+
+    # --- Validate file upload ---
+    def clean_cccd_front(self):
+        return self._validate_file(self.cleaned_data.get('cccd_front'), 'CCCD mặt trước')
+
+    def clean_cccd_back(self):
+        return self._validate_file(self.cleaned_data.get('cccd_back'), 'CCCD mặt sau')
+
+    def clean_selfie(self):
+        return self._validate_file(self.cleaned_data.get('selfie'), 'Ảnh selfie')
+
+    def clean_health_certificate(self):
+        file = self.cleaned_data.get('health_certificate')
+        if file:
+            return self._validate_file(file, 'Giấy khám sức khỏe')
+        return file  # optional
+
+    # --- Hàm con kiểm tra định dạng & dung lượng ---
+    def _validate_file(self, file, field_name):
+        if not file:
+            raise forms.ValidationError(f"{field_name} là bắt buộc.")
+        valid_extensions = ['jpg', 'jpeg', 'png', 'pdf']
+        ext = file.name.split('.')[-1].lower()
+        if ext not in valid_extensions:
+            raise forms.ValidationError(f"{field_name} chỉ chấp nhận các định dạng: {', '.join(valid_extensions)}.")
+        if file.size > 5 * 1024 * 1024:  # 5MB
+            raise forms.ValidationError(f"{field_name} không được vượt quá 5MB.")
+        return file

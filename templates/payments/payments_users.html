@@ -231,16 +231,16 @@
                                 <h3 class="text-lg font-bold text-gray-800 mb-4">Tiền sử bệnh lý</h3>
                                 <div class="space-y-3">
                                     <label class="flex items-center">
-                                        <input type="checkbox" name="conditions[]" value="tiểu_đường" class="mr-2"> Tiểu đường
+                                        <input type="checkbox" name="conditions" value="tiểu_đường" class="mr-2"> Tiểu đường
                                     </label>
                                     <label class="flex items-center">
-                                        <input type="checkbox" name="conditions[]" value="tim_mạch_cao_huyết_áp" class="mr-2"> Tim mạch / Cao huyết áp
+                                        <input type="checkbox" name="conditions" value="tim_mạch_cao_huyết_áp" class="mr-2"> Tim mạch / Cao huyết áp
                                     </label>
                                     <label class="flex items-center">
-                                        <input type="checkbox" name="conditions[]" value="ung_thư_thận_gan_phổi" class="mr-2"> Ung thư / Thận / Gan / Phổi
+                                        <input type="checkbox" name="conditions" value="ung_thư_thận_gan_phổi" class="mr-2"> Ung thư / Thận / Gan / Phổi
                                     </label>
                                     <label class="flex items-center">
-                                        <input type="checkbox" name="conditions[]" value="đang_điều_trị_dài_hạn" class="mr-2"> Đang điều trị dài hạn
+                                        <input type="checkbox" name="conditions" value="đang_điều_trị_dài_hạn" class="mr-2"> Đang điều trị dài hạn
                                     </label>
                                 </div>
                             </div>
@@ -309,7 +309,33 @@
                                 <input type="text" id="address" name="address" required placeholder="Số nhà, đường, quận, tỉnh" class="form-input w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
                             </div>
                         </div>
+                        <div class="border-t border-gray-300 my-4"></div>
+                          <h3 class="text-lg font-semibold text-gray-800 mb-2">Xác thực danh tính (eKYC)</h3>
 
+                          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                              <label for="id_cccd_front" class="block text-sm font-medium text-gray-700">Ảnh CCCD mặt trước</label>
+                              <input type="file" name="cccd_front" id="id_cccd_front" accept="image/*"
+                                     class="mt-1 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50" required>
+                            </div>
+
+                            <div>
+                              <label for="id_cccd_back" class="block text-sm font-medium text-gray-700">Ảnh CCCD mặt sau</label>
+                              <input type="file" name="cccd_back" id="id_cccd_back" accept="image/*"
+                                     class="mt-1 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50" required>
+                            </div>
+
+                            <div>
+                              <label for="id_selfie" class="block text-sm font-medium text-gray-700">Ảnh selfie cầm CCCD</label>
+                              <input type="file" name="selfie" id="id_selfie" accept="image/*"
+                                     class="mt-1 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50" required>
+                            </div>
+                          <div>
+                              <label for="id_selfie" class="block text-sm font-medium text-gray-700">Giấy khám sức khỏe</label>
+                              <input type="file" name="health_certificate" accept="image/*"
+                                     class="mt-1 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50" required>
+                            </div>
+                          </div>
                         <!-- Buttons -->
                         <div class="mt-8 flex justify-between">
                             <button type="button" onclick="goToStep(1)" class="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300">
