@@ -1,10 +1,14 @@
 from datetime import timedelta
+
+from django.core.paginator import Paginator
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.db.models import Sum
+
+from payments.models import Payment
 from .models import Policy, PolicyHolder
 from .forms import PolicyForm
 from insurance_products.models import InsuranceProduct
@@ -20,7 +24,7 @@ def custom_policies_admin(request):
     products = InsuranceProduct.objects.all()
 
     # Lấy tất cả hợp đồng + join với customer và product
-    policies = Policy.objects.select_related('customer', 'product').all()
+    policies = Policy.objects.select_related('customer', 'product').prefetch_related('payments').order_by('-created_at').all()
 
     # Cập nhật trạng thái expired nếu end_date < hôm nay
     today = timezone.now().date()
@@ -40,12 +44,27 @@ def custom_policies_admin(request):
     if product and product != '':
         policies = policies.filter(product__product_name__icontains=product)
 
+
+
+    # ======= PHÂN TRANG =======
+    paginator = Paginator(policies, 5)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # dashboard
+    dashboard_policy= {
+        "pending": Policy.objects.filter(policy_status="pending").count(),
+        "active": Policy.objects.filter(policy_status="active").count(),
+        "cancelled": Policy.objects.filter(policy_status="cancelled").count(),
+    }
     context = {
-        'policies': policies,
+        'policies': page_obj,
         'products': products,
         'query': query,
         'status': status,
         'selected_product': product,
+        'dashboard_policy': dashboard_policy,
+
     }
     return render(request, 'admin/policies_section.html', context)
 

@@ -57,28 +57,47 @@
             </div>
             {% endif %}
     <!-- Main Content -->
-    <div class="lg:ml-64">
-        <!-- Header -->
-        <header class="bg-white shadow-sm border-b border-gray-200 ">
-            <div class="flex items-center justify-between px-6 py-4">
-                <button class="lg:hidden text-gray-600" onclick="toggleSidebar()">
-                    <i class="fas fa-bars text-xl"></i>
-                </button>
-                <div class="flex items-center space-x-4 " >
-                    <div class="relative">
-                        <i class="fas fa-bell text-gray-600 text-xl cursor-pointer"></i>
-                        <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span>
-                    </div>
-                    <div class="flex  items-center space-x-2">
-                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%23667eea'/%3E%3Ctext x='20' y='26' text-anchor='middle' fill='white' font-size='16' font-weight='bold'%3EQ%3C/text%3E%3C/svg%3E" alt="Quản trị viên" class="w-8 h-8 rounded-full">
-                        <span class="text-gray-700 font-medium">Quản Trị Viên</span>
-                    </div>
-                </div>
-            </div>
-        </header>
+    <div class="lg:ml-64 ">
+    <!-- Header -->
+<header class="bg-white shadow-sm border-b border-gray-200 fixed top-0 left-0 w-full z-40">
+    <div class="flex items-center justify-between px-6 py-4">
+        <div class="flex items-center space-x-3">
+            <button class="lg:hidden text-gray-600" onclick="toggleSidebar()">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
 
-        {% block content %}
-        {% endblock %}
+            <!-- Logo hoặc tiêu đề -->
+            <h1 class="text-lg font-semibold text-gray-800 hidden lg:block">Quản Trị Bảo Hiểm</h1>
+        </div>
+
+        <div class="flex items-center space-x-4">
+            <div class="relative">
+                <i class="fas fa-bell text-gray-600 text-xl cursor-pointer"></i>
+                <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%23667eea'/%3E%3Ctext x='20' y='26' text-anchor='middle' fill='white' font-size='16' font-weight='bold'%3EQ%3C/text%3E%3C/svg%3E"
+                     alt="Quản trị viên" class="w-8 h-8 rounded-full">
+                <span class="text-gray-700 font-medium">Quản Trị Viên</span>
+
+                <form method="post" action="{% url 'logout' %}" class="m-0">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="text-red-600 hover:bg-red-50 px-3 py-1 rounded-md transition">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Đăng xuất
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="mt-14 ">
+    {% block content %}
+    {% endblock %}
+</div>
+
 
         <!-- Dashboard Section -->
 
