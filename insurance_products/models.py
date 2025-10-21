@@ -15,7 +15,7 @@ class InsuranceProduct(models.Model):
     coverage_details = models.TextField(verbose_name="Chi tiết bảo hiểm")
     terms_and_conditions = models.TextField(verbose_name="Điều khoản và điều kiện")
     premium_base_amount = models.DecimalField(
-        max_digits=10, decimal_places=2, verbose_name="Phí bảo hiểm cơ bản"
+        max_digits=12, decimal_places=2, verbose_name="Phí bảo hiểm cơ bản"
     )
     currency = models.CharField(
         max_length=5,
@@ -24,7 +24,7 @@ class InsuranceProduct(models.Model):
         verbose_name="Đơn vị tiền tệ",
     )
     max_claim_amount = models.DecimalField(
-        max_digits=12,
+        max_digits=15,
         decimal_places=2,
         null=True,
         blank=True,
