@@ -111,11 +111,13 @@ function calculateAge(birthId, ageId) {
         if (birth > today || age < 0) {
             showPopup("Vui lòng chọn ngày sinh đúng!", "error");
             document.getElementById(ageId).value = "";
-            return;
+            return 0;
         }
 
         document.getElementById(ageId).value = age;
+        return age;
     }
+    return 0;
 }
 // Save personal info
 function savePersonalInfo(data) {
@@ -201,14 +203,10 @@ async function showInfo() {
 }
 
 function fillInfo(data) {
-    age=calculateAge('birthDate','ageDisplay');
-    birthInput = document.querySelector('#birthDate');
-    ageDisplay = document.querySelector('#ageDisplay');
-
-
-    document.getElementById("fullName").value = data.full_name || '';
-    document.getElementById("ageDisplay").value =age  || '0';
     document.getElementById("birthDate").value = data.birth_date || '';
+    const age = calculateAge('birthDate', 'ageDisplay');
+    document.getElementById("fullName").value = data.full_name || '';
+    document.getElementById("ageDisplay").value = age;  // Dùng age đã tính
     document.getElementById("gender").value = data.gender || '';
     document.getElementById("address").value = data.address || '';
     document.getElementById("id_card_number").value = data.id_card_number || '';

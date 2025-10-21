@@ -17,6 +17,7 @@ class Payment(models.Model):
         ("success", "Thành công"),
         ("failed", "Thất bại"),
         ("pending", "Chờ xử lý"),
+        ("refunded", "Đã hoàn tiền"),
     ]
 
     policy = models.ForeignKey(

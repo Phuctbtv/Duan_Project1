@@ -13,6 +13,7 @@ from django.contrib import messages
 from payments.forms import HealthInfoForm
 from payments.models import Payment
 from policies.models import Policy, PolicyHolder
+from users.models import Customer, HealthInfo
 
 
 def payments_users(request):
@@ -96,57 +97,147 @@ def calculate_premium_logic(product, cleaned_data):
     return {
         "final_premium": round(final_premium, 0),
         "breakdown": breakdown,
-        "factors": risk_factors
+        "factors": risk_factors,
+        "health_conditions": health_conditions,
     }
 @csrf_exempt
 @require_POST
 def calculate_premium(request):
-
-    form = HealthInfoForm(request.POST)
-
-    # Lấy thông tin sản phẩm
-    product_id = request.POST.get("product_id")
     try:
-        product = InsuranceProduct.objects.get(id=product_id, is_active=True)
-    except (InsuranceProduct.DoesNotExist, ValueError, TypeError):
-        return JsonResponse({"success": False, "errors": {"product_id": ["Sản phẩm không hợp lệ."]}}, status=400)
+        form = HealthInfoForm(request.POST, request.FILES)
+        print("Form is bound:", form.is_bound)
 
-    if form.is_valid():
+        # Lấy thông tin sản phẩm
+        product_id = request.POST.get("product_id")
+        print("Product ID:", product_id)
 
-        cleaned_data = form.cleaned_data
+        try:
+            product = InsuranceProduct.objects.get(id=product_id, is_active=True)
+            print("Product found:", product.product_name)
+        except (InsuranceProduct.DoesNotExist, ValueError, TypeError) as e:
+            print("Product error:", str(e))
+            return JsonResponse({"success": False, "errors": {"product_id": ["Sản phẩm không hợp lệ."]}}, status=400)
 
-        # Gọi hàm logic tính toán
-        calculation_result = calculate_premium_logic(product, cleaned_data)
+        if form.is_valid():
+            cleaned_data = form.cleaned_data
 
-        # Chuẩn bị dữ liệu để trả về JSON
-        product_data = {
-            "id": product.id,
 
-            "product_name": product.product_name,
+            # Gọi hàm logic tính toán
+            calculation_result = calculate_premium_logic(product, cleaned_data)
 
-            "description": product.description,
 
-            "premium_base_amount": float(product.premium_base_amount),
+            # Lưu thông tin Customer
+            user = request.user if request.user.is_authenticated else None
+            if not user:
+                print("User not authenticated")
+                return JsonResponse({
+                    "success": False,
+                    "error": "Bạn cần đăng nhập để tính phí bảo hiểm."
+                }, status=403)
 
-            "max_claim_amount": float(product.max_claim_amount),
 
-            "currency": product.currency,
 
-            "coverage_details": product.coverage_details,
-        }
+            customer, created = Customer.objects.get_or_create(
+                user=user,
+                defaults={
+                    "id_card_number": cleaned_data.get("id_card_number"),
+                    "nationality": cleaned_data.get("nationality", "Việt Nam"),
+                    "gender": cleaned_data.get("gender", "other"),
+                    "job": cleaned_data.get("occupation", ""),
+                }
+            )
 
-        # Trả về kết quả thành công
+
+            # Cập nhật thông tin cơ bản
+            customer.id_card_number = cleaned_data.get("id_card_number")
+            customer.nationality = cleaned_data.get("nationality", "Việt Nam")
+            customer.gender = cleaned_data.get("gender", "other")
+            customer.job = cleaned_data.get("occupation", "")
+
+            # Xử lý file upload
+            if request.FILES.get("cccd_front"):
+                if customer.cccd_front:
+                    customer.cccd_front.delete(save=False)
+                customer.cccd_front = request.FILES["cccd_front"]
+
+
+            if request.FILES.get("cccd_back"):
+                if customer.cccd_back:
+                    customer.cccd_back.delete(save=False)
+                customer.cccd_back = request.FILES["cccd_back"]
+
+
+            if request.FILES.get("selfie"):
+                if customer.selfie:
+                    customer.selfie.delete(save=False)
+                customer.selfie = request.FILES["selfie"]
+
+
+            if request.FILES.get("health_certificate"):
+                if customer.health_certificate:
+                    customer.health_certificate.delete(save=False)
+                customer.health_certificate = request.FILES["health_certificate"]
+
+
+            customer.save()
+
+
+            # CẬP NHẬT HOẶC TẠO MỚI HEALTHINFO
+            health_info, health_created = HealthInfo.objects.update_or_create(
+                customer=customer,
+                defaults={
+                    'height': cleaned_data.get('height'),
+                    'weight': cleaned_data.get('weight'),
+                    'smoker': cleaned_data.get('smoker'),
+                    'alcohol': cleaned_data.get('alcohol'),
+                    'conditions': cleaned_data.get('conditions', []),
+                }
+            )
+            print(f"HealthInfo {'created' if health_created else 'updated'}:", health_info.id)
+
+            # Chuẩn bị response data
+            product_data = {
+                "id": product.id,
+                "product_name": product.product_name,
+                "description": product.description,
+                "premium_base_amount": float(product.premium_base_amount),
+                "max_claim_amount": float(product.max_claim_amount),
+                "currency": product.currency,
+                "coverage_details": product.coverage_details,
+            }
+
+            # Loại bỏ file objects khỏi response
+            serializable_cleaned_data = {}
+            for key, value in cleaned_data.items():
+                if not hasattr(value, 'file'):
+                    serializable_cleaned_data[key] = value
+
+            response_data = {
+                "success": True,
+                "final_premium": calculation_result['final_premium'],
+                "currency": product.currency,
+                "breakdown": calculation_result['breakdown'],
+                "factors": calculation_result['factors'],
+                "product": product_data,
+                "personalInfo": serializable_cleaned_data,
+                "healthInfoId": health_info.id,
+            }
+
+            print("Returning success response")
+            return JsonResponse(response_data)
+
+        else:
+            print("Form invalid, errors:", form.errors)
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+
+    except Exception as e:
+        print("❌ UNEXPECTED ERROR in calculate_premium:", str(e))
+        import traceback
+        traceback.print_exc()
         return JsonResponse({
-            "success": True,
-            "final_premium": calculation_result['final_premium'],
-            "currency": product.currency,
-            "breakdown": calculation_result['breakdown'],
-            "factors": calculation_result['factors'],
-            "product": product_data,
-            "personalInfo": cleaned_data,
-        })
-    else:
-        return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+            "success": False,
+            "error": f"Lỗi server: {str(e)}"
+        }, status=500)
 @csrf_exempt
 def process_payment(request):
     if request.method != "POST":
