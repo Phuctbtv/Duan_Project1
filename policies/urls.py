@@ -14,13 +14,14 @@ urlpatterns = [
 
     # Xem chi tiết hợp đồng
     path('admin/policies/<int:pk>/', views.admin_policy_detail, name='policy_detail'),
+    path('api/<int:pk>/detail/', views.api_policy_detail, name='api_policy_detail'),
 
     # Gia hạn hợp đồng
     path('admin/policies/<int:pk>/renew/', views.admin_policy_renew, name='policy_renew'),
 
     # Hủy hợp đồng
     path('admin/policies/<int:pk>/cancel/', views.admin_policy_cancel, name='policy_delete'),
-    # Sửa hợp đồng - THÊM DÒNG NÀY
+    # Sửa hợp đồng
     path('admin/policies/<int:pk>/edit/', views.admin_policy_edit, name='policy_edit'),
 
     # USER

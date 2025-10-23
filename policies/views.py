@@ -1,14 +1,18 @@
 from datetime import timedelta
 
 from django.core.paginator import Paginator
+from django.http import JsonResponse
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.db.models import Sum
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_GET
 
 from payments.models import Payment
+from users.models import HealthInfo
 from .models import Policy, PolicyHolder
 from .forms import PolicyForm
 from insurance_products.models import InsuranceProduct
@@ -19,7 +23,7 @@ def custom_policies_admin(request):
     query = request.GET.get('q', '')
     status = request.GET.get('status', '')
     product = request.GET.get('product', '')
-
+    status_choices = Policy.POLICY_STATUS_CHOICES
     # Lấy tất cả sản phẩm từ CSDL để hiển thị dropdown
     products = InsuranceProduct.objects.all()
 
@@ -64,6 +68,7 @@ def custom_policies_admin(request):
         'status': status,
         'selected_product': product,
         'dashboard_policy': dashboard_policy,
+        'status_choices' : status_choices,
 
     }
     return render(request, 'admin/policies_section.html', context)
@@ -232,6 +237,87 @@ def admin_policy_detail(request, pk):
     else:
         return render(request, 'users/components/policy/policies_detail.html', context)
 
+
+@csrf_exempt
+@require_GET
+def api_policy_detail(request, pk):
+    """API lấy chi tiết hợp đồng cho modal"""
+    try:
+        policy = get_object_or_404(Policy, pk=pk)
+
+        policy_holder = PolicyHolder.objects.filter(policy=policy).first()
+
+        # Lấy thông tin khách hàng
+        customer = policy.customer
+
+        user = customer.user
+
+        # Lấy thông tin sức khỏe gần nhất
+        health_info = HealthInfo.objects.filter(customer=customer).first()
+
+        # Kiểm tra thanh toán
+        payment = Payment.objects.filter(policy=policy, status='success').first()
+        payment_status = 'success' if payment else 'pending'
+
+        # Format dữ liệu để trả về JSON
+        policy_data = {
+            'id': policy.id,
+            'policy_number': policy.policy_number,
+            'product': {
+                'product_name': policy.product.product_name,
+            },
+            'premium_amount': float(policy.premium_amount),
+            'start_date': policy.start_date.isoformat() if policy.start_date else None,
+            'end_date': policy.end_date.isoformat() if policy.end_date else None,
+            'created_at': policy.created_at.isoformat(),
+            'policy_status': policy.policy_status,
+            'customer': {
+                'user': {
+                    'first_name': user.first_name or '',
+                    'last_name': user.last_name or '',
+                    'email': user.email or '',
+                    'phone_number': user.phone_number or '',
+                    'date_of_birth': user.date_of_birth.isoformat() if user.date_of_birth else None,
+                    'address': user.address or '',
+                },
+                'id_card_number': customer.id_card_number or '',
+                'gender': customer.gender or '',
+                'job': customer.job or '',
+                'nationality': customer.nationality or '',
+                'cccd_front': customer.cccd_front.url if customer.cccd_front else None,
+                'cccd_back': customer.cccd_back.url if customer.cccd_back else None,
+                'selfie': customer.selfie.url if customer.selfie else None,
+                'health_certificate': customer.health_certificate.url if customer.health_certificate else None,
+            },
+            'health_info': {
+                'height': health_info.height if health_info else None,
+                'weight': health_info.weight if health_info else None,
+                'smoker': health_info.smoker if health_info else 'never',
+                'alcohol': health_info.alcohol if health_info else 'no',
+                'conditions': health_info.conditions if health_info else [],
+            },
+            'payment_status': payment_status,
+            'policy_holder': {
+                'full_name': policy_holder.full_name if policy_holder else None,
+                'id_card_number': policy_holder.id_card_number if policy_holder else None,
+                'relationship': policy_holder.relationship_to_customer if policy_holder else None,
+            },
+        }
+
+        print("=== API completed successfully ===")
+        return JsonResponse({
+            'success': True,
+            'policy': policy_data
+        })
+
+    except Exception as e:
+        import traceback
+        print(f"=== ERROR: {str(e)} ===")
+        print(traceback.format_exc())
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
 @login_required
 def admin_policy_renew(request, pk):
     """Gia hạn hợp đồng - cập nhật bản ghi cũ"""
