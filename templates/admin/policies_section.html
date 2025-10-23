@@ -14,43 +14,55 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white rounded-xl shadow-sm p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-600">Chờ duyệt</p>
-                        <p class="text-2xl font-bold text-orange-600">{{dashboard_policy.pending}}</p>
-                    </div>
-                    <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-clock text-orange-600 text-xl"></i>
-                    </div>
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Chờ duyệt</p>
+                    <p class="text-2xl font-bold text-orange-600">{{dashboard_policy.pending}}</p>
+                </div>
+                <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-clock text-orange-600 text-xl"></i>
                 </div>
             </div>
-
-            <div class="bg-white rounded-xl shadow-sm p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-600">Đang hoạt động</p>
-                        <p class="text-2xl font-bold text-green-600">{{dashboard_policy.active}}</p>
-                    </div>
-                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-xl shadow-sm p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-600">Đã hủy</p>
-                        <p class="text-2xl font-bold text-red-600">{{dashboard_policy.cancelled}}</p>
-                    </div>
-                    <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-times-circle text-red-600 text-xl"></i>
-                    </div>
-                </div>
-            </div>
-
         </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Đang hoạt động</p>
+                    <p class="text-2xl font-bold text-green-600">{{dashboard_policy.active}}</p>
+                </div>
+                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Đã hủy</p>
+                    <p class="text-2xl font-bold text-red-600">{{dashboard_policy.cancelled}}</p>
+                </div>
+                <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-times-circle text-red-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Tổng hợp đồng</p>
+                    <p class="text-2xl font-bold text-blue-600">{{dashboard_policy.total}}</p>
+                </div>
+                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-file-contract text-blue-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Search Form -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
         <div class="p-6 border-b border-gray-200">
@@ -59,22 +71,22 @@
                     <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Số hợp đồng..."
                            class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
 
-                  <select name="product" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                            <option value="">Tất cả sản phẩm</option>
-                            {% for p in products %}
-                            <option value="{{ p.product_name }}" {% if selected_product == p.product_name %}selected{% endif %}>
+                    <select name="product" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="">Tất cả sản phẩm</option>
+                        {% for p in products %}
+                        <option value="{{ p.product_name }}" {% if selected_product == p.product_name %}selected{% endif %}>
                             {{ p.product_name }}
-                            </option>
+                        </option>
                         {% endfor %}
                     </select>
 
-
                     <select name="status" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                         <option value="">Tất cả trạng thái</option>
-                        <option value="active">Hiệu lực</option>
-                        <option value="expired">Hết hạn</option>
-                        <option value="cancelled">Đã hủy</option>
-                        <option value="pending">Chờ xử lý</option>
+                        {% for value, label in status_choices %}
+                            <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
                     </select>
 
                     <button type="submit" class="gradient-bg text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
@@ -85,147 +97,358 @@
         </div>
     </div>
 
+    <!-- Modal xem chi tiết hợp đồng -->
+    <div id="policyDetailModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-lg w-full max-w-4xl mx-4 max-h-[90vh] overflow-hidden">
+            <!-- Header -->
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-gray-800">Chi Tiết Hợp Đồng Bảo Hiểm</h3>
+                <button type="button" id="closeDetailModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
 
-    <div class="grid grid-cols-1 gap-6">
-            {% for policy in policies %}
-            <div class="contract-card bg-white rounded-xl shadow-sm p-6 fade-in border border-gray-100"
-                 data-status="{{ policy.policy_status }}">
-                <div class="flex items-start justify-between mb-4">
-                    <div class="flex items-start space-x-4">
-                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-file-contract text-blue-600 text-xl"></i>
+            <!-- Content - Scrollable -->
+            <div class="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+                <!-- Thông tin cơ bản hợp đồng -->
+                <div class="mb-6">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4">Thông Tin Hợp Đồng</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-600">Số hợp đồng</p>
+                            <p class="font-semibold text-gray-800" id="detailPolicyNumber">-</p>
                         </div>
-                        <div>
-                            <h3 class="text-lg font-bold text-gray-800">
-                                {{ policy.product.product_name }}
-                            </h3>
-                            <p class="text-sm text-gray-600">Mã HĐ: {{ policy.policy_number }}</p>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-600">Sản phẩm bảo hiểm</p>
+                            <p class="font-semibold text-gray-800" id="detailProductName">-</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-600">Trạng thái</p>
+                            <p class="font-semibold">
+                                <span id="detailStatus" class="px-2 py-1 rounded-full text-sm"></span>
+                            </p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-600">Phí bảo hiểm</p>
+                            <p class="font-semibold text-blue-600" id="detailPremium">-</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-600">Ngày hiệu lực</p>
+                            <p class="font-semibold text-gray-800" id="detailStartDate">-</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-600">Ngày hết hạn</p>
+                            <p class="font-semibold text-gray-800" id="detailEndDate">-</p>
+                        </div>
+                    </div>
+                </div>
 
-                            <div class="flex items-center space-x-4 mt-2">
-                                <span class="text-sm text-gray-600">
-                                    <i class="fas fa-user mr-1"></i>{{ policy.customer.user.get_full_name|default:policy.customer.user.username }}
-                                </span>
-                                <span class="text-sm text-gray-600">
-                                    <i class="fas fa-calendar mr-1"></i>{{ policy.start_date|date:"d/m/Y" }}
-                                </span>
+                <!-- Thông tin khách hàng -->
+                <div class="mb-6">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4">Thông Tin Khách Hàng</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-600">Họ tên</p>
+                            <p class="font-semibold text-gray-800" id="detailCustomerName">-</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-600">Số CCCD</p>
+                            <p class="font-semibold text-gray-800" id="detailIdCard">-</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-600">Ngày sinh</p>
+                            <p class="font-semibold text-gray-800" id="detailDob">-</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-600">Giới tính</p>
+                            <p class="font-semibold text-gray-800" id="detailGender">-</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-600">Số điện thoại</p>
+                            <p class="font-semibold text-gray-800" id="detailPhone">-</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-600">Email</p>
+                            <p class="font-semibold text-gray-800" id="detailEmail">-</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4 md:col-span-2">
+                            <p class="text-sm text-gray-600">Địa chỉ</p>
+                            <p class="font-semibold text-gray-800" id="detailAddress">-</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-600">Nghề nghiệp</p>
+                            <p class="font-semibold text-gray-800" id="detailJob">-</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-600">Quốc tịch</p>
+                            <p class="font-semibold text-gray-800" id="detailNationality">-</p>
+                        </div>
+                    </div>
+                </div>
 
+                <!-- Thông tin sức khỏe -->
+                <div class="mb-6">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4">Thông Tin Sức Khỏe</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-600">Chiều cao</p>
+                            <p class="font-semibold text-gray-800" id="detailHeight">- cm</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-600">Cân nặng</p>
+                            <p class="font-semibold text-gray-800" id="detailWeight">- kg</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-600">Hút thuốc</p>
+                            <p class="font-semibold text-gray-800" id="detailSmoker">-</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-600">Uống rượu/bia</p>
+                            <p class="font-semibold text-gray-800" id="detailAlcohol">-</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4 md:col-span-2">
+                            <p class="text-sm text-gray-600">Tiền sử bệnh lý</p>
+                            <p class="font-semibold text-gray-800" id="detailConditions">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- File đính kèm -->
+                <div class="mb-6">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4">Tài Liệu Đính Kèm</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- CCCD Mặt trước -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-600 mb-2">CCCD Mặt trước</p>
+                            <div id="cccdFrontSection">
+                                <p class="text-gray-500 text-sm">Không có file</p>
+                            </div>
+                        </div>
+
+                        <!-- CCCD Mặt sau -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-600 mb-2">CCCD Mặt sau</p>
+                            <div id="cccdBackSection">
+                                <p class="text-gray-500 text-sm">Không có file</p>
+                            </div>
+                        </div>
+
+                        <!-- Ảnh selfie -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-600 mb-2">Ảnh Selfie</p>
+                            <div id="selfieSection">
+                                <p class="text-gray-500 text-sm">Không có file</p>
+                            </div>
+                        </div>
+
+                        <!-- Giấy khám sức khỏe -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-600 mb-2">Giấy khám sức khỏe</p>
+                            <div id="healthCertificateSection">
+                                <p class="text-gray-500 text-sm">Không có file</p>
                             </div>
                         </div>
                     </div>
-
-                    <div class="flex items-center space-x-3">
-                        {% if policy.policy_status == 'pending' %}
-                            <span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-semibold">
-                                Chờ duyệt
-                            </span>
-                        {% elif policy.policy_status == 'active' %}
-                            <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">
-                                Đã duyệt
-                            </span>
-                        {% elif policy.policy_status == 'cancelled' %}
-                            <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-semibold">
-                                Từ chối
-                            </span>
-                        {% else %}
-                            <span class="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-semibold">
-                                Không xác định
-                            </span>
-                        {% endif %}
-                    </div>
                 </div>
 
-                <div class="grid md:grid-cols-4 gap-4 mb-4">
-                    <div class="bg-gray-50 rounded-lg p-3">
-                        <p class="text-xs text-gray-600">Ngày hiệu lực</p>
-                        <p class="font-semibold text-gray-800">
-                            {% if policy.start_date %}
-                                {{ policy.start_date|date:"d/m/Y" }}
-                            {% else %}
-                                Chờ xử lý
-                            {% endif %}
-                        </p>
-                    </div>
-                    <div class="bg-gray-50 rounded-lg p-3">
-                        <p class="text-xs text-gray-600">Ngày hết hạn</p>
-                        <p class="font-semibold text-gray-800">
-                            {% if policy.end_date %}
-                                {{ policy.end_date|date:"d/m/Y" }}
-                            {% else %}
-                                Chờ xử lý
-                            {% endif %}
-                        </p>
-                    </div>
-                    <div class="bg-gray-50 rounded-lg p-3">
-                        <p class="text-xs text-gray-600">Phí bảo hiểm</p>
-                        <p class="font-semibold text-blue-600">{{ policy.premium_amount|floatformat:0|intcomma }} VNĐ</p>
-                    </div>
-                    <div class="bg-gray-50 rounded-lg p-3">
-                        <p class="text-xs text-gray-600">Mã giao dịch</p>
-                        <p class="font-semibold text-blue-600">{{ policy.payments.first.transaction_id }}</p>
+                <!-- Kiểm tra điều kiện duyệt (chỉ hiện khi hợp đồng pending) -->
+                <div id="approvalConditionsSection" class="mb-6 hidden">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4">Kiểm Tra Điều Kiện Duyệt</h4>
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <ul class="space-y-2 text-sm" id="conditionsList">
+                            <!-- Sẽ được điền bằng JavaScript -->
+                        </ul>
                     </div>
                 </div>
+            </div>
 
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-2 text-sm text-gray-600">
-                        <i class="fas fa-clock"></i>
-                        <span>Ngày tạo: {{ policy.created_at|date:"d/m/Y H:i" }}</span>
+            <!-- Footer với các nút hành động -->
+            <div class="p-6 border-t border-gray-200 bg-gray-50">
+                <div class="flex justify-between items-center">
+                    <div class="text-sm text-gray-600">
+                        Ngày tạo: <span id="detailCreatedAt">-</span>
                     </div>
+                    <div class="flex space-x-3">
+                        <button type="button" id="closeDetailModalBtn"
+                                class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                            Đóng
+                        </button>
 
-                    <div class="flex space-x-2">
-                        <a href="{% url 'policy_detail' policy.id %}"
-                           class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors">
-                            <i class="fas fa-eye mr-1"></i>Xem chi tiết
-                        </a>
-
-                        {% if policy.policy_status == 'pending' %}
-                        <form method="post" action="" class="inline">
-                            {% csrf_token %}
-                            <button type="submit"
-                                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                                <i class="fas fa-check mr-1"></i>Duyệt
-                            </button>
-                        </form>
-                        <form method="post" action="" class="inline">
-                            {% csrf_token %}
-                            <button type="submit"
-                                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                        <!-- Chỉ hiện nút duyệt/từ chối khi hợp đồng ở trạng thái pending -->
+                        <div id="approvalActions" class="hidden space-x-2">
+                            <button type="button" id="rejectPolicyBtn"
+                                    class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
                                 <i class="fas fa-times mr-1"></i>Từ chối
                             </button>
-                        </form>
-                        {% elif policy.policy_status == 'active' %}
-                        <a href="{% url 'policy_renew' policy.id %}"
-                           class="px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors">
-                            <i class="fas fa-sync mr-1"></i>Gia hạn
-                        </a>
-                        {% endif %}
+                            <button type="button" id="approvePolicyBtn"
+                                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                                <i class="fas fa-check mr-1"></i>Duyệt hợp đồng
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-            {% empty %}
-            <div class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
-                Không có hợp đồng nào.
-            </div>
-            {% endfor %}
-    </div>
-    <div class="mt-6 flex justify-center space-x-2">
-        {% if policies.has_previous %}
-            <a href="?page=1&q={{ query }}&status={{ status }}&product={{ selected_product }}"
-               class="px-3 py-1 border rounded text-gray-700 hover:bg-gray-100">Đầu</a>
-            <a href="?page={{ policies.previous_page_number }}&q={{ query }}&status={{ status }}&product={{ selected_product }}"
-               class="px-3 py-1 border rounded text-gray-700 hover:bg-gray-100">Trước</a>
-        {% endif %}
-
-        <span class="px-3 py-1 bg-blue-500 text-white rounded">
-            Trang {{ policies.number }} / {{ policies.paginator.num_pages }}
-        </span>
-
-        {% if policies.has_next %}
-            <a href="?page={{ policies.next_page_number }}&q={{ query }}&status={{ status }}&product={{ selected_product }}"
-               class="px-3 py-1 border rounded text-gray-700 hover:bg-gray-100">Sau</a>
-            <a href="?page={{ policies.paginator.num_pages }}&q={{ query }}&status={{ status }}&product={{ selected_product }}"
-               class="px-3 py-1 border rounded text-gray-700 hover:bg-gray-100">Cuối</a>
-        {% endif %}
         </div>
+    </div>
+
+    <!-- Danh sách hợp đồng -->
+    <div class="grid grid-cols-1 gap-6">
+        {% for policy in policies %}
+        <div class="contract-card bg-white rounded-xl shadow-sm p-6 fade-in border border-gray-100"
+             data-status="{{ policy.policy_status }}">
+            <div class="flex items-start justify-between mb-4">
+                <div class="flex items-start space-x-4">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-file-contract text-blue-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800">
+                            {{ policy.product.product_name }}
+                        </h3>
+                        <p class="text-sm text-gray-600">Mã HĐ: {{ policy.policy_number }}</p>
+
+                        <div class="flex items-center space-x-4 mt-2">
+                            <span class="text-sm text-gray-600">
+                                <i class="fas fa-user mr-1"></i>{{ policy.customer.user.get_full_name|default:policy.customer.user.username }}
+                            </span>
+                            <span class="text-sm text-gray-600">
+                                <i class="fas fa-calendar mr-1"></i>{{ policy.start_date|date:"d/m/Y" }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                    {% if policy.policy_status == 'pending' %}
+                        <span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-semibold">
+                            Chờ duyệt
+                        </span>
+                    {% elif policy.policy_status == 'active' %}
+                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">
+                            Đã duyệt
+                        </span>
+                    {% elif policy.policy_status == 'cancelled' %}
+                        <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-semibold">
+                            Từ chối
+                        </span>
+                    {% else %}
+                        <span class="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-semibold">
+                            Không xác định
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-4 gap-4 mb-4">
+                <div class="bg-gray-50 rounded-lg p-3">
+                    <p class="text-xs text-gray-600">Ngày hiệu lực</p>
+                    <p class="font-semibold text-gray-800">
+                        {% if policy.start_date %}
+                            {{ policy.start_date|date:"d/m/Y" }}
+                        {% else %}
+                            Chờ xử lý
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-3">
+                    <p class="text-xs text-gray-600">Ngày hết hạn</p>
+                    <p class="font-semibold text-gray-800">
+                        {% if policy.end_date %}
+                            {{ policy.end_date|date:"d/m/Y" }}
+                        {% else %}
+                            Chờ xử lý
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-3">
+                    <p class="text-xs text-gray-600">Phí bảo hiểm</p>
+                    <p class="font-semibold text-blue-600">{{ policy.premium_amount|floatformat:0|intcomma }} VNĐ</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-3">
+                    <p class="text-xs text-gray-600">Mã giao dịch</p>
+                    <p class="font-semibold text-blue-600">{{ policy.payments.first.transaction_id }}</p>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2 text-sm text-gray-600">
+                    <i class="fas fa-clock"></i>
+                    <span>Ngày tạo: {{ policy.created_at|date:"d/m/Y H:i" }}</span>
+                </div>
+
+                <div class="flex space-x-2">
+                    <!-- NÚT XEM CHI TIẾT - MỞ MODAL -->
+                    <button type="button" onclick="showPolicyDetail('{{ policy.id }}')"
+                           class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors">
+                        <i class="fas fa-eye mr-1"></i>Xem chi tiết
+                    </button>
+
+                    {% if policy.policy_status == 'pending' %}
+                    <button type="button"
+                            class="approve-btn px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                            data-policy-id="{{ policy.id }}"
+                            data-policy-number="{{ policy.policy_number }}">
+                        <i class="fas fa-check mr-1"></i>Duyệt
+                    </button>
+                    <button type="button"
+                            class="reject-btn px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                            data-policy-id="{{ policy.id }}"
+                            data-policy-number="{{ policy.policy_number }}">
+                        <i class="fas fa-times mr-1"></i>Từ chối
+                    </button>
+                    {% elif policy.policy_status == 'active' %}
+                    <a href="{% url 'policy_renew' policy.id %}"
+                       class="px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors">
+                        <i class="fas fa-sync mr-1"></i>Gia hạn
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
+            Không có hợp đồng nào.
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+<div class="mt-6 flex justify-center space-x-2">
+    {% if policies.has_previous %}
+        <a href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.product %}&product={{ request.GET.product }}{% endif %}"
+           class="px-3 py-1 border rounded text-gray-700 hover:bg-gray-100">Đầu</a>
+        <a href="?page={{ policies.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.product %}&product={{ request.GET.product }}{% endif %}"
+           class="px-3 py-1 border rounded text-gray-700 hover:bg-gray-100">Trước</a>
+    {% endif %}
+
+    <span class="px-3 py-1 bg-blue-500 text-white rounded">
+        Trang {{ policies.number }} / {{ policies.paginator.num_pages }}
+    </span>
+
+    {% if policies.has_next %}
+        <a href="?page={{ policies.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.product %}&product={{ request.GET.product }}{% endif %}"
+           class="px-3 py-1 border rounded text-gray-700 hover:bg-gray-100">Sau</a>
+        <a href="?page={{ policies.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.product %}&product={{ request.GET.product }}{% endif %}"
+           class="px-3 py-1 border rounded text-gray-700 hover:bg-gray-100">Cuối</a>
+    {% endif %}
+</div>
 
 </div>
+
+<script src="{% static 'js/policy_admin.js' %}"></script>
+
+<style>
+    .gradient-bg {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
 {% endblock %}
