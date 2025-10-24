@@ -49,18 +49,6 @@
                 </div>
             </div>
         </div>
-
-        <div class="bg-white rounded-xl shadow-sm p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600">Tổng hợp đồng</p>
-                    <p class="text-2xl font-bold text-blue-600">{{dashboard_policy.total}}</p>
-                </div>
-                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-file-contract text-blue-600 text-xl"></i>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Search Form -->
@@ -275,22 +263,79 @@
                         </button>
 
                         <!-- Chỉ hiện nút duyệt/từ chối khi hợp đồng ở trạng thái pending -->
-                        <div id="approvalActions" class="hidden space-x-2">
-                            <button type="button" id="rejectPolicyBtn"
-                                    class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                                <i class="fas fa-times mr-1"></i>Từ chối
-                            </button>
-                            <button type="button" id="approvePolicyBtn"
-                                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                                <i class="fas fa-check mr-1"></i>Duyệt hợp đồng
-                            </button>
-                        </div>
+                    <div id="approvalActions" class="hidden space-x-2">
+                        <button type="button" id="rejectPolicyBtn" onclick="showRejectionModal(currentPolicyId)"
+                                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                            <i class="fas fa-times mr-1"></i>Từ chối
+                        </button>
+                        <button type="button" id="approvePolicyBtn" onclick="showApprovalModal(currentPolicyId)"
+                                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                            <i class="fas fa-check mr-1"></i>Duyệt hợp đồng
+                        </button>
+                    </div>
+
                     </div>
                 </div>
             </div>
         </div>
     </div>
+        <!-- Approval Modal -->
+    <div id="approvalModal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full">
+            <div class="p-6">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-check text-green-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Duyệt hợp đồng</h3>
+                    <p class="text-gray-600">Bạn có chắc chắn muốn duyệt hợp đồng này?</p>
+                </div>
 
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Ghi chú (tùy chọn)</label>
+                    <textarea id="approvalNote" rows="3" placeholder="Thêm ghi chú về việc duyệt..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"></textarea>
+                </div>
+
+                <div class="flex space-x-3">
+                    <button onclick="closeApprovalModal()" class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300">
+                        Hủy
+                    </button>
+                    <button onclick="confirmApproval()" class="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700">
+                        Xác nhận duyệt
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rejection Modal -->
+    <div id="rejectionModal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full">
+            <div class="p-6">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-times text-red-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Từ chối hợp đồng</h3>
+                    <p class="text-gray-600">Vui lòng nêu rõ lý do từ chối</p>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Lý do từ chối *</label>
+                    <textarea id="rejectionReason" rows="4" placeholder="Nhập lý do từ chối chi tiết..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" required></textarea>
+                </div>
+
+                <div class="flex space-x-3">
+                    <button onclick="closeRejectionModal()" class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300">
+                        Hủy
+                    </button>
+                    <button onclick="confirmRejection()" class="flex-1 bg-red-600 text-white py-3 rounded-lg hover:bg-red-700">
+                        Xác nhận từ chối
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- Danh sách hợp đồng -->
     <div class="grid grid-cols-1 gap-6">
         {% for policy in policies %}
@@ -384,22 +429,22 @@
                     </button>
 
                     {% if policy.policy_status == 'pending' %}
-                    <button type="button"
-                            class="approve-btn px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                            data-policy-id="{{ policy.id }}"
-                            data-policy-number="{{ policy.policy_number }}">
+                    <button type="button" onclick="showApprovalModal('{{ policy.id }}')"
+                            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                         <i class="fas fa-check mr-1"></i>Duyệt
                     </button>
-                    <button type="button"
-                            class="reject-btn px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                            data-policy-id="{{ policy.id }}"
-                            data-policy-number="{{ policy.policy_number }}">
+                    <button type="button" onclick="showRejectionModal('{{ policy.id }}')"
+                            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
                         <i class="fas fa-times mr-1"></i>Từ chối
                     </button>
                     {% elif policy.policy_status == 'active' %}
                     <a href="{% url 'policy_renew' policy.id %}"
                        class="px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors">
                         <i class="fas fa-sync mr-1"></i>Gia hạn
+                    </a>
+                    <a href="{% url 'policy_detail' policy.id %}"
+                       class="px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors">
+                        Xem hợp đồng chi tiết
                     </a>
                     {% endif %}
                 </div>
