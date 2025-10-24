@@ -1,5 +1,4 @@
 
-document.addEventListener('DOMContentLoaded', function() {
     const detailModal = document.getElementById('policyDetailModal');
     const closeDetailModal = document.getElementById('closeDetailModal');
     const closeDetailModalBtn = document.getElementById('closeDetailModalBtn');
@@ -29,9 +28,11 @@ document.addEventListener('DOMContentLoaded', function() {
         'active': { text: 'Đang hoạt động', class: 'bg-green-100 text-green-800' },
         'cancelled': { text: 'Đã hủy', class: 'bg-red-100 text-red-800' }
     };
-
+    // Biến toàn cục để lưu policy ID hiện tại
+    let currentPolicyId = null;
     // Hàm hiển thị modal chi tiết
-    window.showPolicyDetail = function(policyId) {
+    function showPolicyDetail(policyId) {
+        currentPolicyId = policyId;
         // Hiển thị loading
         const detailModal = document.getElementById('policyDetailModal');
         detailModal.classList.remove('hidden');
@@ -62,7 +63,112 @@ document.addEventListener('DOMContentLoaded', function() {
                 closeModal();
             });
     };
+    // ========== MODAL DUYỆT HỢP ĐỒNG ==========
+    function showApprovalModal(policyId) {
+        currentPolicyId = policyId;
+        document.getElementById('approvalModal').classList.remove('hidden');
+        document.getElementById('approvalNote').value = '';
+    }
+    function closeApprovalModal() {
+        document.getElementById('approvalModal').classList.add('hidden');
+    }
+    function confirmApproval() {
+        const note = document.getElementById('approvalNote').value;
 
+        if (!confirm('Bạn có chắc chắn muốn duyệt hợp đồng này?')) {
+            return;
+        }
+
+        // Gửi request duyệt hợp đồng
+        fetch(`/custom_policies/api/${currentPolicyId}/approve/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify({
+                note: note
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+               location.reload();
+            } else {
+                alert('Lỗi: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+
+        })
+        .finally(() => {
+            closeApprovalModal();
+        });
+    }
+
+    // ========== MODAL TỪ CHỐI HỢP ĐỒNG ==========
+    function showRejectionModal(policyId) {
+        currentPolicyId = policyId;
+        document.getElementById('rejectionModal').classList.remove('hidden');
+        document.getElementById('rejectionReason').value = '';
+    }
+
+    function closeRejectionModal() {
+        document.getElementById('rejectionModal').classList.add('hidden');
+    }
+
+    function confirmRejection() {
+        const reason = document.getElementById('rejectionReason').value;
+
+        if (!reason.trim()) {
+            showPopup('Vui lòng nhập lý do từ chối');
+            return;
+        }
+
+        if (!confirm('Bạn có chắc chắn muốn từ chối hợp đồng này?')) {
+            return;
+        }
+
+        // Gửi request từ chối hợp đồng
+        fetch(`/custom_policies/api/${currentPolicyId}/reject/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify({
+                reason: reason
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                showPopup('Lỗi: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        })
+        .finally(() => {
+            closeRejectionModal();
+        });
+    }
+
+    function getCsrfToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]').value;
+    }
+
+    // Đóng modal khi click outside
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('modal-backdrop')) {
+            closeDetailModal();
+            closeApprovalModal();
+            closeRejectionModal();
+        }
+    });
     // Hàm điền dữ liệu vào modal
     function populateModal(policy) {
         // Thông tin hợp đồng
@@ -242,7 +348,7 @@ document.addEventListener('DOMContentLoaded', function() {
     closeDetailModalBtn.addEventListener('click', closeModal);
 
     // Modal xem ảnh lớn
-    window.openImageModal = function(imageUrl, title) {
+     function openImageModal(imageUrl, title) {
         const imageModal = document.createElement('div');
         imageModal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
         imageModal.innerHTML = `
@@ -261,4 +367,4 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         document.body.appendChild(imageModal);
     };
-});
+

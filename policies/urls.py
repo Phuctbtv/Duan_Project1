@@ -23,7 +23,9 @@ urlpatterns = [
     path('admin/policies/<int:pk>/cancel/', views.admin_policy_cancel, name='policy_delete'),
     # Sửa hợp đồng
     path('admin/policies/<int:pk>/edit/', views.admin_policy_edit, name='policy_edit'),
-
+    # Duyệt/Từ chối hợp đồng
+    path('api/<int:pk>/approve/', views.api_approve_policy, name='api_approve_policy'),
+    path('api/<int:pk>/reject/', views.api_reject_policy, name='api_reject_policy'),
     # USER
     path('user/policies/dashboard/', views.dashboard_view_user, name='custom_policies_users'),
 

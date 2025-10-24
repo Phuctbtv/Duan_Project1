@@ -1,6 +1,8 @@
 from datetime import timedelta
 
+from django.core.mail import send_mail
 from django.core.paginator import Paginator
+import json
 from django.http import JsonResponse
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
@@ -11,6 +13,8 @@ from django.db.models import Sum
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET
 
+from insurance_app import settings
+from notifications.models import Notification
 from payments.models import Payment
 from users.models import HealthInfo
 from .models import Policy, PolicyHolder
@@ -144,7 +148,6 @@ def search_policies(user, search_query=""):
         )
 
     return policies
-
 
 @login_required
 def admin_policy_list(request):
@@ -304,7 +307,7 @@ def api_policy_detail(request, pk):
             },
         }
 
-        print("=== API completed successfully ===")
+
         return JsonResponse({
             'success': True,
             'policy': policy_data
@@ -389,3 +392,79 @@ def admin_policy_edit(request, pk):
         'action': 'edit'
     }
     return render(request, 'admin/policies_form.html', context)
+
+
+
+def api_approve_policy(request, pk):
+    try:
+        policy = get_object_or_404(Policy, pk=pk)
+        data = json.loads(request.body)
+        note = data.get('note', '')
+
+        policy.start_date = timezone.now().date()
+        policy.end_date = policy.start_date + timedelta(days=365)
+        policy.policy_status = 'active'
+        policy.payment_status = 'overdue'
+        policy.save()
+
+        # Tạo thông báo trong hệ thống
+        Notification.objects.create(
+            user=policy.customer.user,
+            message=f"Hợp đồng #{policy.id} đã được duyệt và có hiệu lực từ {policy.start_date:%d/%m/%Y} đến {policy.end_date:%d/%m/%Y}.",
+            notification_type="policy_update",
+        )
+        messages.success(request, "Đã duyệt hợp đồng thành công!")
+        # Gửi email cho khách hàng
+        customer_email = policy.customer.user.email
+        if customer_email:
+            subject = "Hợp đồng bảo hiểm của bạn đã được duyệt"
+            message = (
+                f"Kính chào {policy.customer.user.get_full_name()},\n\n"
+                f"Hợp đồng bảo hiểm #{policy.policy_number} của bạn đã được duyệt.\n"
+                f"Hiệu lực: {policy.start_date:%d/%m/%Y} - {policy.end_date:%d/%m/%Y}\n\n"
+                "Vui lòng đăng nhập để xem chi tiết.\n\n"
+                "Trân trọng,\nĐội ngũ hỗ trợ Bảo hiểm"
+            )
+            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [customer_email])
+
+        return JsonResponse({'success': True})
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+def api_reject_policy(request, pk):
+    try:
+        policy = get_object_or_404(Policy, pk=pk)
+        data = json.loads(request.body)
+        reason = data.get('reason', '').strip()
+
+        if not reason:
+            return JsonResponse({'success': False, 'error': 'Vui lòng nhập lý do'}, status=400)
+
+        policy.policy_status = 'cancelled'
+        policy.save()
+
+        Notification.objects.create(
+            user=policy.customer.user,
+            message=f"Hợp đồng #{policy.policy_number} đã bị từ chối. Lý do: {reason}",
+            notification_type="policy_update",
+        )
+        messages.error(request, "Đã hủy tiếp nhận hợp đồng!")
+        # Gửi email
+        customer_email = policy.customer.user.email
+        if customer_email:
+            subject = "Hợp đồng bảo hiểm của bạn bị từ chối"
+            message = (
+                f"Kính chào {policy.customer.get_full_name()},\n\n"
+                f"Hợp đồng bảo hiểm #{policy.policy_number} của bạn đã bị từ chối.\n"
+                f"Lý do: {reason}\n\n"
+                "Vui lòng liên hệ bộ phận hỗ trợ nếu có thắc mắc.\n\n"
+                "Trân trọng,\nĐội ngũ hỗ trợ Bảo hiểm"
+            )
+            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [customer_email])
+
+        return JsonResponse({'success': True})
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
