@@ -1,18 +1,12 @@
 
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from django.shortcuts import render, redirect
-from django.core.paginator import Paginator
 from django.utils import timezone
-from django.contrib import messages
 from .forms import InsuranceProductForm
-from django.views.decorators.csrf import csrf_exempt
 from .models import InsuranceProduct
 from django.core.paginator import Paginator
-from django.views.decorators.http import require_POST
-from django.http import JsonResponse
-from policies.views import format_money
 from django.template.loader import render_to_string
 from django.http import JsonResponse
 

@@ -209,12 +209,12 @@
                 healthInfo.conditions && healthInfo.conditions.length > 0 ?
                 healthInfo.conditions.join(', ') : 'Không có';
         }
-
+        const policy_holder = policy.policy_holder;
         // File đính kèm
-        renderFileSection('cccdFrontSection', customer.cccd_front, 'CCCD Mặt trước');
-        renderFileSection('cccdBackSection', customer.cccd_back, 'CCCD Mặt sau');
-        renderFileSection('selfieSection', customer.selfie, 'Ảnh Selfie');
-        renderFileSection('healthCertificateSection', customer.health_certificate, 'Giấy khám sức khỏe');
+        renderFileSection('cccdFrontSection', policy_holder.cccd_front, 'CCCD Mặt trước');
+        renderFileSection('cccdBackSection', policy_holder.cccd_back, 'CCCD Mặt sau');
+        renderFileSection('selfieSection', policy_holder.selfie, 'Ảnh Selfie');
+        renderFileSection('healthCertificateSection', policy_holder.health_certificate, 'Giấy khám sức khỏe');
 
         // Hiển thị/ẩn phần kiểm tra điều kiện và nút duyệt
         const approvalSection = document.getElementById('approvalConditionsSection');

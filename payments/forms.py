@@ -43,10 +43,10 @@ class HealthInfoForm(forms.Form):
 
     # --- Người thụ hưởng ---
     sameBeneficiary = forms.BooleanField(required=False)
-    fullname_benefic = forms.CharField(label='Họ tên người thụ hưởng', max_length=100, required=False)
+    fullname_benefic = forms.CharField(label='Họ tên người được bảo hiểm', max_length=100, required=False)
     relationship_to_customer = forms.ChoiceField(label='Mối quan hệ', choices=RELATIONSHIP_CHOICES, required=False)
-    birthDate_benefic = forms.DateField(label='Ngày sinh người thụ hưởng', required=False)
-    id_card_number_benefic = forms.CharField(label='CCCD/CMND người thụ hưởng', max_length=20, required=False)
+    birthDate_benefic = forms.DateField(label='Ngày sinh người được bảo hiểm', required=False)
+    id_card_number_benefic = forms.CharField(label='CCCD/CMND người được bảo hiểm', max_length=20, required=False)
 
     # --- Thông tin liên hệ ---
     phone = forms.CharField(label='Số điện thoại', max_length=11, required=True)
@@ -55,6 +55,9 @@ class HealthInfoForm(forms.Form):
     # --- File upload ---
     cccd_front = forms.FileField(label='Ảnh CCCD mặt trước', required=True)
     cccd_back = forms.FileField(label='Ảnh CCCD mặt sau', required=True)
+
+    cccd_front_policyHolder = forms.FileField(label='Ảnh CCCD mặt trước', required=True)
+    cccd_back_policyHolder = forms.FileField(label='Ảnh CCCD mặt sau', required=True)
     selfie = forms.FileField(label='Ảnh selfie với CCCD', required=True)
     health_certificate = forms.FileField(label='Giấy khám sức khỏe', required=False)
     # --- Validate logic phức tạp ---
@@ -90,6 +93,11 @@ class HealthInfoForm(forms.Form):
 
     def clean_cccd_back(self):
         return self._validate_file(self.cleaned_data.get('cccd_back'), 'CCCD mặt sau')
+    def clean_cccd_front_policyHolder(self):
+        return self._validate_file(self.cleaned_data.get('cccd_front_policyHolder'), 'CCCD mặt trước')
+
+    def clean_cccd_back_policyHolder(self):
+        return self._validate_file(self.cleaned_data.get('cccd_back_policyHolder'), 'CCCD mặt sau')
 
     def clean_selfie(self):
         return self._validate_file(self.cleaned_data.get('selfie'), 'Ảnh selfie')

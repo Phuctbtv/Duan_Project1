@@ -664,4 +664,3 @@ document.getElementById('sameBeneficiary').addEventListener('change', async (e) 
         id_card_number.value ='';
     }
 });
-

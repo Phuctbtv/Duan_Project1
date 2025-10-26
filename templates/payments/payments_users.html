@@ -207,7 +207,84 @@
                                 <input type="text" id="occupation" name="occupation" required class="form-input w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
                             </div>
 
-                            <!-- Thông tin sức khỏe -->
+                            <!-- Thông tin liên hệ người mua bảo hiểm -->
+                            <div class="md:col-span-2 mt-6">
+                                <h3 class="text-lg font-bold text-gray-800 mb-4">Thông tin liên hệ</h3>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Số điện thoại *</label>
+                                <input type="tel" id="phone" name="phone" required class="form-input w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Email *</label>
+                                <input type="email" id="email" name="email" required class="form-input w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Địa chỉ *</label>
+                                <input type="text" id="address" name="address" required placeholder="Số nhà, đường, quận, tỉnh" class="form-input w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 ">
+                                <div>
+                                  <label for="id_cccd_front" class="block text-sm font-medium text-gray-700">Ảnh CCCD mặt trước</label>
+                                  <input type="file" name="cccd_front" id="id_cccd_front" accept="image/*"
+                                         class="mt-1 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50" required>
+                                </div>
+
+                                <div>
+                                  <label for="id_cccd_back" class="block text-sm font-medium text-gray-700">Ảnh CCCD mặt sau</label>
+                                  <input type="file" name="cccd_back" id="id_cccd_back" accept="image/*"
+                                         class="mt-1 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50" required>
+                                </div>
+                            </div>
+
+                            <!-- Người thụ hưởng -->
+                            <div class="md:col-span-2 mt-6">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-4">Thông tin người được bảo hiểm</h4>
+                                <div class="bg-gray-50 rounded-lg p-4">
+                                    <label class="flex items-center mb-4">
+                                        <input type="checkbox" id="sameBeneficiary" class="rounded text-blue-600 mr-3">
+                                        <span class="text-gray-700">Người mua bảo hiểm cũng là người được bảo hiểm</span>
+                                    </label>
+
+                                    <div id="beneficiaryInfo" class="grid md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Họ tên người được bảo hiểm</label>
+                                            <input type="text" id="fullname_benefic" name="fullname_benefic" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Họ và tên">
+                                        </div>
+                                        <div  >
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Mối quan hệ</label>
+                                            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" id="relationship_to_customer" name="relationship_to_customer" >
+                                                <option value="">Chọn mối quan hệ</option>
+                                                <option value="spouse">Vợ/Chồng</option>
+                                                <option value="child">Con</option>
+                                                <option value="parent">Cha/Mẹ</option>
+                                                <option value="sibling">Anh/Chị/Em</option>
+                                                <option value="me">Bản thân</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-semibold text-gray-700 mb-2">Ngày sinh *</label>
+                                            <input type="date" name="birthDate_benefic" id="birthDate_benefic" required
+                                                   class="form-input w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                                   onchange="calculateAge('birthDate_benefic','ageDisplay_benefic')">
+                                        </div>
+                                        <div class="mt-4">
+                                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tuổi</label>
+                                            <input type="text" id="ageDisplay_benefic" name="ageDisplay_benefic"
+                                                   class="form-input w-full px-4 py-3 border rounded-lg bg-gray-100"
+                                                   readonly>
+                                        </div>
+                                        <div class="mt-4">
+                                            <label class="block text-sm font-semibold text-gray-700 mb-2">CCCD/CMND:</label>
+                                            <input type="number" id="id_card_number_benefic" name="id_card_number_benefic"
+                                                   class="form-input w-full px-4 py-3 border rounded-lg bg-gray-100"
+                                                   >
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                             <!-- Thông tin sức khỏe -->
                             <div class="md:col-span-2 mt-6">
                                 <h3 class="text-lg font-bold text-gray-800 mb-4">Thông tin sức khỏe</h3>
                             </div>
@@ -257,69 +334,7 @@
                                 </div>
                             </div>
 
-                            <!-- Người thụ hưởng -->
-                            <div class="md:col-span-2 mt-6">
-                                <h4 class="text-lg font-semibold text-gray-800 mb-4">Thông tin người thụ hưởng</h4>
-                                <div class="bg-gray-50 rounded-lg p-4">
-                                    <label class="flex items-center mb-4">
-                                        <input type="checkbox" id="sameBeneficiary" class="rounded text-blue-600 mr-3">
-                                        <span class="text-gray-700">Người mua bảo hiểm cũng là người thụ hưởng</span>
-                                    </label>
 
-                                    <div id="beneficiaryInfo" class="grid md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-2">Họ tên người thụ hưởng</label>
-                                            <input type="text" id="fullname_benefic" name="fullname_benefic" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Họ và tên">
-                                        </div>
-                                        <div  >
-                                            <label class="block text-sm font-medium text-gray-700 mb-2">Mối quan hệ</label>
-                                            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" id="relationship_to_customer" name="relationship_to_customer" >
-                                                <option value="">Chọn mối quan hệ</option>
-                                                <option value="spouse">Vợ/Chồng</option>
-                                                <option value="child">Con</option>
-                                                <option value="parent">Cha/Mẹ</option>
-                                                <option value="sibling">Anh/Chị/Em</option>
-                                                <option value="me">Chính mình</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-semibold text-gray-700 mb-2">Ngày sinh *</label>
-                                            <input type="date" name="birthDate_benefic" id="birthDate_benefic" required
-                                                   class="form-input w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                                                   onchange="calculateAge('birthDate_benefic','ageDisplay_benefic')">
-                                        </div>
-                                        <div class="mt-4">
-                                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tuổi</label>
-                                            <input type="text" id="ageDisplay_benefic" name="ageDisplay_benefic"
-                                                   class="form-input w-full px-4 py-3 border rounded-lg bg-gray-100"
-                                                   readonly>
-                                        </div>
-                                        <div class="mt-4">
-                                            <label class="block text-sm font-semibold text-gray-700 mb-2">CCCD/CMND:</label>
-                                            <input type="number" id="id_card_number_benefic" name="id_card_number_benefic"
-                                                   class="form-input w-full px-4 py-3 border rounded-lg bg-gray-100"
-                                                   >
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Thông tin liên hệ -->
-                            <div class="md:col-span-2 mt-6">
-                                <h3 class="text-lg font-bold text-gray-800 mb-4">Thông tin liên hệ</h3>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Số điện thoại *</label>
-                                <input type="tel" id="phone" name="phone" required class="form-input w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Email *</label>
-                                <input type="email" id="email" name="email" required class="form-input w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Địa chỉ *</label>
-                                <input type="text" id="address" name="address" required placeholder="Số nhà, đường, quận, tỉnh" class="form-input w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                            </div>
                         </div>
                         <div class="border-t border-gray-300 my-4"></div>
                           <h3 class="text-lg font-semibold text-gray-800 mb-2">Xác thực danh tính (eKYC)</h3>
@@ -327,23 +342,23 @@
                           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div>
                               <label for="id_cccd_front" class="block text-sm font-medium text-gray-700">Ảnh CCCD mặt trước</label>
-                              <input type="file" name="cccd_front" id="id_cccd_front" accept="image/*"
+                              <input type="file" name="cccd_front_policyHolder" accept="image/*"
                                      class="mt-1 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50" required>
                             </div>
 
                             <div>
                               <label for="id_cccd_back" class="block text-sm font-medium text-gray-700">Ảnh CCCD mặt sau</label>
-                              <input type="file" name="cccd_back" id="id_cccd_back" accept="image/*"
+                              <input type="file" name="cccd_back_policyHolder" accept="image/*"
                                      class="mt-1 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50" required>
                             </div>
 
                             <div>
-                              <label for="id_selfie" class="block text-sm font-medium text-gray-700">Ảnh selfie cầm CCCD</label>
-                              <input type="file" name="selfie" id="id_selfie" accept="image/*"
+                              <label for="id_selfie_policyHolder" class="block text-sm font-medium text-gray-700">Ảnh selfie cầm CCCD</label>
+                              <input type="file" name="selfie" id="id_selfie_policyHolder" accept="image/*"
                                      class="mt-1 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50" required>
                             </div>
                           <div>
-                              <label for="id_selfie" class="block text-sm font-medium text-gray-700">Giấy khám sức khỏe</label>
+                              <label for="id_selfie_policyHolder" class="block text-sm font-medium text-gray-700">Giấy khám sức khỏe</label>
                               <input type="file" name="health_certificate" accept="image/*"
                                      class="mt-1 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50" required>
                             </div>

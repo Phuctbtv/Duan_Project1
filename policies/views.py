@@ -16,8 +16,8 @@ from django.views.decorators.http import require_GET
 from insurance_app import settings
 from notifications.models import Notification
 from payments.models import Payment
-from users.models import HealthInfo
-from .models import Policy, PolicyHolder
+
+from .models import Policy, PolicyHolder, HealthInfo
 from .forms import PolicyForm
 from insurance_products.models import InsuranceProduct
 
@@ -256,7 +256,7 @@ def api_policy_detail(request, pk):
         user = customer.user
 
         # Lấy thông tin sức khỏe gần nhất
-        health_info = HealthInfo.objects.filter(customer=customer).first()
+        health_info = HealthInfo.objects.filter(policy_holder=policy_holder).first()
 
         # Kiểm tra thanh toán
         payment = Payment.objects.filter(policy=policy, status='success').first()
@@ -287,10 +287,7 @@ def api_policy_detail(request, pk):
                 'gender': customer.gender or '',
                 'job': customer.job or '',
                 'nationality': customer.nationality or '',
-                'cccd_front': customer.cccd_front.url if customer.cccd_front else None,
-                'cccd_back': customer.cccd_back.url if customer.cccd_back else None,
-                'selfie': customer.selfie.url if customer.selfie else None,
-                'health_certificate': customer.health_certificate.url if customer.health_certificate else None,
+
             },
             'health_info': {
                 'height': health_info.height if health_info else None,
@@ -304,6 +301,10 @@ def api_policy_detail(request, pk):
                 'full_name': policy_holder.full_name if policy_holder else None,
                 'id_card_number': policy_holder.id_card_number if policy_holder else None,
                 'relationship': policy_holder.relationship_to_customer if policy_holder else None,
+                'cccd_front': policy_holder.cccd_front.url if policy_holder.cccd_front else None,
+                'cccd_back': policy_holder.cccd_back.url if policy_holder.cccd_back else None,
+                'selfie': policy_holder.selfie.url if policy_holder.selfie else None,
+                'health_certificate': policy_holder.health_certificate.url if policy_holder.health_certificate else None,
             },
         }
 

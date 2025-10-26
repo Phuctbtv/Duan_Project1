@@ -1,9 +1,9 @@
 from django.contrib import messages
 from django.template.loader import render_to_string
-from policies.models import Policy, PolicyHolder
+from policies.models import PolicyHolder
 from policies.views import format_money
-from .models import Claim, ClaimPayment
-from django.contrib.auth.models import User
+
+from .models import ClaimPayment
 from django.db.models import Sum, Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required

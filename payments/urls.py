@@ -1,5 +1,6 @@
+# payments/urls.py
 from django.urls import path
-from payments.views import payments_users, calculate_premium, process_payment
+from .views import payments_users, calculate_premium, process_payment
 
 urlpatterns = [
     path("", payments_users, name="payments_users"),

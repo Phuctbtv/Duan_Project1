@@ -1,4 +1,4 @@
-
+from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import render, get_object_or_404, redirect
 import uuid
@@ -12,8 +12,8 @@ from django.contrib import messages
 
 from payments.forms import HealthInfoForm
 from payments.models import Payment
-from policies.models import Policy, PolicyHolder
-from users.models import Customer, HealthInfo
+from policies.models import Policy, PolicyHolder, HealthInfo
+from users.models import Customer
 
 
 def payments_users(request):
@@ -21,7 +21,6 @@ def payments_users(request):
     recent_products = InsuranceProduct.objects.filter(id__in=recent_products_ids)
     recent_products = sorted(recent_products, key=lambda x: recent_products_ids.index(x.id))
     return render(request, 'payments/payments_users.html', {'recent_products': recent_products})
-
 
 def calculate_premium_logic(product, cleaned_data):
     AGE_THRESHOLD = 50
@@ -100,31 +99,27 @@ def calculate_premium_logic(product, cleaned_data):
         "factors": risk_factors,
         "health_conditions": health_conditions,
     }
+
+
 @csrf_exempt
 @require_POST
 def calculate_premium(request):
     try:
         form = HealthInfoForm(request.POST, request.FILES)
-        print("Form is bound:", form.is_bound)
-
         # Lấy thông tin sản phẩm
         product_id = request.POST.get("product_id")
-        print("Product ID:", product_id)
-
         try:
             product = InsuranceProduct.objects.get(id=product_id, is_active=True)
-            print("Product found:", product.product_name)
+
         except (InsuranceProduct.DoesNotExist, ValueError, TypeError) as e:
-            print("Product error:", str(e))
+
             return JsonResponse({"success": False, "errors": {"product_id": ["Sản phẩm không hợp lệ."]}}, status=400)
 
         if form.is_valid():
             cleaned_data = form.cleaned_data
 
-
             # Gọi hàm logic tính toán
             calculation_result = calculate_premium_logic(product, cleaned_data)
-
 
             # Lưu thông tin Customer
             user = request.user if request.user.is_authenticated else None
@@ -135,66 +130,95 @@ def calculate_premium(request):
                     "error": "Bạn cần đăng nhập để tính phí bảo hiểm."
                 }, status=403)
 
+            with transaction.atomic():
+                # Tạo hoặc cập nhật Customer
+                customer, created = Customer.objects.get_or_create(
+                    user=user,
+                    defaults={
+                        "id_card_number": cleaned_data.get("id_card_number"),
+                        "nationality": cleaned_data.get("nationality", "Việt Nam"),
+                        "gender": cleaned_data.get("gender", "other"),
+                        "job": cleaned_data.get("occupation", ""),
+                    }
+                )
 
+                if request.FILES.get("cccd_front"):
+                    if customer.cccd_front:
+                        customer.cccd_front.delete(save=False)
+                    customer.cccd_front = request.FILES["cccd_front"]
 
-            customer, created = Customer.objects.get_or_create(
-                user=user,
-                defaults={
-                    "id_card_number": cleaned_data.get("id_card_number"),
-                    "nationality": cleaned_data.get("nationality", "Việt Nam"),
-                    "gender": cleaned_data.get("gender", "other"),
-                    "job": cleaned_data.get("occupation", ""),
+                if request.FILES.get("cccd_back"):
+                    if customer.cccd_back:
+                        customer.cccd_back.delete(save=False)
+                    customer.cccd_back = request.FILES["cccd_back"]
+
+                # Cập nhật thông tin cơ bản customer
+                customer.id_card_number = cleaned_data.get("id_card_number")
+                customer.nationality = cleaned_data.get("nationality", "Việt Nam")
+                customer.gender = cleaned_data.get("gender", "other")
+                customer.job = cleaned_data.get("occupation", "")
+                customer.save()
+
+                # TẠO POLICY HOLDER TẠM THỜI (DRAFT) - KHÔNG CÓ POLICY ID
+                policy_holder = PolicyHolder.objects.create(
+                    full_name=cleaned_data.get("fullname_benefic", cleaned_data.get("fullname")),
+                    date_of_birth=cleaned_data.get("birthDate_benefic", cleaned_data.get("birthDate")),
+                    id_card_number=cleaned_data.get("id_card_number_benefic", cleaned_data.get("id_card_number")),
+                    relationship_to_customer=cleaned_data.get("relationship_to_customer",'me'),
+                    # policy sẽ được set sau trong process_payment
+                )
+
+                # Xử lý file upload cho PolicyHolder
+                if request.FILES.get("cccd_front_policyHolder"):
+                    if policy_holder.cccd_front:
+                        policy_holder.cccd_front.delete(save=False)
+                    policy_holder.cccd_front = request.FILES["cccd_front_policyHolder"]
+
+                if request.FILES.get("cccd_back_policyHolder"):
+                    if policy_holder.cccd_back:
+                        policy_holder.cccd_back.delete(save=False)
+                    policy_holder.cccd_back = request.FILES["cccd_back_policyHolder"]
+
+                if request.FILES.get("selfie"):
+                    if policy_holder.selfie:
+                        policy_holder.selfie.delete(save=False)
+                    policy_holder.selfie = request.FILES["selfie"]
+
+                if request.FILES.get("health_certificate"):
+                    if policy_holder.health_certificate:
+                        policy_holder.health_certificate.delete(save=False)
+                    policy_holder.health_certificate = request.FILES["health_certificate"]
+
+                policy_holder.save()
+
+                # TẠO HEALTHINFO LIÊN KẾT VỚI POLICYHOLDER
+                health_info = HealthInfo.objects.create(
+                    policy_holder=policy_holder,
+                    height=cleaned_data.get('height'),
+                    weight=cleaned_data.get('weight'),
+                    smoker=cleaned_data.get('smoker'),
+                    alcohol=cleaned_data.get('alcohol'),
+                    conditions=cleaned_data.get('conditions', []),
+                )
+
+                # Lưu thông tin vào session để process_payment sử dụng
+                request.session['draft_data'] = {
+                    'product_id': product_id,
+                    'final_premium': calculation_result['final_premium'],
+                    'policy_holder_id': policy_holder.id,
+                    'health_info_id': health_info.id,
+                    'beneficiary_data': {
+                        'fullname': cleaned_data.get("beneficiary_fullname"),
+                        'birthDate': cleaned_data.get("beneficiary_birthdate"),
+                        'id_card_number': cleaned_data.get("beneficiary_id_card"),
+                        'relationship_to_customer': cleaned_data.get("beneficiary_relationship"),
+                    }
                 }
-            )
-
-
-            # Cập nhật thông tin cơ bản
-            customer.id_card_number = cleaned_data.get("id_card_number")
-            customer.nationality = cleaned_data.get("nationality", "Việt Nam")
-            customer.gender = cleaned_data.get("gender", "other")
-            customer.job = cleaned_data.get("occupation", "")
-
-            # Xử lý file upload
-            if request.FILES.get("cccd_front"):
-                if customer.cccd_front:
-                    customer.cccd_front.delete(save=False)
-                customer.cccd_front = request.FILES["cccd_front"]
-
-
-            if request.FILES.get("cccd_back"):
-                if customer.cccd_back:
-                    customer.cccd_back.delete(save=False)
-                customer.cccd_back = request.FILES["cccd_back"]
-
-
-            if request.FILES.get("selfie"):
-                if customer.selfie:
-                    customer.selfie.delete(save=False)
-                customer.selfie = request.FILES["selfie"]
-
-
-            if request.FILES.get("health_certificate"):
-                if customer.health_certificate:
-                    customer.health_certificate.delete(save=False)
-                customer.health_certificate = request.FILES["health_certificate"]
-
-
-            customer.save()
-
-
-            # CẬP NHẬT HOẶC TẠO MỚI HEALTHINFO
-            health_info, health_created = HealthInfo.objects.update_or_create(
-                customer=customer,
-                defaults={
-                    'height': cleaned_data.get('height'),
-                    'weight': cleaned_data.get('weight'),
-                    'smoker': cleaned_data.get('smoker'),
-                    'alcohol': cleaned_data.get('alcohol'),
-                    'conditions': cleaned_data.get('conditions', []),
-                }
-            )
-            print(f"HealthInfo {'created' if health_created else 'updated'}:", health_info.id)
-
+                # Loại bỏ file objects khỏi response
+                serializable_cleaned_data = {}
+                for key, value in cleaned_data.items():
+                    if not hasattr(value, 'file'):
+                        serializable_cleaned_data[key] = value
             # Chuẩn bị response data
             product_data = {
                 "id": product.id,
@@ -206,12 +230,6 @@ def calculate_premium(request):
                 "coverage_details": product.coverage_details,
             }
 
-            # Loại bỏ file objects khỏi response
-            serializable_cleaned_data = {}
-            for key, value in cleaned_data.items():
-                if not hasattr(value, 'file'):
-                    serializable_cleaned_data[key] = value
-
             response_data = {
                 "success": True,
                 "final_premium": calculation_result['final_premium'],
@@ -219,8 +237,9 @@ def calculate_premium(request):
                 "breakdown": calculation_result['breakdown'],
                 "factors": calculation_result['factors'],
                 "product": product_data,
-                "personalInfo": serializable_cleaned_data,
                 "healthInfoId": health_info.id,
+                "personalInfo": serializable_cleaned_data,
+                "session_ready": True,
             }
 
             print("Returning success response")
@@ -238,10 +257,12 @@ def calculate_premium(request):
             "success": False,
             "error": f"Lỗi server: {str(e)}"
         }, status=500)
+
+@login_required
 @csrf_exempt
 def process_payment(request):
     if request.method != "POST":
-        return JsonResponse({"success": False, "error": "Phương thức không hợp lệ 1"}, status=405)
+        return JsonResponse({"success": False, "error": "Phương thức không hợp lệ"}, status=405)
 
     try:
         with transaction.atomic():
@@ -253,7 +274,19 @@ def process_payment(request):
             if not product_id or not amount or not payment_method:
                 return JsonResponse({"success": False, "error": "Thiếu thông tin thanh toán"}, status=400)
 
+            # LẤY DỮ LIỆU TỪ SESSION
+            draft_data = request.session.get('draft_data', {})
+            policy_holder_id = draft_data.get('policy_holder_id')
+            health_info_id = draft_data.get('health_info_id')
+            beneficiary_data = draft_data.get('beneficiary_data', {})
+
+            if not policy_holder_id:
+                return JsonResponse(
+                    {"success": False, "error": "Không tìm thấy thông tin người được bảo hiểm. Vui lòng tính phí lại."},
+                    status=400)
+
             product = InsuranceProduct.objects.get(id=product_id)
+
             # Tạo hợp đồng (Policy)
             policy = Policy.objects.create(
                 customer=user.customer,
@@ -263,8 +296,8 @@ def process_payment(request):
                 payment_status="pending",
                 policy_status="pending",
                 sum_insured=product.max_claim_amount,
-                # tạo start_date, end_date sau khi admin xác nhận
             )
+
             # Tạo payment transaction
             transaction_id = f"GD-{uuid.uuid4().hex[:10].upper()}"
             payment = Payment.objects.create(
@@ -275,17 +308,16 @@ def process_payment(request):
                 status="pending",
             )
 
-            # Thông tin người thụ hưởng
-            personal_benefic_json = request.POST.get("personalInfo_benefic")
-            personal_benefic = json.loads(personal_benefic_json)
+            # CẬP NHẬT POLICYHOLDER VỚI POLICY
+            policy_holder = PolicyHolder.objects.get(id=policy_holder_id)
+            policy_holder.policy = policy
+            policy_holder.save()
 
-            PolicyHolder.objects.create(
-                policy=policy,
-                full_name=personal_benefic["fullname"],
-                date_of_birth=personal_benefic["birthDate"],
-                id_card_number=personal_benefic["id_card_number"],
-                relationship_to_customer=personal_benefic["relationship_to_customer"],
-            )
+            # HealthInfo đã được tạo từ trước và vẫn giữ nguyên
+
+            # Xóa session data sau khi sử dụng
+            if 'draft_data' in request.session:
+                del request.session['draft_data']
 
         return JsonResponse({
             "success": True,
@@ -298,7 +330,7 @@ def process_payment(request):
                 "policy_number": policy.policy_number,
                 "status": policy.policy_status,
                 "transaction_id": payment.transaction_id,
-                "description":product.description,
+                "description": product.description,
                 "coverage_details": product.coverage_details,
                 "terms_and_conditions": product.terms_and_conditions,
                 "max_claim_amount": product.max_claim_amount,
@@ -306,13 +338,13 @@ def process_payment(request):
                 "payment_date": payment.payment_date,
             },
             "transfer_content": f"{policy.policy_number}-{payment.transaction_id}",
-
         })
 
     except InsuranceProduct.DoesNotExist:
         return JsonResponse({"success": False, "error": "Sản phẩm không tồn tại"}, status=404)
+    except PolicyHolder.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Không tìm thấy thông tin người được bảo hiểm"}, status=404)
     except Exception as e:
         print("❌ Lỗi trong process_payment:", e)
         return JsonResponse({"success": False, "error": str(e)})
-
 
