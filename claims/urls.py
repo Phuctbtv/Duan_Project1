@@ -2,7 +2,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from claims.views import custom_claims_user, filter_claims_ajax, create_claims, detail_claims, add_additional_documents
+from .views import custom_claims_user, filter_claims_ajax, create_claims, detail_claims, add_additional_documents
 
 urlpatterns = [
     path('', custom_claims_user, name='custom_claims_user'),
