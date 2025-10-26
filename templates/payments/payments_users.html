@@ -19,9 +19,12 @@
                         </div>
                     </div>
 
+
                     <div class="w-16 h-1 bg-gray-300 rounded">
                         <div id="progress-1-2" class="h-full bg-blue-600 rounded transition-all duration-500" style="width: 0%"></div>
                     </div>
+
+
 
                     <!-- Step 2 -->
                     <div class="flex items-center">
@@ -87,12 +90,19 @@
         <!-- Step 1: Product Selection -->
 
         <div id="step-1-content" class="step-content">
+            {% if not recent_products %}
+            <div class="text-center mt-8">
+                <h1 class="text-3xl font-bold text-gray-800 mb-4">Bạn chưa xem sản phẩm nào gần đây</h1>
+                <a href="{% url 'custom_products_user' %}" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+                    <i class="fas fa-list mr-2"></i> Xem tất cả sản phẩm bảo hiểm
+                </a>
+            </div>
+            {% elif recent_products %}
             <div class="text-center mb-8">
                 <h1 class="text-3xl font-bold text-gray-800 mb-4">Chọn sản phẩm bảo hiểm bạn đã xem gần đây</h1>
                 <p class="text-gray-600">Lựa chọn gói bảo hiểm phù hợp với nhu cầu của bạn</p>
             </div>
 
-            {% if recent_products %}
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                 {% for product in recent_products %}
                 <div class="product-card bg-white rounded-2xl shadow-lg p-6 border-2 border-transparent hover:border-blue-500 cursor-pointer"
@@ -129,9 +139,7 @@
                 </div>
                 {% endfor %}
             </div>
-            {% endif %}
-
-            <!-- Continue Button -->
+                        <!-- Continue Button -->
             <div class="text-center">
                 <button id="continue-step-1" onclick="showInfo()" class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:from-blue-700 hover:to-indigo-700 transition duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                     <i class="fas fa-arrow-right mr-2"></i>
@@ -139,6 +147,10 @@
                 </button>
                 <p class="text-sm text-gray-500 mt-2">Vui lòng chọn một sản phẩm để tiếp tục</p>
             </div>
+            {% endif %}
+
+
+
         </div>
 
         <!-- Step 2: Health Insurance Information -->
