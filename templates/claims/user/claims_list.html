@@ -157,3 +157,43 @@
 {% empty %}
 <p class="text-gray-500 text-center">Không có yêu cầu nào phù hợp.</p>
 {% endfor %}
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+<div class="flex items-center justify-between mt-6">
+    <div class="text-sm text-gray-600">
+        Trang {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+    </div>
+
+    <div class="flex space-x-2">
+        <!-- Nút Previous -->
+        <button
+            class="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 {% if not page_obj.has_previous %}opacity-50 cursor-not-allowed{% endif %}"
+            {% if page_obj.has_previous %}
+                onclick="loadClaims({{ page_obj.previous_page_number }})"
+            {% endif %}
+        >
+            <i class="fas fa-chevron-left"></i>
+        </button>
+
+        <!-- Các số trang -->
+        {% for num in page_obj.paginator.page_range %}
+            {% if num == page_obj.number %}
+                <button class="px-3 py-2 bg-blue-600 text-white rounded-lg">{{ num }}</button>
+            {% else %}
+                <button class="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                        onclick="loadClaims({{ num }})">{{ num }}</button>
+            {% endif %}
+        {% endfor %}
+
+        <!-- Nút Next -->
+        <button
+            class="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 {% if not page_obj.has_next %}opacity-50 cursor-not-allowed{% endif %}"
+            {% if page_obj.has_next %}
+                onclick="loadClaims({{ page_obj.next_page_number }})"
+            {% endif %}
+        >
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+</div>
+{% endif %}

@@ -72,12 +72,17 @@
     function closeApprovalModal() {
         document.getElementById('approvalModal').classList.add('hidden');
     }
-    function confirmApproval() {
+    async function confirmApproval() {
         const note = document.getElementById('approvalNote').value;
 
-        if (!confirm('Bạn có chắc chắn muốn duyệt hợp đồng này?')) {
-            return;
-        }
+        const confirmed = await showConfirmModal(
+            "Duyệt hợp đồng",
+            "Bạn có chắc chắn muốn duyệt hợp đồng này?",
+            "Đồng ý",
+            "primary"
+        );
+
+        if (!confirmed) return;
 
         // Gửi request duyệt hợp đồng
         fetch(`/custom_policies/api/${currentPolicyId}/approve/`, {
@@ -118,44 +123,50 @@
         document.getElementById('rejectionModal').classList.add('hidden');
     }
 
-    function confirmRejection() {
+
+    async function confirmRejection() {
         const reason = document.getElementById('rejectionReason').value;
 
         if (!reason.trim()) {
-            showPopup('Vui lòng nhập lý do từ chối');
+            showNotification('Vui lòng nhập lý do từ chối.', 'error');
             return;
         }
 
-        if (!confirm('Bạn có chắc chắn muốn từ chối hợp đồng này?')) {
-            return;
-        }
+        const confirmed = await showConfirmModal(
+            "Xác nhận từ chối",
+            "Bạn có chắc chắn muốn từ chối hợp đồng này?",
+            "Từ chối",
+            "danger"
+        );
 
-        // Gửi request từ chối hợp đồng
+        if (!confirmed) return;
+
         fetch(`/custom_policies/api/${currentPolicyId}/reject/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCsrfToken()
             },
-            body: JSON.stringify({
-                reason: reason
-            })
+            body: JSON.stringify({ reason })
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                location.reload();
+                showNotification('Đã từ chối hợp đồng thành công.', 'success');
+                setTimeout(() => location.reload(), 2000);
             } else {
-                showPopup('Lỗi: ' + data.error);
+                showNotification('Lỗi: ' + data.error, 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
+            showNotification('Đã xảy ra lỗi khi gửi yêu cầu.', 'error');
         })
         .finally(() => {
             closeRejectionModal();
         });
     }
+
 
     function getCsrfToken() {
         return document.querySelector('[name=csrfmiddlewaretoken]').value;
@@ -164,7 +175,7 @@
     // Đóng modal khi click outside
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('modal-backdrop')) {
-            closeDetailModal();
+            closeModal();
             closeApprovalModal();
             closeRejectionModal();
         }
@@ -294,9 +305,9 @@
 
         // Kiểm tra file đính kèm
         const requiredFiles = [
-            { name: 'CCCD mặt trước', hasFile: !!policy.customer.cccd_front },
-            { name: 'CCCD mặt sau', hasFile: !!policy.customer.cccd_back },
-            { name: 'Ảnh selfie', hasFile: !!policy.customer.selfie }
+            { name: 'CCCD mặt trước', hasFile: !!policy.policy_holder.cccd_front },
+            { name: 'CCCD mặt sau', hasFile: !!policy.policy_holder.cccd_back },
+            { name: 'Ảnh selfie', hasFile: !!policy.policy_holder.selfie }
         ];
 
         requiredFiles.forEach(file => {
@@ -314,8 +325,72 @@
             conditions.push('<li class="text-red-600"><i class="fas fa-times mr-2"></i>Thanh toán: Chưa thanh toán</li>');
         }
 
+        // === 🩺 Kiểm tra thông tin sức khỏe ===
+        const healthInfo = policy.health_info;
+        let riskScore = 0;
+
+        if (healthInfo) {
+            const { height, weight, smoker, alcohol, conditions: healthConditions } = healthInfo;
+            let bmi = 0;
+
+            if (height && weight) {
+                const heightM = height / 100;
+                bmi = weight / (heightM * heightM);
+            }
+
+            // BMI check
+            if (bmi === 0) {
+                conditions.push('<li class="text-red-600"><i class="fas fa-times mr-2"></i>Thiếu thông tin chiều cao hoặc cân nặng</li>');
+            } else if (bmi > 30 || bmi < 18.5) {
+                riskScore += 2;
+                conditions.push(`<li class="text-yellow-600"><i class="fas fa-exclamation-triangle mr-2"></i>BMI: ${bmi.toFixed(1)} (Không đạt chuẩn)</li>`);
+            } else {
+                conditions.push(`<li class="text-green-600"><i class="fas fa-check mr-2"></i>BMI: ${bmi.toFixed(1)} (Bình thường)</li>`);
+            }
+
+            // Hút thuốc
+            if (smoker === 'current') {
+                riskScore += 2;
+                conditions.push('<li class="text-yellow-600"><i class="fas fa-exclamation-triangle mr-2"></i>Khách hàng đang hút thuốc</li>');
+            } else {
+                conditions.push('<li class="text-green-600"><i class="fas fa-check mr-2"></i>Không hút thuốc hoặc đã bỏ</li>');
+            }
+
+            // Uống rượu
+            if (alcohol === 'often') {
+                riskScore += 1;
+                conditions.push('<li class="text-yellow-600"><i class="fas fa-exclamation-triangle mr-2"></i>Thói quen uống rượu thường xuyên</li>');
+            } else {
+                conditions.push('<li class="text-green-600"><i class="fas fa-check mr-2"></i>Không hoặc thỉnh thoảng uống rượu</li>');
+            }
+
+            // Bệnh nền
+            if (healthConditions && healthConditions.length > 0) {
+                riskScore += 3;
+                conditions.push(`<li class="text-red-600"><i class="fas fa-times mr-2"></i>Có bệnh nền: ${healthConditions.join(', ')}</li>`);
+            } else {
+                conditions.push('<li class="text-green-600"><i class="fas fa-check mr-2"></i>Không có bệnh nền</li>');
+            }
+
+            // Tính mức rủi ro tổng
+            let riskLevel = '';
+            if (riskScore <= 2) {
+                riskLevel = '<span class="text-green-600 font-semibold">Thấp</span>';
+            } else if (riskScore <= 4) {
+                riskLevel = '<span class="text-yellow-600 font-semibold">Trung bình</span>';
+            } else {
+                riskLevel = '<span class="text-red-600 font-semibold">Cao</span>';
+            }
+
+            conditions.push(`<li class="mt-2 font-semibold">Mức rủi ro tổng: ${riskLevel}</li>`);
+
+        } else {
+            conditions.push('<li class="text-red-600"><i class="fas fa-times mr-2"></i>Chưa có thông tin sức khỏe</li>');
+        }
+
         conditionsList.innerHTML = conditions.join('');
     }
+
 
     // Hàm format tiền tệ
     function formatCurrency(amount) {

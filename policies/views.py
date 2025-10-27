@@ -96,27 +96,35 @@ def dashboard_view_user(request):
     total_insurance = Policy.objects.filter(customer__user=user).aggregate(total=Sum("sum_insured"))["total"] or 0
     total_insurance_display = format_money(total_insurance)
 
+    # --- Lọc và tìm kiếm ---
     search_query = request.GET.get("q", "")
-    policies = Policy.objects.select_related("product").filter(customer__user=user)
+    status = request.GET.get("status")
+    policies_qs = Policy.objects.select_related("product").filter(customer__user=user).order_by('-updated_at')
+
     if search_query:
-        policies = policies.filter(
+        policies_qs = policies_qs.filter(
             Q(policy_number__icontains=search_query) |
             Q(product__product_name__icontains=search_query)
         )
-    status = request.GET.get("status")
     if status:
-        policies = policies.filter(policy_status=status)
+        policies_qs = policies_qs.filter(policy_status=status)
+
+    # --- Phân trang ---
+    page_number = request.GET.get("page", 1)
+    paginator = Paginator(policies_qs, 5)
+    page_obj = paginator.get_page(page_number)
 
     context = {
         "total_contracts": total_contracts,
         "active_contracts": active_contracts,
         "year_fee": year_fee_display,
         "total_insurance": total_insurance_display,
-        "policies": policies,
-        "search_query": search_query
+        "policies": page_obj,
+        "search_query": search_query,
+        "status": status,
     }
-    return render(request, "users/policies_users.html", context)
 
+    return render(request, "policy/policies_users.html", context)
 
 def format_money(value):
     """Format số tiền: 2000000 -> 2M, 2100000 -> 2.1M"""
@@ -126,28 +134,6 @@ def format_money(value):
     elif value >= 1_000:
         return f"{value / 1_000:.1f}".rstrip("0").rstrip(".") + "K"
     return str(int(value))
-
-
-@login_required
-def policies_list_user(request):
-    user = request.user
-    policies = Policy.objects.select_related("product").filter(customer__user=user)
-    return render(request, "policies_users.html", {"policies": policies})
-
-
-def search_policies(user, search_query=""):
-    """
-    Lọc hợp đồng theo user + tìm kiếm theo mã hợp đồng hoặc tên sản phẩm.
-    """
-    policies = Policy.objects.select_related("product").filter(customer__user=user)
-
-    if search_query:
-        policies = policies.filter(
-            Q(policy_number__icontains=search_query) |
-            Q(product__product_name__icontains=search_query)
-        )
-
-    return policies
 
 @login_required
 def admin_policy_list(request):
@@ -238,7 +224,7 @@ def admin_policy_detail(request, pk):
     if request.user.is_staff:
         return render(request, 'admin/policies_detail.html', context)
     else:
-        return render(request, 'users/components/policy/policies_detail.html', context)
+        return render(request, 'policy/policies_detail.html', context)
 
 
 @csrf_exempt
@@ -457,7 +443,7 @@ def api_reject_policy(request, pk):
         if customer_email:
             subject = "Hợp đồng bảo hiểm của bạn bị từ chối"
             message = (
-                f"Kính chào {policy.customer.get_full_name()},\n\n"
+                f"Kính chào {policy.customer.user.get_full_name()},\n\n"
                 f"Hợp đồng bảo hiểm #{policy.policy_number} của bạn đã bị từ chối.\n"
                 f"Lý do: {reason}\n\n"
                 "Vui lòng liên hệ bộ phận hỗ trợ nếu có thắc mắc.\n\n"
