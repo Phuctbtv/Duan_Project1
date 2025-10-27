@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.template.loader import render_to_string
 from policies.models import PolicyHolder
 from policies.views import format_money
@@ -33,33 +34,20 @@ def custom_claims_user(request):
     )["total"] or 0
 
     total_paid_display = format_money(total_paid)
+    claims = Claim.objects.select_related("policy", "policy__product").filter(
+        policy__customer__user=user
+    ).order_by("-claim_date")
+    # Phân trang mặc định
+    paginator = Paginator(claims, 5)
+    page_number = request.GET.get("page", 1)
+    page_obj = paginator.get_page(page_number)
 
-    # Danh sách claim theo user
-    search_query = request.GET.get("q", "")
-    claims = Claim.objects.select_related("policy", "policy__product").filter(policy__customer__user=user)
+    return render(request, "claims/user/claims_user.html", {
+        "claims": page_obj.object_list,
+        "page_obj": page_obj
+    })
 
-    # Tìm kiếm
-    if search_query:
-        claims = claims.filter(
-            Q(claim_number__icontains=search_query) |
-            Q(policy__policy_number__icontains=search_query) |
-            Q(policy__product__product_name__icontains=search_query)
-        )
 
-    # Lọc theo trạng thái
-    status = request.GET.get("status")
-    if status:
-        claims = claims.filter(claim_status=status)
-
-    context = {
-        "total_claims": total_claims,
-        "pending_claims": pending_claims,
-        "approved_claims": approved_claims,
-        "total_paid": total_paid_display,
-        "claims": claims,
-        "search_query": search_query,
-    }
-    return render(request, "claims/claims_user.html",context)
 
 @login_required
 def filter_claims_ajax(request):
@@ -67,31 +55,41 @@ def filter_claims_ajax(request):
     search = request.GET.get("q", "")
     status = request.GET.get("status", "")
     sort = request.GET.get("sort", "newest")
+    page_number = request.GET.get("page", 1)
 
-    claims = Claim.objects.select_related("policy", "policy__product").filter(policy__customer__user=user)
+    claims = Claim.objects.select_related("policy", "policy__product").filter(
+        policy__customer__user=user
+    )
 
-    # Lọc
+    # --- Lọc ---
     if status and status != "all":
         claims = claims.filter(claim_status=status)
 
-    # Tìm kiếm
+    # --- Tìm kiếm ---
     if search:
         claims = claims.filter(
-            Q(claim_number__icontains=search) |
-            Q(policy__product__product_name__icontains=search)
+            Q(claim_number__icontains=search)
+            | Q(policy__product__product_name__icontains=search)
         )
 
-    # Sắp xếp
+    # --- Sắp xếp ---
     if sort == "newest":
         claims = claims.order_by("-claim_date")
     elif sort == "oldest":
         claims = claims.order_by("claim_date")
     elif sort == "amount-high":
-            claims = claims.order_by("-claimed_amount")
+        claims = claims.order_by("-claimed_amount")
     elif sort == "amount-low":
         claims = claims.order_by("claimed_amount")
+    # --- Phân trang ---
+    paginator = Paginator(claims, 4)
+    page_obj = paginator.get_page(page_number)
 
-    html = render_to_string("claims/claims_list.html", {"claims": claims})
+    print("số page= ",page_obj.paginator.num_pages)
+    html = render_to_string(
+        "claims/user/claims_list.html",
+        {"claims": page_obj.object_list, "page_obj": page_obj}
+    )
     return JsonResponse({"html": html})
 
 @login_required
@@ -211,11 +209,10 @@ def detail_claims(request,pk):
             'timeline': timeline,
         }
 
-        return render(request, "claims/detail_claims.html", context)
+        return render(request, "claims/user/detail_claims.html", context)
 
     except Claim.DoesNotExist:
         return render(request, 'errors/404.html', status=404)
-
 
 def generate_timeline(claim):
     """
@@ -306,7 +303,6 @@ def generate_timeline(claim):
     })
 
     return timeline
-
 
 @login_required
 def add_additional_documents(request, claim_number):

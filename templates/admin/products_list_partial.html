@@ -46,7 +46,7 @@
                     onclick="openModal(
                         '{{ product.product_name|escapejs }}',
                         '{{ product.description|escapejs }}',
-                        '{{ product.coverage_details|default_if_none:"Không có thông tin"|escapejs }}',
+                        '{{ product.coverage_details|default_if_none:"Không có thông tin"}}',
                         '{{ product.premium_base_amount|floatformat:0 }}',
                         '{{ product.get_product_type_display|escapejs }}',
                         '{{ product.max_claim_amount|default_if_none:"N/A"|floatformat:0 }}',

@@ -1,6 +1,6 @@
 # app_claims/urls.py
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+
 
 from .views import custom_claims_user, filter_claims_ajax, create_claims, detail_claims, add_additional_documents
 
