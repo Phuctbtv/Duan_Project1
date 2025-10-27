@@ -177,7 +177,7 @@ def create_claims(request, pk):
         "policyHolder": policyHolder,
         'treatment_types': ClaimMedicalInfo.TREATMENT_TYPE_CHOICES
     }
-    return  render(request, "claims/create_claims.html", context)
+    return  render(request, "claims/user/create_claims.html", context)
 
 @login_required
 def detail_claims(request,pk):

@@ -99,7 +99,7 @@ def dashboard_view_user(request):
     # --- Lọc và tìm kiếm ---
     search_query = request.GET.get("q", "")
     status = request.GET.get("status")
-    policies_qs = Policy.objects.select_related("product").filter(customer__user=user)
+    policies_qs = Policy.objects.select_related("product").filter(customer__user=user).order_by('-updated_at')
 
     if search_query:
         policies_qs = policies_qs.filter(
@@ -134,20 +134,6 @@ def format_money(value):
     elif value >= 1_000:
         return f"{value / 1_000:.1f}".rstrip("0").rstrip(".") + "K"
     return str(int(value))
-
-def search_policies(user, search_query=""):
-    """
-    Lọc hợp đồng theo user + tìm kiếm theo mã hợp đồng hoặc tên sản phẩm.
-    """
-    policies = Policy.objects.select_related("product").filter(customer__user=user)
-
-    if search_query:
-        policies = policies.filter(
-            Q(policy_number__icontains=search_query) |
-            Q(product__product_name__icontains=search_query)
-        )
-
-    return policies
 
 @login_required
 def admin_policy_list(request):
@@ -238,7 +224,7 @@ def admin_policy_detail(request, pk):
     if request.user.is_staff:
         return render(request, 'admin/policies_detail.html', context)
     else:
-        return render(request, 'users/components/policy/policies_detail.html', context)
+        return render(request, 'policy/policies_detail.html', context)
 
 
 @csrf_exempt
