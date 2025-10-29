@@ -1,4 +1,4 @@
-
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
@@ -173,6 +173,12 @@ def recent_products(request, product_id):
     # --- Lưu sản phẩm vào session ---
     recent_products = request.session.get("recent_products", [])
 
+    customer = getattr(request.user, "customer", None)
+
+    # --- Kiểm tra xác thực OCR ---
+    if customer and not customer.ocr_verified:
+        messages.warning(request, "Vui lòng cập nhật và xác thực thông tin CCCD trước khi tiếp tục thanh toán.")
+        return redirect("update_profile")
     # Nếu sản phẩm đã có thì xóa (tránh trùng lặp)
     if product.id in recent_products:
         recent_products.remove(product.id)
