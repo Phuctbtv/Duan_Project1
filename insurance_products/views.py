@@ -49,7 +49,7 @@ def add_product_view(request):
             product.created_at = timezone.now()
             product.updated_at = timezone.now()
             product.save()
-            return redirect('custom_products_admin')  # quay lại danh sách
+            return redirect('custom_products_admin')
     else:
         form = InsuranceProductForm()
 
@@ -61,10 +61,10 @@ def edit_product_view(request, product_id):
         form = InsuranceProductForm(request.POST, instance=product)
         if form.is_valid():
             product = form.save(commit=False)
-            # ép kiểu bool
+
             product.is_active = request.POST.get('is_active') == 'True'
             product.save()
-            return redirect('custom_products_admin')  # quay lại trang danh sách sản phẩm
+            return redirect('custom_products_admin')
     else:
         form = InsuranceProductForm(instance=product)
 
