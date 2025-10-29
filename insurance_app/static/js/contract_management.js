@@ -25,10 +25,10 @@
                 input.removeAttribute('readonly');
                 input.removeAttribute('disabled');
             });
-
+            resetCCCDUploads();
             // Show edit buttons
             document.getElementById('editButtons').style.display = 'flex';
-
+            document.getElementById('cccdSection').style.display = 'block';
             // Change edit button text
             event.target.innerHTML = '<i class="fas fa-times mr-1"></i>Hủy chỉnh sửa';
             event.target.onclick = cancelEdit;
@@ -47,7 +47,7 @@
 
             // Hide edit buttons
             document.getElementById('editButtons').style.display = 'none';
-
+            document.getElementById('cccdSection').style.display = 'none';
             // Reset edit button
             const editBtn = document.querySelector('#profileTab .text-blue-600');
             editBtn.innerHTML = '<i class="fas fa-edit mr-1"></i>Chỉnh sửa';
@@ -57,15 +57,10 @@
         function saveProfile(event) {
 
             const saveBtn = event.target;
-            const originalText = saveBtn.innerHTML;
+
             saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang lưu...';
             saveBtn.disabled = true;
 
-            setTimeout(() => {
-                cancelEdit();
-                saveBtn.innerHTML = originalText;
-                saveBtn.disabled = false;
-            }, 1500);
         }
 
         function changeAvatar() {

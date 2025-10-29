@@ -1,7 +1,6 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from users.views import trangchu, login_view, register_view, custom_users_user, profile_view, \
-    update_profile, change_password, CustomPasswordResetConfirmView, user_info_api
+from users.views import trangchu, login_view, register_view, custom_users_user, profile_view, update_profile, change_password, CustomPasswordResetConfirmView, user_info_api,  ocr_cccd
 
 urlpatterns = [
     path("", trangchu, name="trangchu"),
@@ -11,6 +10,7 @@ urlpatterns = [
     path("quanlytaikhoan/",custom_users_user , name="custom_users_user"),
 
     path("profile/",profile_view, name="custom_profile_user"),
+    path('ocr-extract-cccd/',   ocr_cccd, name='ocr_extract_cccd'),
     path("profile/update_profile",update_profile, name="update_profile"),
     path("profile/change_password",change_password, name="change_password"),
     path('api/user-info/', user_info_api, name='user_info_api'),

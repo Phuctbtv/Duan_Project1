@@ -25,7 +25,21 @@ class ProfileUpdateForm(forms.ModelForm):
         label="Nghề nghiệp",
         required=False,
     )
+    cccd_front = forms.ImageField(
+        label="Ảnh CCCD mặt trước",
+        required=False,
+    )
 
+    cccd_back = forms.ImageField(
+        label="Ảnh CCCD mặt sau",
+        required=False,
+    )
+
+    ocr_verified = forms.BooleanField(
+        label="Trạng thái xác thực OCR",
+        required=False,
+        widget=forms.CheckboxInput(attrs={'disabled': 'disabled'})
+    )
     class Meta:
         model = User
         fields = [
@@ -45,6 +59,22 @@ class ProfileUpdateForm(forms.ModelForm):
             "email": "Email",
         }
 
+    def __init__(self, *args, **kwargs):
+        """
+        Hàm này tùy chỉnh form dựa trên trạng thái của user
+        """
+        user = kwargs.get('instance')
+        super().__init__(*args, **kwargs)
+
+        if user:
+            customer = getattr(user, 'customer', None)
+            if customer and not customer.ocr_verified:
+                # Bắt buộc người dùng phải tải lên ảnh
+                self.fields['cccd_front'].required = True
+                self.fields['cccd_back'].required = True
+
+                self.fields['cccd_front'].help_text = "Bạn phải tải lên ảnh để xác thực eKYC."
+                self.fields['cccd_back'].help_text = "Bạn phải tải lên ảnh để xác thực eKYC."
     def clean_phone_number(self):
         phone = self.cleaned_data.get("phone_number")
         if not re.match(r"^\d{10,11}$", phone):
@@ -83,16 +113,47 @@ class ProfileUpdateForm(forms.ModelForm):
             raise ValidationError("Bạn phải đủ 18 tuổi để cập nhật thông tin.")
         return dob
 
+    def clean(self):
+        cleaned_data = super().clean()
+        front_image = cleaned_data.get("cccd_front")
+        back_image = cleaned_data.get("cccd_back")
 
+        if (front_image and not back_image) or (not front_image and back_image):
+            raise forms.ValidationError(
+                "Bạn phải tải lên CẢ MẶT TRƯỚC VÀ MẶT SAU của CCCD trong cùng một lần."
+            )
 
+        return cleaned_data
+
+        return cleaned_data
     def save(self, commit=True):
         user = super().save(commit=False)
         customer, _ = Customer.objects.get_or_create(user=user)
 
+        # Cập nhật các trường thông thường
         customer.gender = self.cleaned_data.get("gender")
         customer.id_card_number = self.cleaned_data.get("id_card_number")
         customer.job = self.cleaned_data.get("job")
 
+        front_image = self.cleaned_data.get("cccd_front")
+        back_image = self.cleaned_data.get("cccd_back")
+
+        new_front_uploaded = False
+        new_back_uploaded = False
+
+        if front_image:
+            if customer.cccd_front:
+                customer.cccd_front.delete(save=False)
+            customer.cccd_front = front_image
+            new_front_uploaded = True
+        if back_image:
+            if customer.cccd_back:
+                customer.cccd_back.delete(save=False)
+            customer.cccd_back = back_image
+            new_back_uploaded = True
+
+        if new_front_uploaded and new_back_uploaded:
+            customer.ocr_verified = True
         if commit:
             user.save()
             customer.save()

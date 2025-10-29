@@ -28,7 +28,6 @@ def custom_claims_user(request):
     # Số yêu cầu chờ xử lý
     pending_claims = Claim.objects.filter(policy__customer__user=user, claim_status="pending").count()
     # Tổng số tiền đã bồi thường
-
     total_paid = Claim.objects.filter(policy__customer__user=request.user).aggregate(
         total=Sum("claimed_amount")
     )["total"] or 0
@@ -44,7 +43,12 @@ def custom_claims_user(request):
 
     return render(request, "claims/user/claims_user.html", {
         "claims": page_obj.object_list,
-        "page_obj": page_obj
+        "page_obj": page_obj,
+        "total_claims": total_claims,
+        "approved_claims": approved_claims,
+        "pending_claims": pending_claims,
+        "total_paid": total_paid_display,
+
     })
 
 
