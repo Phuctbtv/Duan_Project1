@@ -42,7 +42,9 @@ class InsuranceProduct(models.Model):
         default='standard',
         verbose_name="Loại gói bảo hiểm"
     )
-
+    agent_commission_percent = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0.00, verbose_name="Hoa hồng cho CTV (%)"
+    )
     is_active = models.BooleanField(default=True, verbose_name="Đang hoạt động")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Ngày cập nhật")
