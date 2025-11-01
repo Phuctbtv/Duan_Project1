@@ -3,6 +3,7 @@ from datetime import timedelta
 
 from django.db import models
 from users.models import Customer
+from users.models import User
 from insurance_products.models import InsuranceProduct
 from django.utils import timezone
 
@@ -25,6 +26,17 @@ class Policy(models.Model):
 
     customer = models.ForeignKey(
         Customer, on_delete=models.CASCADE, verbose_name="Khách hàng"
+    )
+    agent = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        limit_choices_to={"user_type": "agent"},
+        related_name="sold_policies",
+        verbose_name="CTV bán"
+    )
+    commission_amount = models.DecimalField(
+        max_digits=15, decimal_places=2, default=0.00, verbose_name="Hoa hồng thực tế (VNĐ)"
     )
     product = models.ForeignKey(
         InsuranceProduct, on_delete=models.CASCADE, verbose_name="Sản phẩm bảo hiểm"
@@ -106,7 +118,11 @@ class Policy(models.Model):
         self.payment_status = "paid"
         self.policy_status = "active"
         self.start_date = timezone.now().date()
-        self.end_date = self.start_date + timedelta(days=365)  # giả định 1 năm
+        self.end_date = self.start_date + timedelta(days=365)
+        if self.agent and hasattr(self.product, "agent_commission_percent"):
+            self.commission_amount = (
+                    self.premium_amount * self.product.agent_commission_percent / 100
+            )
         self.save()
 
     def cancel(self):

@@ -7,7 +7,7 @@ from django.utils import timezone
 from datetime import timedelta, datetime
 
 from users.decorators import admin_required
-from users.models import Customer, User, InsuranceProduct
+from users.models import Customer, User
 from policies.models import Policy
 from claims.models import Claim
 from payments.models import Payment

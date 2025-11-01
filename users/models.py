@@ -5,7 +5,6 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.validators import RegexValidator
 
-from insurance_products.models import InsuranceProduct
 
 class User(AbstractUser):
     """Model người dùng mở rộng từ AbstractUser"""
@@ -91,4 +90,46 @@ class Customer(models.Model):
     def __str__(self):
         return f"{self.user.first_name} {self.user.last_name} - {self.id_card_number}"
 
+class Agent(models.Model):
+    """Model đại lý / cộng tác viên bảo hiểm"""
 
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        primary_key=True,
+        limit_choices_to={"user_type": "agent"},
+        verbose_name="Tài khoản đại lý"
+    )
+
+    code = models.CharField(
+        max_length=20,
+        unique=True,
+        verbose_name="Mã đại lý"
+    )
+
+    bank_name = models.CharField(
+        max_length=100,
+        verbose_name="Ngân hàng",
+        blank=True,
+        null=True
+    )
+    bank_account_number = models.CharField(
+        max_length=30,
+        verbose_name="Số tài khoản",
+        blank=True,
+        null=True
+    )
+    bank_account_holder = models.CharField(
+        max_length=100,
+        verbose_name="Tên chủ tài khoản",
+        blank=True,
+        null=True
+    )
+
+    class Meta:
+        db_table = "agents"
+        verbose_name = "Đại lý / Cộng tác viên"
+        verbose_name_plural = "Đại lý / Cộng tác viên"
+
+    def __str__(self):
+        return f"{self.user.get_full_name()} - {self.code}"
