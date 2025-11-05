@@ -23,6 +23,9 @@ from django.contrib.auth.views import PasswordResetConfirmView
 
 from .forms.ProfileUpdateForm import ProfileUpdateForm
 from .forms.CustomSetPasswordForm import CustomSetPasswordForm
+from .utils import process_ocr_cccd
+
+
 def trangchu(request):
     return render(request, "base/trangchu_base.html")
 @login_required
@@ -138,47 +141,62 @@ def profile_view(request):
 @login_required
 def update_profile(request):
     user = request.user
-    customer = getattr(user, 'customer', None)
+    customer = getattr(user, "customer", None)
 
     if request.method == "POST":
         form = ProfileUpdateForm(request.POST, request.FILES, instance=user)
+
         if form.is_valid():
-            user = form.save()
-            customer = user.customer
+            # Kiểm tra OCR trước khi lưu
+            front_image = form.cleaned_data.get("cccd_front")
+            back_image = form.cleaned_data.get("cccd_back")
 
-            if customer.ocr_verified:
-                messages.success(request, "Cập nhật thông tin và xác thực eKYC thành công!")
+            if front_image and back_image:
+                ocr_result = process_ocr_cccd(front_image)
 
-            else:
-                front_image = form.cleaned_data.get("cccd_front")
-                back_image = form.cleaned_data.get("cccd_back")
+                if not ocr_result.get("success"):
+                    messages.error(
+                        request,
+                        "Ảnh CCCD không hợp lệ hoặc không thể đọc được. Vui lòng tải lại ảnh rõ nét hơn."
+                    )
+                    return render(
+                        request,
+                        "users/profile_user.html",
+                        {"form": form, "active_tab": "profile_info"}
+                    )
 
-                if front_image or back_image:
-                    # Người dùng CÓ tải ảnh lên, nhưng KHÔNG ĐỦ 2 CÁI
-                    messages.warning(request,
-                                     "Cập nhật thành công! Tuy nhiên, bạn phải tải lên CẢ MẶT TRƯỚC VÀ MẶT SAU của CCCD "
-                                     "trong cùng một lần để hoàn tất xác thực eKYC."
-                                     )
+            # Tất cả validation passed → lưu thông tin
+            try:
+                user = form.save(commit=True)
+
+                # Xử lý thông báo thành công
+                if front_image and back_image:
+                    messages.success(request, "Cập nhật thông tin và xác thực eKYC thành công!")
+                elif front_image or back_image:
+                    messages.warning(
+                        request,
+                        "Cập nhật thành công! Tuy nhiên, bạn cần tải lên CẢ MẶT TRƯỚC VÀ MẶT SAU CCCD để hoàn tất xác thực eKYC."
+                    )
                 else:
                     messages.success(request, "Cập nhật thông tin thành công!")
 
-            return redirect("custom_profile_user")
+                return redirect("custom_profile_user")
+
+            except Exception as e:
+                messages.error(request, f"Lỗi hệ thống: {e}")
+
+
         else:
-            all_errors = []
+            error_messages = []
             for field, errors in form.errors.items():
+                field_label = form.fields[field].label if field in form.fields else field
                 for error in errors:
-                    all_errors.append(error)
+                    error_messages.append(f"{field_label}: {error}")
 
-
-            error_text = " ".join(all_errors)
-            messages.error(request, f"LỖI : {error_text}")
-            return render(
-                request,
-                'users/profile_user.html',
-                {'form': form, 'active_tab': 'profile_info'}
-            )
+            messages.error(request, "Lỗi nhập liệu: " + " | ".join(error_messages))
 
     else:
+        # GET request
         initial_data = {}
         if customer:
             initial_data = {
@@ -190,110 +208,21 @@ def update_profile(request):
 
     return render(
         request,
-        'users/profile_user.html',
-        {'form': form, 'active_tab': 'profile_info'}
+        "users/profile_user.html",
+        {"form": form, "active_tab": "profile_info"}
     )
+
 @csrf_exempt
 def ocr_cccd(request):
     """
-    Trích xuất thông tin từ ảnh CCCD (phiên bản cải tiến)
+    OCR CCCD tích hợp xác minh loại ảnh - API endpoint
     """
     if request.method != "POST":
         return JsonResponse({"success": False, "error": "Invalid request method"})
 
     image_file = request.FILES.get("image")
-    if not image_file:
-        return JsonResponse({"success": False, "error": "No image uploaded"})
-
-
-    image_type = image_file.content_type
-    allowed_types = ["image/jpeg", "image/png", "image/webp"]
-
-    if image_type not in allowed_types:
-        return JsonResponse({
-            "success": False,
-            "error": f"Invalid image type: {image_type}. Only JPEG, PNG, or WebP are allowed."
-        })
-    # ------------------------------------
-
-    image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
-    GEMINI_API_KEY = settings.GEMINI_API_KEY
-
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key={GEMINI_API_KEY}"
-
-    payload = {
-        "contents": [
-            {
-                "parts": [
-                    {
-                        "text": (
-                            "Trích xuất thông tin từ ảnh CCCD và trả về DẠNG JSON thuần. "
-                            "Quan trọng: Tên phải được xử lý theo quy tắc của người Việt Nam. "
-                            "Sử dụng các trường sau: "
-                            "'ho_va_ten_dem' (Ví dụ: Nguyễn Văn), "
-                            "'ten' (Ví dụ: A), "
-                            "'id_number' (Số CCCD), "
-                            "'gioi_tinh' (Giới tính, chỉ trả về một trong ba giá trị: 'male', 'female', hoặc 'other'. 'male' cho Nam, 'female' cho Nữ), "
-                            "'date_of_birth' (Ngày sinh, định dạng YYYY-MM-DD), "
-                            "'address' (Địa chỉ thường trú). "
-                            "Chỉ trả JSON, không thêm mô tả hoặc văn bản khác."
-                        )
-                    },
-                    {
-                        "inline_data": {
-                            "mime_type": image_type,
-                            "data": image_base64
-                        }
-                    }
-                ]
-            }
-        ]
-    }
-
-    try:
-        res = requests.post(url, json=payload, timeout=30)
-        data = res.json()
-
-        if "candidates" not in data:
-            print("❌ Gemini API Error:", data)
-            return JsonResponse({
-                "success": False,
-                "error": data.get("error", {}).get("message", "Invalid Gemini response"),
-                "raw_response": data
-            })
-
-        text = data["candidates"][0]["content"]["parts"][0]["text"].strip()
-
-        if text.startswith("```json"):
-            text = text.replace("```json", "").replace("```", "").strip()
-
-        # Thêm một bước kiểm tra JSON trước khi parse
-        if not text.startswith("{") or not text.endswith("}"):
-            raise ValueError("Model did not return valid JSON.")
-
-        result = json.loads(text)
-
-        return JsonResponse({
-            "success": True,
-            "data": {
-                "first_name": result.get("ho_va_ten_dem"),
-                "last_name": result.get("ten"),
-                "id_number": result.get("id_number"),
-                "gender":result.get("gioi_tinh"),
-                "date_of_birth": result.get("date_of_birth"),
-                "address": result.get("address")
-            }
-        })
-
-    # Bắt lỗi cụ thể hơn
-    except json.JSONDecodeError:
-        print("❌ JSON Decode Error. Model response:", text)
-        return JsonResponse({"success": False, "error": "Failed to parse OCR data. Model returned non-JSON."})
-    except requests.exceptions.Timeout:
-        return JsonResponse({"success": False, "error": "Request timed out. The server is busy."})
-    except Exception as e:
-        print("❌ OCR Exception:", str(e))
-        return JsonResponse({"success": False, "error": str(e)})
+    result = process_ocr_cccd(image_file)
+    return JsonResponse(result)
 
 @login_required(login_url="login")
 def change_password(request):

@@ -1,6 +1,9 @@
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.template.loader import render_to_string
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+
 from policies.models import PolicyHolder
 from policies.views import format_money
 
@@ -14,8 +17,8 @@ from django.utils import timezone
 import uuid
 from .models import Claim, ClaimMedicalInfo, ClaimDocument
 from policies.models import Policy
-@login_required
-
+# USER
+@login_required(login_url='login')
 def custom_claims_user(request):
     user = request.user
 
@@ -51,15 +54,14 @@ def custom_claims_user(request):
 
     })
 
-
-
-@login_required
+@login_required(login_url='login')
 def filter_claims_ajax(request):
     user = request.user
     search = request.GET.get("q", "")
     status = request.GET.get("status", "")
     sort = request.GET.get("sort", "newest")
     page_number = request.GET.get("page", 1)
+
 
     claims = Claim.objects.select_related("policy", "policy__product").filter(
         policy__customer__user=user
@@ -96,7 +98,7 @@ def filter_claims_ajax(request):
     )
     return JsonResponse({"html": html})
 
-@login_required
+@login_required(login_url='login')
 def create_claims(request, pk):
     policy = get_object_or_404(Policy, id=pk, customer__user=request.user)
     policyHolder = PolicyHolder.objects.filter(policy=policy).first()
@@ -183,7 +185,7 @@ def create_claims(request, pk):
     }
     return  render(request, "claims/user/create_claims.html", context)
 
-@login_required
+@login_required(login_url='login')
 def detail_claims(request,pk):
     """
     Hiển thị chi tiết yêu cầu bồi thường
@@ -307,8 +309,7 @@ def generate_timeline(claim):
     })
 
     return timeline
-
-@login_required
+@login_required(login_url='login')
 def add_additional_documents(request, claim_number):
     if request.method == 'POST':
         claim = get_object_or_404(Claim, claim_number=claim_number)
@@ -346,3 +347,101 @@ def add_additional_documents(request, claim_number):
         })
 
     return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+# ADMIN
+@login_required(login_url='login')
+def custom_claims_admin(request):
+    # Tổng số yêu cầu bồi thường
+    total_claims = Claim.objects.all().count()
+
+    # Số yêu cầu đã duyệt
+    approved_claims = Claim.objects.all().count()
+
+    # Số yêu cầu chờ xử lý
+    pending_claims = Claim.objects.filter( claim_status="pending").all().count()
+    # Tổng số tiền đã bồi thường
+    total_paid = Claim.objects.all().aggregate(
+        total=Sum("claimed_amount")
+    )["total"] or 0
+
+    total_paid_display = format_money(total_paid)
+    claims = Claim.objects.select_related("policy", "policy__product").order_by("-claim_date")
+    # Phân trang mặc định
+    paginator = Paginator(claims, 5)
+    page_number = request.GET.get("page", 1)
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "claims/admin/claim_home.html", {
+        "claims": page_obj.object_list,
+        "page_obj": page_obj,
+        "total_claims": total_claims,
+        "approved_claims": approved_claims,
+        "pending_claims": pending_claims,
+        "total_paid": total_paid_display,
+    })
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def get_all_claims(request):
+    """Lấy danh sách yêu cầu bồi thường có lọc, tìm kiếm và phân trang"""
+    search = request.GET.get("search", "").strip()
+    status_filter = request.GET.get("status", "").strip()
+    page = int(request.GET.get("page", 1))
+    page_size = int(request.GET.get("page_size", 10))
+
+    # 🔍 Tìm kiếm
+    claims = (
+        Claim.objects
+        .select_related("customer__user", "policy")
+        .prefetch_related("claim_medical_info", "claim_documents")
+        .all()
+    )
+
+    if search:
+        claims = claims.filter(
+            Q(claim_number__icontains=search)
+            | Q(customer__user__first_name__icontains=search)
+            | Q(customer__user__last_name__icontains=search)
+            | Q(policy__policy_number__icontains=search)
+        )
+
+    # ⚙️ Lọc theo trạng thái
+    if status_filter:
+        claims = claims.filter(claim_status=status_filter)
+    # 🔢 Phân trang
+    paginator = Paginator(claims.order_by("-created_at"), page_size)
+    page_obj = paginator.get_page(page)
+
+    data = [
+        {
+            "id": claim.id,
+            "claim_number": claim.claim_number,
+            "policy": claim.policy.policy_number if claim.policy else None,
+            "customer_name": claim.customer.user.get_full_name(),
+            "incident_date": claim.incident_date,
+            "requested_amount": float(claim.requested_amount),
+            "claim_status": claim.claim_status,
+            "hospital_name": (
+                claim.claim_medical_info.first().hospital_name
+                if claim.claim_medical_info.exists()
+                else None
+            ),
+            "treatmentType":claim.claim_medical_info.first().treatment_type,
+            "documents": claim.claim_documents.count(),
+            "created_at": claim.created_at.strftime("%Y-%m-%d %H:%M"),
+        }
+        for claim in page_obj
+    ]
+
+    return JsonResponse(
+        {
+            "claims": data,
+            "pagination": {
+                "current_page": page_obj.number,
+                "total_pages": paginator.num_pages,
+                "total_items": paginator.count,
+                "page_size": page_size,
+            },
+        },
+        status=200,
+    )
