@@ -577,7 +577,6 @@ function debounce(func, wait) {
     };
 }
 
-
 // Handle file upload
 function handleFileUpload(input, listId) {
     const files = Array.from(input.files);
@@ -757,7 +756,6 @@ function getCookie(name) {
 }
 // Modal functions
 
-
 function populateSummary() {
     const incidentDate = document.getElementById('incidentDate').value;
     const treatmentType = document.getElementById('treatmentType');
@@ -801,9 +799,7 @@ function populateSummary() {
 
 
 }
-
 // Hiển thị popup với message
-
 function showPopup(message, type = 'info', autoClose = false, duration = 1500) {
     // Tạo popup element nếu chưa tồn tại
     let popup = document.getElementById('customPopup');
@@ -899,8 +895,6 @@ function closePopup() {
     }
 }
 
-
-
 function goBack() {
         window.history.back();
 }
@@ -919,7 +913,6 @@ function formatCurrency(amount) {
         maximumFractionDigits: 0
     }).format(amount) + ' VNĐ';
 }
-
 
 // Drag and drop functionality
 document.addEventListener('DOMContentLoaded', function() {
