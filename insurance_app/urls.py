@@ -12,6 +12,9 @@ urlpatterns = [
     path("payments/", include("payments.urls")),
     path("custom_claims/", include("claims.urls")),
     path("notification/", include("notifications.urls")),
+
+    # Thêm include cho pages
+    path('', include('pages.urls')),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

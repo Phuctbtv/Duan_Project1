@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "notifications",
     "dashboard",
     'widget_tweaks',
+    'pages',
     ]
 
 
@@ -84,10 +85,10 @@ DATABASES = {
 
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "BaoHiem",
+        "NAME": "baohiem3",
         "USER": "postgres",
         
-        "PASSWORD": "27112004",
+        "PASSWORD": "123456",
         "HOST": "localhost",
         "PORT": "5432",
         "OPTIONS": {
