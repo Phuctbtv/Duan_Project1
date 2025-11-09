@@ -1,5 +1,5 @@
 from django.db import models
-from users.models import Customer
+from users.models import Customer, Agent
 from policies.models import Policy
 
 
@@ -19,6 +19,13 @@ class Claim(models.Model):
     )
     customer = models.ForeignKey(
         Customer, on_delete=models.CASCADE, verbose_name="Khách hàng"
+    )
+    agent = models.ForeignKey(
+        Agent,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Đại lý/CTV"
     )
     claim_number = models.CharField(
         max_length=50, unique=True, null=True, blank=True, verbose_name="Số yêu cầu bồi thường"
