@@ -16,4 +16,9 @@ urlpatterns = [
     path('customers/<int:user_id>/edit/', views.customer_edit, name='customer_edit'),
     path('customers/<int:user_id>/toggle-status/', views.customer_toggle_status, name='customer_toggle_status'),
     path('customer/<int:user_id>/convert-role/', views.customer_convert_role, name='customer_convert_role'),
+
+    path('agents/create/', views.agent_create, name='agent_create'),
+    path('agents/<int:user_id>/', views.agent_detail, name='agent_detail'),
+    path('agents/<int:user_id>/edit/', views.agent_edit, name='agent_edit'),
+    path('agents/<int:user_id>/toggle-status/', views.agent_toggle_status, name='agent_toggle_status'),
 ]
