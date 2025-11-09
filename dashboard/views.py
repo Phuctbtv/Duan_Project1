@@ -7,7 +7,7 @@ from django.utils import timezone
 from datetime import timedelta, datetime
 
 from users.decorators import admin_required
-from users.models import Customer, User
+from users.models import Customer, User, Agent
 from policies.models import Policy
 from claims.models import Claim
 from payments.models import Payment
@@ -435,4 +435,135 @@ def customer_convert_role(request, user_id):
         except Exception as e:
             messages.error(request, f'Lỗi khi chuyển đổi vai trò: {str(e)}')
 
+    return redirect('custom_section')
+
+
+@login_required
+@admin_required
+def agent_list(request):
+    """Danh sách đại lý"""
+    agents = User.objects.filter(user_type='agent')
+
+    search_query = request.GET.get('q', '')
+    status_filter = request.GET.get('status', '')
+
+    if search_query:
+        agents = agents.filter(
+            Q(username__icontains=search_query) |
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(agent__code__icontains=search_query)
+        )
+
+    if status_filter:
+        if status_filter == 'active':
+            agents = agents.filter(is_active=True)
+        elif status_filter == 'suspended':
+            agents = agents.filter(is_active=False)
+
+    context = {
+        'users': agents,
+        'search_query': search_query,
+        'status_filter': status_filter,
+    }
+    return render(request, 'admin/custom_section.html', context)
+
+
+@login_required
+@admin_required
+def agent_create(request):
+    """Tạo đại lý mới"""
+    if request.method == 'POST':
+        try:
+            # Tạo User
+            user = User.objects.create_user(
+                username=request.POST.get('username'),
+                email=request.POST.get('email'),
+                password=request.POST.get('password', 'Dk123456'),
+                first_name=request.POST.get('first_name'),
+                last_name=request.POST.get('last_name'),
+                phone_number=request.POST.get('phone_number', ''),
+                user_type='agent',
+                is_active=True
+            )
+
+            # Tạo Agent
+            Agent.objects.create(
+                user=user,
+                code=request.POST.get('code'),
+                bank_name=request.POST.get('bank_name', ''),
+                bank_account_number=request.POST.get('bank_account_number', ''),
+                bank_account_holder=request.POST.get('bank_account_holder', '')
+            )
+
+            messages.success(request, f'Đã tạo đại lý {user.get_full_name()} thành công!')
+            return redirect('custom_section')
+
+        except Exception as e:
+            messages.error(request, f'Lỗi khi tạo đại lý: {str(e)}')
+
+    return render(request, 'admin/agent_create.html')
+
+
+@login_required
+@admin_required
+def agent_detail(request, user_id):
+    """Chi tiết đại lý"""
+    user = get_object_or_404(User, pk=user_id, user_type='agent')
+    agent = get_object_or_404(Agent, user=user)
+
+    context = {
+        'user': user,
+        'agent': agent
+    }
+    return render(request, 'admin/agent_detail.html', context)
+
+
+@login_required
+@admin_required
+def agent_edit(request, user_id):
+    """Chỉnh sửa đại lý"""
+    user = get_object_or_404(User, pk=user_id, user_type='agent')
+    agent = get_object_or_404(Agent, user=user)
+
+    if request.method == 'POST':
+        try:
+            # Cập nhật User
+            user.first_name = request.POST.get('first_name')
+            user.last_name = request.POST.get('last_name')
+            user.email = request.POST.get('email')
+            user.phone_number = request.POST.get('phone_number', '')
+            user.is_active = request.POST.get('is_active') == 'on'
+            user.save()
+
+            # Cập nhật Agent
+            agent.code = request.POST.get('code')
+            agent.bank_name = request.POST.get('bank_name', '')
+            agent.bank_account_number = request.POST.get('bank_account_number', '')
+            agent.bank_account_holder = request.POST.get('bank_account_holder', '')
+            agent.save()
+
+            messages.success(request, f'Đã cập nhật đại lý {user.get_full_name()} thành công!')
+            return redirect('custom_section')
+
+        except Exception as e:
+            messages.error(request, f'Lỗi khi cập nhật: {str(e)}')
+
+    context = {
+        'user': user,
+        'agent': agent
+    }
+    return render(request, 'admin/agent_edit.html', context)
+
+
+@login_required
+@admin_required
+def agent_toggle_status(request, user_id):
+    """Kích hoạt / vô hiệu hóa đại lý"""
+    user = get_object_or_404(User, pk=user_id, user_type='agent')
+    user.is_active = not user.is_active
+    user.save()
+    status = "kích hoạt" if user.is_active else "vô hiệu hóa"
+    messages.success(request, f'Đã {status} đại lý {user.get_full_name()}')
     return redirect('custom_section')
