@@ -1,0 +1,32 @@
+{% extends 'admin/admin_home.html' %}
+{% load static %}
+
+{% block content %}
+<div class="section p-6 max-w-3xl mx-auto">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Chi Tiết Đại Lý</h2>
+
+    <div class="bg-white p-6 rounded-xl shadow-md space-y-4">
+        <div><strong>Tên đăng nhập:</strong> {{ user.username }}</div>
+        <div><strong>Họ tên:</strong> {{ user.get_full_name }}</div>
+        <div><strong>Email:</strong> {{ user.email|default:"—" }}</div>
+        <div><strong>Số điện thoại:</strong> {{ user.phone_number|default:"—" }}</div>
+        <div><strong>Mã đại lý:</strong> {{ agent.code }}</div>
+        <div><strong>Ngân hàng:</strong> {{ agent.bank_name|default:"—" }}</div>
+        <div><strong>Số tài khoản:</strong> {{ agent.bank_account_number|default:"—" }}</div>
+        <div><strong>Tên chủ tài khoản:</strong> {{ agent.bank_account_holder|default:"—" }}</div>
+        <div>
+            <strong>Trạng thái:</strong>
+            {% if user.is_active %}
+                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Hoạt động</span>
+            {% else %}
+                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Tạm khóa</span>
+            {% endif %}
+        </div>
+
+        <div class="flex justify-end space-x-4 mt-4">
+            <a href="{% url 'agent_edit' user.id %}" class="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Chỉnh Sửa</a>
+            <a href="{% url 'custom_section' %}" class="px-6 py-2 rounded-lg bg-gray-600 text-white hover:bg-gray-700">Quay Lại</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

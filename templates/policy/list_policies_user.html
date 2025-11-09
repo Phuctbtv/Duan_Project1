@@ -1,3 +1,4 @@
+{% load humanize %}  <!-- THÊM DÒNG NÀY VÀO ĐẦU FILE -->
 
 {% for policy in policies %}
 <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
@@ -29,6 +30,23 @@
                 <div class="text-2xl font-bold text-green-600">{{ policy.sum_insured_short }}</div>
                 <div class="text-sm text-gray-500">Mức bảo hiểm</div>
                 <div class="text-sm font-medium text-gray-800 mt-1">{{ policy.premium_short }} {{ policy.product.currency }}/tháng</div>
+                
+                <!-- THÊM PHẦN HIỂN THỊ HOA HỒNG CHO AGENT -->
+                {% if user_type == 'agent' and policy.commission_amount > 0 %}
+<!--                <div class="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">-->
+<!--                    <div class="text-lg font-bold text-yellow-700">{{ policy.commission_amount|floatformat:0|intcomma }} VNĐ</div>-->
+<!--                    <div class="text-xs text-yellow-600">-->
+<!--                        Hoa hồng-->
+<!--                        {% if policy.product.agent_commission_percent %}-->
+<!--                        ({{ policy.product.agent_commission_percent }}%)-->
+<!--                        {% endif %}-->
+<!--                    </div>-->
+<!--                </div>-->
+                {% elif user_type == 'agent' %}
+                <div class="mt-2 p-2 bg-gray-50 border border-gray-200 rounded-lg">
+                    <div class="text-sm text-gray-600">Chờ tính hoa hồng</div>
+                </div>
+                {% endif %}
             </div>
         </div>
 
@@ -41,11 +59,36 @@
                 <div class="text-sm text-gray-600">Ngày kết thúc</div>
                 <div class="font-semibold text-gray-800">{{ policy.end_date|date:"d/m/Y" }}</div>
             </div>
+            
+            <!-- THÊM CỘT HIỂN THỊ THÔNG TIN HOA HỒNG CHI TIẾT -->
+            {% if user_type == 'agent' %}
+            <div class="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+                <div class="text-sm text-yellow-700 font-medium">Thông tin hoa hồng</div>
+                <div class="mt-1">
+                    {% if policy.commission_amount > 0 %}
+                    <div class="font-bold text-yellow-800">{{ policy.commission_amount|floatformat:0|intcomma }} VNĐ</div>
+                    <div class="text-xs text-yellow-600">
+                        {% if policy.product.agent_commission_percent %}
+                        {{ policy.product.agent_commission_percent }}% của {{ policy.premium_amount|floatformat:0|intcomma }} VNĐ
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="text-sm text-yellow-600">Chưa có hoa hồng</div>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <div class="bg-gray-50 rounded-lg p-4">
+                <div class="text-sm text-gray-600">Thanh toán</div>
+                <div class="font-semibold text-gray-800 {% if policy.payment_status == 'paid' %}text-green-600{% else %}text-yellow-600{% endif %}">
+                    {{ policy.get_payment_status_display }}
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         <div class="flex items-center justify-between">
             <div class="flex space-x-3">
-
                 <a href="{% url 'policy_detail' policy.id%}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
                     <i class="fas fa-eye mr-2"></i>Xem chi tiết
                 </a>

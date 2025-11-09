@@ -101,7 +101,7 @@ def register_view(request):
 @csrf_protect
 def login_view(request):
     if request.user.is_authenticated:
-        if request.user.is_staff:
+        if request.user.is_staff or request.user.user_type in ['admin', 'agent']:
             return redirect("admin_home")
         else:
             return redirect("trangchu")
