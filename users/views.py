@@ -9,12 +9,14 @@ from django.contrib.auth import login, authenticate, update_session_auth_hash
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.contrib.auth.forms import AuthenticationForm
-
+from django.utils import timezone
 from users.decorators import user_required
 from users.forms.RegisterForm import RegisterForm
 from users.forms.ChangePasswordForm import ChangePasswordForm
 from users.models import User, Customer
-
+from django.shortcuts import render
+from insurance_products.models import InsuranceProduct
+from policies.models import Policy
 import requests
 
 from django.http import JsonResponse
@@ -27,7 +29,27 @@ from .utils import process_ocr_cccd
 
 
 def trangchu(request):
-    return render(request, "base/trangchu_base.html")
+    # Lấy 3 sản phẩm bảo hiểm đang hoạt động
+    products = InsuranceProduct.objects.filter(is_active=True)[:3]
+
+    contracts = []
+    if request.user.is_authenticated:
+        today = timezone.now().date()
+        # Lấy các hợp đồng chưa hết hạn và đang hoạt động
+        contracts = Policy.objects.filter(
+            customer__user=request.user,
+            end_date__gte=today,
+            policy_status="active"
+        )
+
+    return render(
+        request,
+        "base/trangchu_base.html",
+        {
+            "products": products,
+            "contracts": contracts,
+        }
+    )
 @login_required
 def user_info_api(request):
     user = request.user
