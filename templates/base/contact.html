@@ -1,0 +1,193 @@
+{% extends 'base/trangchu.html' %}
+
+{% block title %}Liên Hệ - SecureLife{% endblock %}
+
+{% block content %}
+<!-- Nội dung trang liên hệ -->
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 py-12">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header Section -->
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-bold text-gray-800 mb-6">Liên Hệ Với Chúng Tôi</h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                Chúng tôi luôn sẵn sàng lắng nghe và hỗ trợ bạn. Hãy liên hệ ngay để được tư vấn miễn phí.
+            </p>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-8 mb-12">
+            <!-- Contact Information -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-2xl shadow-xl p-8 h-full">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Thông Tin Liên Hệ</h2>
+
+                    <div class="space-y-6">
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
+                                <i class="fas fa-map-marker-alt text-blue-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-800 mb-1">Địa Chỉ</h3>
+                                <p class="text-gray-600">Số 3 Đường Cầu Giấy, Quận Cầu Giấy, Hà Nội</p>
+                                <p class="text-sm text-gray-500">Trường Đại học Giao thông Vận tải</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
+                                <i class="fas fa-phone text-green-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-800 mb-1">Hotline</h3>
+                                <p class="text-gray-600">1900 1234</p>
+                                <p class="text-sm text-green-600 font-medium">Miễn phí cuộc gọi</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
+                                <i class="fas fa-envelope text-purple-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-800 mb-1">Email</h3>
+                                <p class="text-gray-600">contact@securelife.vn</p>
+                                <p class="text-sm text-gray-500">Phản hồi trong 24h</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
+                                <i class="fas fa-clock text-orange-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-800 mb-1">Giờ Làm Việc</h3>
+                                <p class="text-gray-600">Thứ 2 - Thứ 6: 8:00 - 17:00</p>
+                                <p class="text-gray-600">Thứ 7: 8:00 - 12:00</p>
+                                <p class="text-sm text-gray-500">Chủ nhật & ngày lễ: Nghỉ</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Form -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-2xl shadow-xl p-8 h-full">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Gửi Tin Nhắn Cho Chúng Tôi</h2>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="grid md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2" for="name">
+                                    Họ và tên *
+                                </label>
+                                <input type="text" id="name" name="name"
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                       placeholder="Nhập họ và tên của bạn" required>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2" for="email">
+                                    Email *
+                                </label>
+                                <input type="email" id="email" name="email"
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                       placeholder="Nhập địa chỉ email" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-medium mb-2" for="phone">
+                                Số điện thoại
+                            </label>
+                            <input type="tel" id="phone" name="phone"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                   placeholder="Nhập số điện thoại">
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-medium mb-2" for="message">
+                                Nội dung tin nhắn *
+                            </label>
+                            <textarea id="message" name="message" rows="5"
+                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                      placeholder="Nhập nội dung tin nhắn của bạn..." required></textarea>
+                        </div>
+
+                        <button type="submit"
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-lg font-semibold text-lg transition transform hover:scale-105 duration-200">
+                            <i class="fas fa-paper-plane mr-2"></i>Gửi Tin Nhắn
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map Section -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div class="p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Vị Trí Của Chúng Tôi</h2>
+                <p class="text-gray-600 mb-6">
+                    Trụ sở chính của chúng tôi tọa lạc tại Trường Đại học Giao thông Vận tải -
+                    một trong những trường đại học hàng đầu về đào tạo và nghiên cứu trong lĩnh vực giao thông vận tải.
+                </p>
+            </div>
+            <!-- Map Container -->
+            <div class="h-96 w-full bg-gray-200 relative">
+                <!-- Google Maps Embed -->
+                <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3723.8638558814587!2d105.78926831540245!3d21.046127792833!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135ab3060d5b5c9%3A0x1e67c1b4a4f4b4c4!2zVHLGsOG7nW5nIMSQ4bqhaSBI4buNYyBHaWFvIFRo4buRIFRyw6xj!5e0!3m2!1svi!2s!4v1620000000000!5m2!1svi!2s"
+                    width="100%"
+                    height="100%"
+                    style="border:0;"
+                    allowfullscreen=""
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    class="absolute inset-0">
+                </iframe>
+            </div>
+
+            <!-- Map Info -->
+            <div class="p-6 bg-gray-50 border-t border-gray-200">
+                <div class="grid md:grid-cols-3 gap-6 text-center">
+                    <div>
+                        <h4 class="font-semibold text-gray-800 mb-2">🚗 Di chuyển</h4>
+                        <p class="text-sm text-gray-600">Dễ dàng di chuyển bằng xe bus, taxi hoặc xe máy</p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-800 mb-2">🅿️ Bãi đỗ xe</h4>
+                        <p class="text-sm text-gray-600">Bãi đỗ xe rộng rãi, miễn phí cho khách hàng</p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-800 mb-2">📍 Vị trí</h4>
+                        <p class="text-sm text-gray-600">Trung tâm quận Cầu Giấy, thuận tiện giao thông</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Contact Info -->
+        <div class="grid md:grid-cols-3 gap-6 mt-8">
+            <div class="text-center p-6 bg-white rounded-xl shadow-lg">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-comments text-blue-600 text-2xl"></i>
+                </div>
+                <h3 class="font-semibold text-gray-800 mb-2">Tư Vấn Trực Tuyến</h3>
+                <p class="text-gray-600 text-sm">Chat ngay với chuyên viên tư vấn của chúng tôi</p>
+            </div>
+            <div class="text-center p-6 bg-white rounded-xl shadow-lg">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-file-contract text-green-600 text-2xl"></i>
+                </div>
+                <h3 class="font-semibold text-gray-800 mb-2">Hỗ Trợ Hợp Đồng</h3>
+                <p class="text-gray-600 text-sm">Giải đáp thắc mắc về hợp đồng và điều khoản</p>
+            </div>
+            <div class="text-center p-6 bg-white rounded-xl shadow-lg">
+                <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-hand-holding-usd text-purple-600 text-2xl"></i>
+                </div>
+                <h3 class="font-semibold text-gray-800 mb-2">Bồi Thường</h3>
+                <p class="text-gray-600 text-sm">Hỗ trợ xử lý yêu cầu bồi thường nhanh chóng</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

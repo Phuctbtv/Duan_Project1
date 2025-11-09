@@ -82,24 +82,53 @@ def custom_policies_admin(request):
 def dashboard_view_user(request):
     user = request.user
 
-    # Tổng hợp đồng
-    total_contracts = Policy.objects.filter(customer__user_id=user.id).count()
+    # PHÂN BIỆT THEO USER_TYPE
+    if user.user_type == 'agent':
+        #  THỐNG KÊ CHO AGENT
+        # Tổng hợp đồng agent đã bán
+        total_contracts = Policy.objects.filter(agent=user).count()
 
-    # Đang hiệu lực
-    active_contracts = Policy.objects.filter(customer__user=user, policy_status="active").count()
+        # Hợp đồng đang hiệu lực
+        active_contracts = Policy.objects.filter(agent=user, policy_status="active").count()
 
-    # Phí hàng năm
-    year_fee = Policy.objects.filter(customer__user=user).aggregate(total=Sum("premium_amount"))["total"] or 0
-    year_fee_display = format_money(year_fee)
+        # Tổng phí bảo hiểm từ hợp đồng đã bán
+        year_fee = Policy.objects.filter(agent=user).aggregate(total=Sum("premium_amount"))["total"] or 0
+        year_fee_display = format_money(year_fee)
 
-    # Tổng giá trị bảo hiểm
-    total_insurance = Policy.objects.filter(customer__user=user).aggregate(total=Sum("sum_insured"))["total"] or 0
-    total_insurance_display = format_money(total_insurance)
+        # Tổng giá trị bảo hiểm
+        total_insurance = Policy.objects.filter(agent=user).aggregate(total=Sum("sum_insured"))["total"] or 0
+        total_insurance_display = format_money(total_insurance)
 
-    # --- Lọc và tìm kiếm ---
+        # Tổng hoa hồng (CHỈ tính hợp đồng đã duyệt)
+        total_commission = Policy.objects.filter(agent=user, policy_status="active").aggregate(
+            total=Sum("commission_amount")
+        )["total"] or 0
+        total_commission_display = format_money(total_commission)
+
+        # QuerySet cho agent
+        policies_qs = Policy.objects.select_related("product", "customer", "customer__user").filter(
+            agent=user
+        ).order_by('-updated_at')
+
+    else:
+        # 👤 THỐNG KÊ CHO CUSTOMER (giữ nguyên code cũ)
+        total_contracts = Policy.objects.filter(customer__user_id=user.id).count()
+        active_contracts = Policy.objects.filter(customer__user=user, policy_status="active").count()
+        year_fee = Policy.objects.filter(customer__user=user).aggregate(total=Sum("premium_amount"))["total"] or 0
+        year_fee_display = format_money(year_fee)
+        total_insurance = Policy.objects.filter(customer__user=user).aggregate(total=Sum("sum_insured"))["total"] or 0
+        total_insurance_display = format_money(total_insurance)
+        total_commission = 0  # Customer không có hoa hồng
+        total_commission_display = format_money(total_commission)
+
+        # QuerySet cho customer
+        policies_qs = Policy.objects.select_related("product").filter(
+            customer__user=user
+        ).order_by('-updated_at')
+
+    # --- Lọc và tìm kiếm (dùng chung) ---
     search_query = request.GET.get("q", "")
     status = request.GET.get("status")
-    policies_qs = Policy.objects.select_related("product").filter(customer__user=user).order_by('-updated_at')
 
     if search_query:
         policies_qs = policies_qs.filter(
@@ -119,9 +148,11 @@ def dashboard_view_user(request):
         "active_contracts": active_contracts,
         "year_fee": year_fee_display,
         "total_insurance": total_insurance_display,
+        "total_commission": total_commission_display,  # Thêm hoa hồng cho agent
         "policies": page_obj,
         "search_query": search_query,
         "status": status,
+        "user_type": user.user_type,  # Thêm user_type để template phân biệt
     }
 
     return render(request, "policy/policies_users.html", context)
