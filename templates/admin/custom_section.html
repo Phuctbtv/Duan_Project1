@@ -3,6 +3,16 @@
 
 {% block content %}
 <div class="section p-6">
+    {% if messages %}
+    <div class="mb-4" id="message-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-1500{% else %}bg-red-100 text-red-1500{% endif %} transition-opacity duration-300">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold text-gray-800">Quản Lý Người Dùng</h2>
         <div class="flex gap-4">
@@ -196,4 +206,23 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const messageContainer = document.getElementById('message-container');
+    if (messageContainer) {
+        // Ẩn thông báo sau 4 giây
+        setTimeout(() => {
+            const alerts = messageContainer.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 300);
+            });
+        }, 3000);
+    }
+});
+</script>
+
 {% endblock %}

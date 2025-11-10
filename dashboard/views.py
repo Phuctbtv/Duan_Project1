@@ -397,8 +397,7 @@ def get_total_revenue():
 @admin_required
 def custom_section(request):
     """Quản lý khách hàng - Chỉ dành cho admin"""
-    # Chỉ lấy users là customer
-    users = User.objects.filter(user_type='customer')
+    users = User.objects.all()
 
     # Lấy tham số tìm kiếm và filter từ URL
     search_query = request.GET.get('q', '')
