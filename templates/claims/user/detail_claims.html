@@ -354,9 +354,11 @@
                         <button onclick="contactSupport('{{ claim.claim_number }}')" class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors">
                             <i class="fas fa-headset mr-2"></i>Liên hệ hỗ trợ
                         </button>
+                        {% if claim.claim_status == 'request_more' %}
                         <button onclick="addDocuments('{{ claim.claim_number }}')" class="w-full bg-yellow-600 text-white py-3 rounded-lg font-semibold hover:bg-yellow-700 transition-colors">
                             <i class="fas fa-plus mr-2"></i>Bổ sung tài liệu
                         </button>
+                        {% endif %}
                     </div>
                 </div>
 

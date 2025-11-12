@@ -259,15 +259,6 @@ def custom_section(request):
     search_query = request.GET.get('q', '')
     status_filter = request.GET.get('status', '')
 
-    print("=" * 50)
-    print(f"DEBUG: URL = {request.build_absolute_uri()}")
-    print(f"DEBUG: Search query = '{search_query}'")
-    print(f"DEBUG: Status filter = '{status_filter}'")
-    print(f"DEBUG: GET parameters = {dict(request.GET)}")
-
-    # Query cơ bản - lấy tất cả users là customer
-    print(f"DEBUG: Total customers = {users.count()}")
-
     # Áp dụng tìm kiếm theo tên, email, username
     if search_query:
         users = users.filter(
