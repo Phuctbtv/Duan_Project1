@@ -16,6 +16,7 @@ from django.views.decorators.http import require_GET
 from insurance_app import settings
 from notifications.models import Notification
 from payments.models import Payment
+from users.models import Agent
 
 from .models import Policy, PolicyHolder, HealthInfo
 from .forms import PolicyForm
@@ -82,24 +83,63 @@ def custom_policies_admin(request):
 def dashboard_view_user(request):
     user = request.user
 
-    # Tổng hợp đồng
-    total_contracts = Policy.objects.filter(customer__user_id=user.id).count()
+    # PHÂN BIỆT THEO USER_TYPE
+    if user.user_type == 'agent':
+        # 🛠 SỬA LỖI: Lấy Agent object từ User
+        try:
+            agent_obj = Agent.objects.get(user=user)
+        except Agent.DoesNotExist:
+            #  QUAN TRỌNG: Phải return HttpResponse, không được để None
+            context = {
+                "total_contracts": 0,
+                "active_contracts": 0,
+                "year_fee": format_money(0),
+                "total_insurance": format_money(0),
+                "total_commission": format_money(0),
+                "policies": [],
+                "search_query": "",
+                "status": "",
+                "user_type": user.user_type,
+                "error_message": "Agent profile not found. Please complete your agent profile."
+            }
+            return render(request, "policy/policies_users.html", context)
 
-    # Đang hiệu lực
-    active_contracts = Policy.objects.filter(customer__user=user, policy_status="active").count()
+        # THỐNG KÊ CHO AGENT - DÙNG agent_obj
+        total_contracts = Policy.objects.filter(agent=agent_obj).count()
+        active_contracts = Policy.objects.filter(agent=agent_obj, policy_status="active").count()
+        year_fee = Policy.objects.filter(agent=agent_obj).aggregate(total=Sum("premium_amount"))["total"] or 0
+        year_fee_display = format_money(year_fee)
+        total_insurance = Policy.objects.filter(agent=agent_obj).aggregate(total=Sum("sum_insured"))["total"] or 0
+        total_insurance_display = format_money(total_insurance)
+        total_commission = Policy.objects.filter(agent=agent_obj, policy_status="active").aggregate(
+            total=Sum("commission_amount")
+        )["total"] or 0
+        total_commission_display = format_money(total_commission)
 
-    # Phí hàng năm
-    year_fee = Policy.objects.filter(customer__user=user).aggregate(total=Sum("premium_amount"))["total"] or 0
-    year_fee_display = format_money(year_fee)
+        # QuerySet cho agent
+        policies_qs = Policy.objects.select_related("product", "customer", "customer__user").filter(
+            agent=agent_obj
+        ).order_by('-updated_at')
 
-    # Tổng giá trị bảo hiểm
-    total_insurance = Policy.objects.filter(customer__user=user).aggregate(total=Sum("sum_insured"))["total"] or 0
-    total_insurance_display = format_money(total_insurance)
+    else:
+        # 👤 THỐNG KÊ CHO CUSTOMER (giữ nguyên code cũ)
+        total_contracts = Policy.objects.filter(customer__user_id=user.id).count()
+        active_contracts = Policy.objects.filter(customer__user=user, policy_status="active").count()
+        year_fee = Policy.objects.filter(customer__user=user).aggregate(total=Sum("premium_amount"))["total"] or 0
+        year_fee_display = format_money(year_fee)
+        total_insurance = Policy.objects.filter(customer__user=user).aggregate(total=Sum("sum_insured"))["total"] or 0
+        total_insurance_display = format_money(total_insurance)
+        total_commission = 0
+        total_commission_display = format_money(total_commission)
 
-    # --- Lọc và tìm kiếm ---
+        # QuerySet cho customer
+        policies_qs = Policy.objects.select_related("product").filter(
+            customer__user=user
+        ).order_by('-updated_at')
+
+    # --- Lọc và tìm kiếm (dùng chung) ---
     search_query = request.GET.get("q", "")
     status = request.GET.get("status")
-    policies_qs = Policy.objects.select_related("product").filter(customer__user=user).order_by('-updated_at')
 
     if search_query:
         policies_qs = policies_qs.filter(
@@ -119,9 +159,11 @@ def dashboard_view_user(request):
         "active_contracts": active_contracts,
         "year_fee": year_fee_display,
         "total_insurance": total_insurance_display,
+        "total_commission": total_commission_display,
         "policies": page_obj,
         "search_query": search_query,
         "status": status,
+        "user_type": user.user_type,
     }
 
     return render(request, "policy/policies_users.html", context)

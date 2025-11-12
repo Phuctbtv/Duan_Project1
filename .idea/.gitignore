@@ -8,3 +8,10 @@
 /dataSources.local.xml
 # Django PowerTools cache (generated)
 /djangoPowerTools/
+# Ignore PyCharm project files
+.idea/
+*.iml
+# Python cache
+__pycache__/
+*.py[cod]
+

@@ -2,7 +2,7 @@ import os
 from datetime import timedelta
 
 from django.db import models
-from users.models import Customer
+from users.models import Customer, Agent
 from users.models import User
 from insurance_products.models import InsuranceProduct
 from django.utils import timezone
@@ -28,7 +28,7 @@ class Policy(models.Model):
         Customer, on_delete=models.CASCADE, verbose_name="Khách hàng"
     )
     agent = models.ForeignKey(
-        User,
+        Agent,
         on_delete=models.SET_NULL,
         null=True, blank=True,
         limit_choices_to={"user_type": "agent"},

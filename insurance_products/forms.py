@@ -13,6 +13,7 @@ class InsuranceProductForm(forms.ModelForm):
             'premium_base_amount',
             'currency',
             'max_claim_amount',
+            "agent_commission_percent",
             'product_type',
         ]
 
@@ -24,6 +25,7 @@ class InsuranceProductForm(forms.ModelForm):
             'premium_base_amount': 'Phí bảo hiểm cơ bản',
             'currency': 'Đơn vị tiền tệ',
             'max_claim_amount': 'Số tiền bồi thường tối đa',
+            "agent_commission_percent" : 'Phí hoa hồng(%)',
             'product_type': 'Loại sản phẩm',
         }
 
@@ -35,6 +37,7 @@ class InsuranceProductForm(forms.ModelForm):
             'premium_base_amount': forms.NumberInput(attrs={'class': 'form-control'}),
             'currency': forms.TextInput(attrs={'class': 'form-control'}),
             'max_claim_amount': forms.NumberInput(attrs={'class': 'form-control'}),
+            'agent_commission_percent': forms.NumberInput(attrs={'class': 'form-control'}),
             'product_type': forms.TextInput(attrs={'class': 'form-control'}),
         }
 

@@ -52,7 +52,7 @@
                     <span class="font-semibold">{{ product.premium_base_amount|floatformat:0 }} {{ product.currency }}</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Phạm vi bảo hiểm:</span>
+                    <span class="text-gray-600">Số tiền bồi thường tối đa:</span>
                     <span class="font-semibold">
                         {% if product.max_claim_amount %}
                             {{ product.max_claim_amount|floatformat:0 }} {{ product.currency }}
@@ -81,7 +81,9 @@
         '{{ product.premium_base_amount|floatformat:0 }}',
         '{{ product.get_product_type_display|escapejs }}',
         '{{ product.max_claim_amount|default_if_none:"N/A"|floatformat:0 }}',
-        '{{ product.currency|escapejs }}'
+        '{{ product.currency|escapejs }}',
+                '{{ product.agent_commission_percent|floatformat:2 }}'
+
     )"
 >
     <i class="fas fa-eye"></i>
@@ -131,6 +133,7 @@
       <p><strong>Phí cơ bản:</strong> <span id="modalPrice"></span></p>
       <p><strong>Số tiền bồi thường tối đa:</strong> <span id="modalClaim"></span></p>
       <p><strong>Tiền tệ:</strong> <span id="modalCurrency"></span></p>
+           <p><strong>Phí hoa hồng:</strong> <span id="modalCommission"></span></p>
       <p><strong>Loại sản phẩm:</strong> <span id="modalType"></span></p>
     </div>
 
@@ -147,20 +150,21 @@
 </div>
 
 <script>
-  function openModal(name, description, coverage, price, type, claim, currency) {
-      document.getElementById('modalProductName').textContent = name;
-      document.getElementById('modalDescription').textContent = description;
-      document.getElementById('modalCoverage').textContent = coverage;
-      document.getElementById('modalPrice').textContent = price + ' ' + currency;
-      document.getElementById('modalClaim').textContent = claim + ' ' + currency;
-      document.getElementById('modalCurrency').textContent = currency;
-      document.getElementById('modalType').textContent = type;
+    function openModal(name, description, coverage, price, type, claim, currency, commission) {
+    document.getElementById('modalProductName').textContent = name;
+    document.getElementById('modalDescription').textContent = description;
+    document.getElementById('modalCoverage').textContent = coverage;
+    document.getElementById('modalPrice').textContent = price;
+    document.getElementById('modalClaim').textContent = claim;
+    document.getElementById('modalCurrency').textContent = currency;
+    document.getElementById('modalType').textContent = type;
+    document.getElementById('modalCommission').textContent = commission + '%';
 
-      const modal = document.getElementById('productModal');
-      const box = document.getElementById('modalBox');
-      modal.classList.remove('hidden');
-      setTimeout(() => box.classList.remove('scale-95'), 10);
-  }
+    const modal = document.getElementById('productModal');
+    const box = document.getElementById('modalBox');
+    modal.classList.remove('hidden');
+    setTimeout(() => box.classList.remove('scale-95'), 10);
+}
 
   function closeModal() {
       const modal = document.getElementById('productModal');

@@ -63,10 +63,10 @@
                 <a href="{% url 'custom_products_user' %}" class="text-gray-700 hover:text-blue-600 font-medium transition">
                     Sản phẩm
                 </a>
-                <a href="#about" class="text-gray-700 hover:text-blue-600 font-medium transition">
+                <a href="{% url 'about_us' %}" class="text-gray-700 hover:text-blue-600 font-medium transition">
                     Về chúng tôi
                 </a>
-                <a href="#contact" class="text-gray-700 hover:text-blue-600 font-medium transition">
+                <a href="{% url 'contact' %}" class="text-gray-700 hover:text-blue-600 font-medium transition">
                     Liên hệ
                 </a>
             </div>
@@ -236,30 +236,6 @@
 </section>
 
 <!-- Stats Section -->
-<section class="bg-white py-16">
-    <div class="container mx-auto px-6">
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-8">
-            <div class="text-center">
-                <div class="text-4xl font-bold text-blue-600 mb-2">50K+</div>
-                <div class="text-gray-600">Khách hàng tin tưởng</div>
-            </div>
-            <div class="text-center">
-                <div class="text-4xl font-bold text-blue-600 mb-2">99.8%</div>
-                <div class="text-gray-600">Tỷ lệ hài lòng</div>
-            </div>
-            <div class="text-center">
-                <div class="text-4xl font-bold text-blue-600 mb-2">24/7</div>
-                <div class="text-gray-600">Hỗ trợ khách hàng</div>
-            </div>
-            <div class="text-center">
-                <div class="text-4xl font-bold text-blue-600 mb-2">15 phút</div>
-                <div class="text-gray-600">Xử lý bồi thường</div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Products Section -->
 <section id="products" class="bg-gray-50 py-20">
     <div class="container mx-auto px-6">
         <div class="text-center mb-16">
@@ -268,77 +244,44 @@
         </div>
 
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <!-- Bảo hiểm Sức khỏe -->
+            {% for product in products %}
             <div class="bg-white rounded-xl shadow-lg p-8 card-hover">
-                <div class="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center mb-6">
-                    <i class="fas fa-heartbeat text-3xl text-green-600"></i>
-                </div>
-                <h3 class="text-2xl font-bold text-gray-800 mb-4">Bảo hiểm Sức khỏe</h3>
-                <p class="text-gray-600 mb-6">Bảo vệ toàn diện cho sức khỏe gia đình với mức phí hợp lý</p>
-                <ul class="space-y-2 mb-8">
-                    <li class="flex items-center text-gray-600">
-                        <i class="fas fa-check text-green-500 mr-3"></i>Chi phí khám chữa bệnh
-                    </li>
-                    <li class="flex items-center text-gray-600">
-                        <i class="fas fa-check text-green-500 mr-3"></i>Phẫu thuật & nằm viện
-                    </li>
-                    <li class="flex items-center text-gray-600">
-                        <i class="fas fa-check text-green-500 mr-3"></i>Thuốc men & xét nghiệm
-                    </li>
-                </ul>
-                <button class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition">
-                    Tìm hiểu thêm
-                </button>
-            </div>
+                <!-- Icon & màu sắc theo loại gói -->
+               <div class="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center mb-6">
+    <i class="fas fa-heartbeat text-green-600 text-3xl"></i>
+</div>
 
-            <!-- Bảo hiểm Xe cộ -->
-            <div class="bg-white rounded-xl shadow-lg p-8 card-hover">
-                <div class="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center mb-6">
-                    <i class="fas fa-car text-3xl text-blue-600"></i>
-                </div>
-                <h3 class="text-2xl font-bold text-gray-800 mb-4">Bảo hiểm Xe cộ</h3>
-                <p class="text-gray-600 mb-6">Bảo vệ xe của bạn khỏi mọi rủi ro trên đường</p>
-                <ul class="space-y-2 mb-8">
-                    <li class="flex items-center text-gray-600">
-                        <i class="fas fa-check text-green-500 mr-3"></i>Tai nạn giao thông
-                    </li>
-                    <li class="flex items-center text-gray-600">
-                        <i class="fas fa-check text-green-500 mr-3"></i>Trộm cắp & cháy nổ
-                    </li>
-                    <li class="flex items-center text-gray-600">
-                        <i class="fas fa-check text-green-500 mr-3"></i>Thiên tai & bão lũ
-                    </li>
-                </ul>
-                <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition">
-                    Tìm hiểu thêm
-                </button>
-            </div>
 
-            <!-- Bảo hiểm Nhà cửa -->
-            <div class="bg-white rounded-xl shadow-lg p-8 card-hover">
-                <div class="w-16 h-16 bg-orange-100 rounded-lg flex items-center justify-center mb-6">
-                    <i class="fas fa-home text-3xl text-orange-600"></i>
-                </div>
-                <h3 class="text-2xl font-bold text-gray-800 mb-4">Bảo hiểm Nhà cửa</h3>
-                <p class="text-gray-600 mb-6">An tâm với ngôi nhà được bảo vệ toàn diện</p>
-                <ul class="space-y-2 mb-8">
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">{{ product.product_name }}</h3>
+                <p class="text-gray-600 mb-6">{{ product.description }}</p>
+
+                <!-- Chi tiết bảo hiểm -->
+                <ul class="space-y-2 mb-6">
+                    {% for item in product.coverage_details.splitlines %}
                     <li class="flex items-center text-gray-600">
-                        <i class="fas fa-check text-green-500 mr-3"></i>Cháy nổ & sét đánh
+                        <i class="fas fa-check text-green-500 mr-3"></i>{{ item }}
                     </li>
-                    <li class="flex items-center text-gray-600">
-                        <i class="fas fa-check text-green-500 mr-3"></i>Thiên tai & động đất
-                    </li>
-                    <li class="flex items-center text-gray-600">
-                        <i class="fas fa-check text-green-500 mr-3"></i>Trộm cắp tài sản
-                    </li>
+                    {% endfor %}
                 </ul>
-                <button class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-semibold transition">
-                    Tìm hiểu thêm
-                </button>
+
+                <!-- Phí bảo hiểm -->
+                <p class="text-gray-800 font-semibold mb-4">
+                    Phí cơ bản: {{ product.premium_base_amount_short }} {{ product.currency }}
+                </p>
+<button onclick="window.location.href='{% url 'product_detail' product.id %}'"
+        class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition">
+    Tìm hiểu thêm
+</button>
+
+
             </div>
+            {% endfor %}
         </div>
     </div>
 </section>
+
+
+
 
 <!-- AI Features Section -->
 <section class="bg-white py-20">
@@ -397,6 +340,7 @@
 </section>
 
 <!-- My Policies Preview -->
+{% if user.is_authenticated %}
 <section class="bg-gray-50 py-20">
     <div class="container mx-auto px-6">
         <div class="text-center mb-16">
@@ -407,12 +351,14 @@
         <div class="bg-white rounded-2xl shadow-xl p-8">
             <div class="flex items-center justify-between mb-8">
                 <h3 class="text-2xl font-bold text-gray-800">Hợp đồng của tôi</h3>
-                <button class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition">
+                <a href="{% url 'custom_products_user' %}"
+                   class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition inline-flex items-center">
                     <i class="fas fa-plus mr-2"></i>Mua thêm
-                </button>
+                </a>
             </div>
 
             <div class="space-y-4">
+                {% for contract in contracts %}
                 <div class="border border-gray-200 rounded-lg p-6 hover:shadow-md transition">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center">
@@ -420,38 +366,26 @@
                                 <i class="fas fa-heartbeat text-green-600"></i>
                             </div>
                             <div>
-                                <h4 class="font-semibold text-gray-800">Bảo hiểm Sức khỏe Gia đình</h4>
-                                <p class="text-gray-600">Hợp đồng: #SH2024001</p>
+                                <h4 class="font-semibold text-gray-800">{{ contract.product.product_name }}</h4>
+                                <p class="text-gray-600">Hợp đồng: {{ contract.policy_number }}</p>
                             </div>
                         </div>
                         <div class="text-right">
                             <div class="text-green-600 font-semibold">Đang hiệu lực</div>
-                            <div class="text-gray-600">Hết hạn: 15/12/2024</div>
+                            <div class="text-gray-600">Hết hạn: {{ contract.end_date|date:"d/m/Y" }}</div>
                         </div>
                     </div>
                 </div>
-
-                <div class="border border-gray-200 rounded-lg p-6 hover:shadow-md transition">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
-                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
-                                <i class="fas fa-car text-blue-600"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-semibold text-gray-800">Bảo hiểm Ô tô Honda City</h4>
-                                <p class="text-gray-600">Hợp đồng: #XE2024002</p>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-green-600 font-semibold">Đang hiệu lực</div>
-                            <div class="text-gray-600">Hết hạn: 20/08/2024</div>
-                        </div>
-                    </div>
-                </div>
+                {% empty %}
+                <p class="text-gray-600 text-center">Bạn chưa có hợp đồng nào còn hiệu lực.</p>
+                {% endfor %}
             </div>
         </div>
     </div>
 </section>
+{% endif %}
+
+
 
 <!-- Notifications Section -->
 <section class="bg-white py-20">

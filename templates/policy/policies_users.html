@@ -1,6 +1,7 @@
 {% extends 'users/quanlytaikhoan.html' %}
-
 {% load static %}
+{% load humanize %}  <!-- THÊM DÒNG NÀY -->
+
 {% block users %}
 <div class="flex-1 p-8">
         <!-- Dashboard Stats -->
@@ -64,7 +65,24 @@
                 </div>
             </div>
 
-            <!-- Tổng bảo hiểm -->
+            <!-- THÊM: Tổng hoa hồng (chỉ hiển thị cho agent) -->
+            {% if user_type == 'agent' %}
+            <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Tổng hoa hồng</p>
+                        <p class="text-3xl font-bold text-yellow-600">{{ total_commission }} VNĐ</p>
+                    </div>
+                    <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-coins text-yellow-600 text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-gray-500">Hợp đồng đã duyệt</span>
+                </div>
+            </div>
+            {% else %}
+            <!-- Tổng bảo hiểm (chỉ hiển thị cho customer) -->
             <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
                 <div class="flex items-center justify-between">
                     <div>
@@ -79,6 +97,7 @@
                     <span class="text-gray-500">VNĐ bảo hiểm</span>
                 </div>
             </div>
+            {% endif %}
         </div>
 
 
