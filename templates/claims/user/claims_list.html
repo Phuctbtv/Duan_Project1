@@ -6,12 +6,14 @@
             <div class="w-12 h-12
                 {% if claim.claim_status == 'pending' %} bg-orange-100 {% elif claim.claim_status == 'in_progress' %} bg-blue-100
                 {% elif claim.claim_status == 'approved' %} bg-green-100 {% elif claim.claim_status == 'rejected' %} bg-red-100
+                {% elif claim.claim_status == 'request_more' %} bg-red-100
                 {% elif claim.claim_status == 'settled' %} bg-purple-100 {% endif %} rounded-lg flex items-center justify-center">
                 <i class="fas
                     {% if claim.claim_status == 'pending' %} fa-file-medical text-orange-600
                     {% elif claim.claim_status == 'in_progress' %} fa-cog text-blue-600
                     {% elif claim.claim_status == 'approved' %} fa-check-circle text-green-600
                     {% elif claim.claim_status == 'rejected' %} fa-times-circle text-red-600
+                    {% elif claim.claim_status == 'request_more' %} fa-times-circle text-red-600
                     {% elif claim.claim_status == 'settled' %} fa-medal text-purple-600 {% endif %} text-xl"></i>
             </div>
             <div>
@@ -25,11 +27,12 @@
                 {% elif claim.claim_status == 'processing' %} status-processing bg-blue-600
                 {% elif claim.claim_status == 'approved' %} status-approved bg-green-600
                 {% elif claim.claim_status == 'rejected' %} status-rejected bg-red-600
+                {% elif claim.claim_status == 'request_more' %} status-rejected bg-red-600
                 {% elif claim.claim_status == 'completed' %} status-completed bg-purple-600 {% endif %}">
                 {% if claim.claim_status == 'pending' %}
                     <i class="fas fa-clock mr-1"></i>Chờ xử lý
-                {% elif claim.claim_status == 'in_progress' %}
-                    <i class="fas fa-cog fa-spin mr-1"></i>Đang xử lý
+                {% elif claim.claim_status == 'request_more' %}
+                    <i class="fas fa-cog fa-spin mr-1"></i>Bổ sung tài liệu
                 {% elif claim.claim_status == 'approved' %}
                     <i class="fas fa-check-circle mr-1"></i>Đã duyệt
                 {% elif claim.claim_status == 'rejected' %}
@@ -131,7 +134,7 @@
 
     <div class="flex items-center justify-between">
         <div class="text-sm text-gray-600">
-            <i class="fas fa-paperclip mr-1"></i>{{ claim.documents_count|default:0 }} tài liệu đính kèm
+            <i class="fas fa-paperclip mr-1"></i>{{  claim.claim_documents.count |default:0 }} tài liệu đính kèm
         </div>
         <div class="flex space-x-2">
             <a type="button" href="{% url 'detail_claims' claim.id %}" class="text-blue-600 hover:text-blue-700 font-medium text-sm" >

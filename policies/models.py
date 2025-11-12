@@ -70,7 +70,13 @@ class Policy(models.Model):
         verbose_name="Tổng số tiền bảo hiểm",
 
     )
-
+    claimed_amount = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=0,
+        verbose_name="Tổng số tiền đã chi trả",
+        null=True, blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Ngày cập nhật")
 
