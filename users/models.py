@@ -55,41 +55,6 @@ def upload_cccd_front(instance, filename):
 
 def upload_cccd_back(instance, filename):
     return f"ekyc/customer_{instance.user.id}/cccd_back{os.path.splitext(filename)[1]}"
-
-
-class Customer(models.Model):
-    """Model khách hàng"""
-
-    user = models.OneToOneField(
-        User, on_delete=models.CASCADE, primary_key=True, verbose_name="Người dùng"
-    )
-    id_card_number = models.CharField(
-        max_length=20, unique=True, verbose_name="Số CMND/CCCD"
-    )
-    nationality = models.CharField(
-        max_length=50, default="Việt Nam", verbose_name="Quốc tịch"
-    )
-    cccd_front = models.FileField(upload_to=upload_cccd_front, null=True, blank=True)
-    cccd_back = models.FileField(upload_to=upload_cccd_back, null=True, blank=True)
-    GENDERS = [
-        ("male", "Nam"),
-        ("female", "Nữ"),
-        ("other","Khác")
-    ]
-
-    gender = models.CharField(
-        max_length=10, choices=GENDERS, default="other", verbose_name="Giới tính"
-    )
-    ocr_verified = models.BooleanField(default=False, verbose_name="Đã xác minh eKYC")
-    job = models.CharField(max_length=100, blank=True, verbose_name="Nghề nghiệp")
-    class Meta:
-        db_table = "customers"
-        verbose_name = "Khách hàng"
-        verbose_name_plural = "Khách hàng"
-
-    def __str__(self):
-        return f"{self.user.first_name} {self.user.last_name} - {self.id_card_number}"
-
 class Agent(models.Model):
     """Model đại lý / cộng tác viên bảo hiểm"""
 
@@ -133,3 +98,48 @@ class Agent(models.Model):
 
     def __str__(self):
         return f"{self.user.get_full_name()} - {self.code}"
+
+
+class Customer(models.Model):
+    """Model khách hàng"""
+
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, primary_key=True, verbose_name="Người dùng"
+    )
+    id_card_number = models.CharField(
+        max_length=20, unique=True, verbose_name="Số CMND/CCCD"
+    )
+    nationality = models.CharField(
+        max_length=50, default="Việt Nam", verbose_name="Quốc tịch"
+    )
+    cccd_front = models.FileField(upload_to=upload_cccd_front, null=True, blank=True)
+    cccd_back = models.FileField(upload_to=upload_cccd_back, null=True, blank=True)
+    GENDERS = [
+        ("male", "Nam"),
+        ("female", "Nữ"),
+        ("other","Khác")
+    ]
+
+    gender = models.CharField(
+        max_length=10, choices=GENDERS, default="other", verbose_name="Giới tính"
+    )
+    ocr_verified = models.BooleanField(default=False, verbose_name="Đã xác minh eKYC")
+    job = models.CharField(max_length=100, blank=True, verbose_name="Nghề nghiệp")
+
+    agent = models.ForeignKey(
+        Agent,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='customers',
+        verbose_name="Đại lý phụ trách"
+    )
+
+    class Meta:
+        db_table = "customers"
+        verbose_name = "Khách hàng"
+        verbose_name_plural = "Khách hàng"
+
+    def __str__(self):
+        return f"{self.user.first_name} {self.user.last_name} - {self.id_card_number}"
+

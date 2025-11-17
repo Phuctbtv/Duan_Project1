@@ -28,12 +28,7 @@ class Policy(models.Model):
         Customer, on_delete=models.CASCADE, verbose_name="Khách hàng"
     )
     agent = models.ForeignKey(
-        Agent,
-        on_delete=models.SET_NULL,
-        null=True, blank=True,
-        limit_choices_to={"user_type": "agent"},
-        related_name="sold_policies",
-        verbose_name="CTV bán"
+        Agent,on_delete=models.SET_NULL,null=True, blank=True,limit_choices_to={"user_type": "agent"},related_name="sold_policies",verbose_name="CTV bán"
     )
     commission_amount = models.DecimalField(
         max_digits=15, decimal_places=2, default=0.00, verbose_name="Hoa hồng thực tế (VNĐ)"
