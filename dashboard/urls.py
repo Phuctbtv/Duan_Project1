@@ -5,6 +5,7 @@
 from django.urls import path
 from . import views
 from .views import custom_section
+from .views import CheckUsernameView, CheckEmailView
 
 
 urlpatterns = [
@@ -21,4 +22,6 @@ urlpatterns = [
     path('agents/<int:user_id>/', views.agent_detail, name='agent_detail'),
     path('agents/<int:user_id>/edit/', views.agent_edit, name='agent_edit'),
     path('agents/<int:user_id>/toggle-status/', views.agent_toggle_status, name='agent_toggle_status'),
+    path('check-username/', CheckUsernameView.as_view(), name='check_username'),
+    path('check-email/', CheckEmailView.as_view(), name='check_email'),
 ]
