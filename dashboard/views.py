@@ -1,4 +1,10 @@
 from django.db import transaction
+import json
+import random
+import string
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.views import View
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
@@ -13,6 +19,62 @@ from claims.models import Claim
 from payments.models import Payment
 from django.contrib import messages
 
+
+def generate_agent_code():
+    """Tạo mã đại lý tự động theo định dạng AG + số ngẫu nhiên"""
+    while True:
+        # Tạo mã 3 chữ số ngẫu nhiên
+        random_digits = ''.join(random.choices(string.digits, k=3))
+        code = f"AG{random_digits}"
+
+        # Kiểm tra mã đã tồn tại chưa
+        if not Agent.objects.filter(code=code).exists():
+            return code
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CheckAgentCodeView(View):
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            code = data.get('code')
+            exists = Agent.objects.filter(code=code).exists()
+            return JsonResponse({'exists': exists})
+        except Exception as e:
+            return JsonResponse({'exists': False, 'error': str(e)})
+
+@login_required
+@admin_required
+def generate_agent_code_api(request):
+    """API tạo mã đại lý mới"""
+    try:
+        code = generate_agent_code()
+        return JsonResponse({'code': code})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CheckUsernameView(View):
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            username = data.get('username')
+            exists = User.objects.filter(username=username).exists()
+            return JsonResponse({'exists': exists})
+        except Exception as e:
+            return JsonResponse({'exists': False, 'error': str(e)})
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CheckEmailView(View):
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')
+            if not email:
+                return JsonResponse({'exists': False})
+            exists = User.objects.filter(email=email).exists()
+            return JsonResponse({'exists': exists})
+        except Exception as e:
+            return JsonResponse({'exists': False, 'error': str(e)})
 
 @login_required
 def admin_home(request):
@@ -548,8 +610,7 @@ def get_total_revenue():
 @admin_required
 def custom_section(request):
     """Quản lý khách hàng - Chỉ dành cho admin"""
-    # Chỉ lấy users là customer
-    users = User.objects.filter(user_type='customer')
+    users = User.objects.all()
 
     # Lấy tham số tìm kiếm và filter từ URL
     search_query = request.GET.get('q', '')
@@ -585,11 +646,22 @@ def customer_create(request):
     """Tạo khách hàng mới - Chỉ dành cho admin"""
     if request.method == 'POST':
         try:
+            username = request.POST.get('username')
+            email = request.POST.get('email')
+            # Kiểm tra username trùng
+            if User.objects.filter(username=username).exists():
+                messages.error(request, 'Tên đăng nhập đã tồn tại!')
+                return render(request, 'admin/customer_create.html')
+
+            # Kiểm tra email trùng
+            if email and User.objects.filter(email=email).exists():
+                messages.error(request, 'Email đã tồn tại!')
+                return render(request, 'admin/customer_create.html')
             # Tạo User trước
             user = User.objects.create_user(
-                username=request.POST.get('username'),
-                email=request.POST.get('email'),
-                password=request.POST.get('password', 'Dk123456'),
+                username=username,
+                email=email,
+                password=request.POST.get('password', 'D123456'),
                 first_name=request.POST.get('first_name'),
                 last_name=request.POST.get('last_name'),
                 phone_number=request.POST.get('phone_number'),
@@ -770,14 +842,38 @@ def agent_create(request):
     """Tạo đại lý mới"""
     if request.method == 'POST':
         try:
+            password = request.POST.get('password')
+            confirm_password = request.POST.get('confirm_password')
+
+            # Kiểm tra mật khẩu khớp
+            if password != confirm_password:
+                messages.error(request, 'Mật khẩu không khớp!')
+                return render(request, 'admin/agent_create.html')
+
+            # Kiểm tra username trùng
+            if User.objects.filter(username=request.POST.get('username')).exists():
+                messages.error(request, 'Tên đăng nhập đã tồn tại!')
+                return render(request, 'admin/agent_create.html')
+            # Kiểm tra email trùng (nếu có email)
+            email = request.POST.get('email')
+            if email and User.objects.filter(email=email).exists():
+                messages.error(request, 'Email đã tồn tại!')
+                return render(request, 'admin/agent_create.html')
+
+            agent_code = request.POST.get('code')
+            if not agent_code:
+                agent_code = generate_agent_code()
+
             # Tạo User
             user = User.objects.create_user(
                 username=request.POST.get('username'),
-                email=request.POST.get('email'),
-                password=request.POST.get('password', 'Dk123456'),
+                email=email,
+                password=password,
                 first_name=request.POST.get('first_name'),
                 last_name=request.POST.get('last_name'),
-                phone_number=request.POST.get('phone_number', ''),
+                phone_number=request.POST.get('phone_number'),
+                address=request.POST.get('address'),
+                date_of_birth=request.POST.get('date_of_birth') or None,
                 user_type='agent',
                 is_active=True
             )
@@ -785,13 +881,13 @@ def agent_create(request):
             # Tạo Agent
             Agent.objects.create(
                 user=user,
-                code=request.POST.get('code'),
+                code=agent_code,
                 bank_name=request.POST.get('bank_name', ''),
                 bank_account_number=request.POST.get('bank_account_number', ''),
                 bank_account_holder=request.POST.get('bank_account_holder', '')
             )
 
-            messages.success(request, f'Đã tạo đại lý {user.get_full_name()} thành công!')
+            messages.success(request, f'Đã tạo đại lý {user.get_full_name()} thành công! Mã đại lý: {agent_code}')
             return redirect('custom_section')
 
         except Exception as e:
@@ -827,7 +923,9 @@ def agent_edit(request, user_id):
             user.first_name = request.POST.get('first_name')
             user.last_name = request.POST.get('last_name')
             user.email = request.POST.get('email')
-            user.phone_number = request.POST.get('phone_number', '')
+            user.phone_number = request.POST.get('phone_number')
+            user.address = request.POST.get('address')
+            user.date_of_birth = request.POST.get('date_of_birth') or None
             user.is_active = request.POST.get('is_active') == 'on'
             user.save()
 

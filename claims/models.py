@@ -1,4 +1,9 @@
+from django.utils import timezone
+
 from django.db import models
+from decimal import Decimal
+from insurance_app import settings
+from users.models import Customer
 from users.models import Customer, Agent
 from policies.models import Policy
 
@@ -11,6 +16,7 @@ class Claim(models.Model):
         ("in_progress", "Đang xử lý"),
         ("approved", "Đã duyệt"),
         ("rejected", "Từ chối"),
+        ('request_more', 'Yêu cầu bổ sung'),
         ("settled", "Đã giải quyết"),
     ]
 
@@ -38,13 +44,7 @@ class Claim(models.Model):
     requested_amount = models.DecimalField(
         max_digits=15, decimal_places=2, verbose_name="Số tiền yêu cầu"
     )
-    claimed_amount = models.DecimalField(
-        max_digits=15,
-        decimal_places=2,
-        default=0,
-        verbose_name="Tổng số tiền đã chi trả",
-        null=True, blank=True
-    )
+
     claim_status = models.CharField(
         max_length=15,
         choices=CLAIM_STATUS_CHOICES,
@@ -58,10 +58,12 @@ class Claim(models.Model):
         blank=True,
         verbose_name="Số tiền được duyệt",
     )
-    rejection_reason = models.TextField(blank=True, verbose_name="Lý do từ chối")
+    decision_reason = models.TextField(blank=True, null=True, verbose_name='Lý do quyết định')
+    decided_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, verbose_name='Người phê duyệt')
+
     settlement_date = models.DateTimeField(
-        null=True, blank=True, verbose_name="Ngày giải quyết"
-    )
+        null=True, blank=True, verbose_name="Ngày giải quyết" )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Ngày cập nhật")
 
@@ -73,6 +75,30 @@ class Claim(models.Model):
     def __str__(self):
         return f"Yêu cầu #{self.id} - {self.customer.user.first_name} {self.customer.user.last_name}"
 
+    def approved(self, user, reason,approved_amount):
+        self.claim_status = "approved"
+        self.decision_reason = reason
+        self.decided_by = user
+        self.approved_amount = Decimal(approved_amount)
+        policy = self.policy
+        policy.claimed_amount = (policy.claimed_amount or 0) + Decimal(approved_amount)
+        policy.save()
+        self.settlement_date = timezone.now()
+        self.save()
+
+    def reject(self, user, reason):
+        self.claim_status = "rejected"
+        self.decision_reason = reason
+        self.decided_by = user
+        self.settlement_date = timezone.now()
+        self.save()
+
+    def request_more(self, user, reason):
+        self.claim_status = "request_more"
+        self.decision_reason = reason
+        self.decided_by = user
+        self.settlement_date = timezone.now()
+        self.save()
 class ClaimMedicalInfo(models.Model):
     """Thông tin y tế liên quan đến yêu cầu bồi thường"""
 

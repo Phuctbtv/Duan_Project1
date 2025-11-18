@@ -9,111 +9,124 @@
             <p class="text-gray-600">Cập nhật thông tin khách hàng</p>
         </div>
 
+        <!-- Hiển thị messages -->
+        {% if messages %}
+        <div class="mb-6">
+            {% for message in messages %}
+            <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <div class="bg-white rounded-xl shadow-sm p-6">
-            <form method="POST">
+            <form method="POST" id="customerForm">
                 {% csrf_token %}
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Thông tin đăng nhập -->
                     <div class="md:col-span-2">
                         <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Thông tin đăng nhập</h3>
                     </div>
-                    
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Tên đăng nhập</label>
                         <input type="text" value="{{ user.username }}" disabled
                                class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100">
                         <p class="text-xs text-gray-500 mt-1">Không thể thay đổi tên đăng nhập</p>
                     </div>
-                    
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
-                        <input type="email" name="email" value="{{ user.email }}" required
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <input type="email" name="email" id="email" value="{{ user.email }}" required
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               onblur="checkEmail()">
+                        <div id="emailFeedback" class="text-sm mt-1 hidden"></div>
                     </div>
 
                     <!-- Thông tin cá nhân -->
                     <div class="md:col-span-2 mt-4">
                         <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Thông tin cá nhân</h3>
                     </div>
-                    
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Họ *</label>
                         <input type="text" name="first_name" value="{{ user.first_name }}" required
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                    
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Tên *</label>
                         <input type="text" name="last_name" value="{{ user.last_name }}" required
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
 
                     <!-- Thông tin liên hệ -->
                     <div class="md:col-span-2 mt-4">
                         <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Thông tin liên hệ</h3>
                     </div>
-                    
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Số điện thoại</label>
                         <input type="tel" name="phone_number" value="{{ user.phone_number|default:'' }}"
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                    
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Ngày sinh</label>
                         <input type="date" name="date_of_birth" value="{{ user.date_of_birth|date:'Y-m-d'|default:'' }}"
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                    
+
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Địa chỉ</label>
                         <textarea name="address" rows="3"
-                                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">{{ user.address|default:'' }}</textarea>
+                                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">{{ user.address|default:'' }}</textarea>
                     </div>
 
                     <!-- Thông tin bổ sung -->
                     <div class="md:col-span-2 mt-4">
                         <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Thông tin bổ sung</h3>
                     </div>
-                    
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Số CMND/CCCD *</label>
-                        <input type="text" name="id_card_number" 
+                        <input type="text" name="id_card_number"
                                value="{% if customer %}{{ customer.id_card_number }}{% endif %}" required
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                    
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Giới tính</label>
-                        <select name="gender" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <select name="gender" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             <option value="male" {% if customer and customer.gender == 'male' %}selected{% endif %}>Nam</option>
                             <option value="female" {% if customer and customer.gender == 'female' %}selected{% endif %}>Nữ</option>
                             <option value="other" {% if not customer or customer.gender == 'other' %}selected{% endif %}>Khác</option>
                         </select>
                     </div>
-                    
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Quốc tịch</label>
-                        <input type="text" name="nationality" 
+                        <input type="text" name="nationality"
                                value="{% if customer %}{{ customer.nationality }}{% else %}Việt Nam{% endif %}"
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                    
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Nghề nghiệp</label>
                         <input type="text" name="job" value="{% if customer %}{{ customer.job }}{% endif %}"
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
 
                     <!-- Trạng thái -->
                     <div class="md:col-span-2 mt-4">
                         <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Trạng thái tài khoản</h3>
                     </div>
-                    
+
                     <div class="md:col-span-2">
                         <label class="flex items-center">
-                            <input type="checkbox" name="is_active" {% if user.is_active %}checked{% endif %} 
+                            <input type="checkbox" name="is_active" id="is_active" {% if user.is_active %}checked{% endif %}
                                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                             <span class="ml-2 text-sm text-gray-700">Tài khoản đang hoạt động</span>
                         </label>
@@ -123,11 +136,11 @@
 
                 <!-- Buttons -->
                 <div class="mt-8 flex justify-end space-x-4">
-                    <a href="{% url 'customer_detail' user.id %}" 
+                    <a href="{% url 'customer_detail' user.id %}"
                        class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition duration-200">
                         Hủy bỏ
                     </a>
-                    <button type="submit" 
+                    <button type="submit" id="submitBtn"
                             class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200">
                         <i class="fas fa-save mr-2"></i>Cập nhật
                     </button>
@@ -136,4 +149,94 @@
         </div>
     </div>
 </div>
+
+<script>
+// CSRF token cho AJAX
+function getCSRFToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]').value;
+}
+
+// Kiểm tra email trùng (trừ email hiện tại của user)
+async function checkEmail() {
+    const email = document.getElementById('email').value;
+    const feedback = document.getElementById('emailFeedback');
+    const submitBtn = document.getElementById('submitBtn');
+    const currentEmail = "{{ user.email }}";
+
+    if (!email) {
+        showFeedback(feedback, 'Email là bắt buộc', 'error');
+        submitBtn.disabled = true;
+        return false;
+    }
+
+    // Nếu email không thay đổi thì không cần kiểm tra
+    if (email === currentEmail) {
+        showFeedback(feedback, '', 'success');
+        submitBtn.disabled = false;
+        return true;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        showFeedback(feedback, 'Email không hợp lệ', 'error');
+        submitBtn.disabled = true;
+        return false;
+    }
+
+    try {
+        const response = await fetch('/admin/check-email/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({
+                email: email,
+                current_email: currentEmail
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.exists) {
+            showFeedback(feedback, 'Email đã tồn tại', 'error');
+            submitBtn.disabled = true;
+            return false;
+        } else {
+            showFeedback(feedback, 'Email có thể sử dụng', 'success');
+            submitBtn.disabled = false;
+            return true;
+        }
+    } catch (error) {
+        console.error('Error checking email:', error);
+        return false;
+    }
+}
+
+// Hiển thị feedback
+function showFeedback(element, message, type) {
+    if (!message) {
+        element.classList.add('hidden');
+        return;
+    }
+    element.textContent = message;
+    element.className = 'text-sm mt-1 ' + (type === 'success' ? 'text-green-600' : 'text-red-600');
+    element.classList.remove('hidden');
+}
+
+// Validate form trước khi submit
+document.getElementById('customerForm').addEventListener('submit', async function(e) {
+    const emailValid = await checkEmail();
+
+    if (!emailValid) {
+        e.preventDefault();
+        alert('Vui lòng kiểm tra lại thông tin email!');
+    }
+});
+
+// Kích hoạt nút submit khi trang load
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('submitBtn').disabled = false;
+});
+</script>
 {% endblock %}

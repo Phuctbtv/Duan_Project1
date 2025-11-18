@@ -1,4 +1,7 @@
+from decimal import Decimal
+
 from django.contrib import messages
+from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
@@ -7,7 +10,7 @@ from django.views.decorators.http import require_http_methods
 from policies.models import PolicyHolder
 from policies.views import format_money
 
-from .models import ClaimPayment
+from .models import ClaimPayment, RiskAssessment
 from django.db.models import Sum, Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -31,14 +34,15 @@ def custom_claims_user(request):
     # Số yêu cầu chờ xử lý
     pending_claims = Claim.objects.filter(policy__customer__user=user, claim_status="pending").count()
     # Tổng số tiền đã bồi thường
-    total_paid = Claim.objects.filter(policy__customer__user=request.user).aggregate(
+    total_paid = Policy.objects.filter(customer__user=request.user).aggregate(
         total=Sum("claimed_amount")
     )["total"] or 0
 
     total_paid_display = format_money(total_paid)
-    claims = Claim.objects.select_related("policy", "policy__product").filter(
-        policy__customer__user=user
-    ).order_by("-claim_date")
+    claims = (Claim.objects.select_related("policy", "policy__product")
+                    .prefetch_related("claim_medical_info", "claim_documents")
+                    .filter(policy__customer__user=user
+    ).order_by("-claim_date"))
     # Phân trang mặc định
     paginator = Paginator(claims, 5)
     page_number = request.GET.get("page", 1)
@@ -63,9 +67,10 @@ def filter_claims_ajax(request):
     page_number = request.GET.get("page", 1)
 
 
-    claims = Claim.objects.select_related("policy", "policy__product").filter(
-        policy__customer__user=user
-    )
+    claims = (Claim.objects.select_related("policy", "policy__product")
+                    .prefetch_related("claim_medical_info", "claim_documents")
+                    .filter(policy__customer__user=user
+    ).order_by("-claim_date"))
 
     # --- Lọc ---
     if status and status != "all":
@@ -84,9 +89,9 @@ def filter_claims_ajax(request):
     elif sort == "oldest":
         claims = claims.order_by("claim_date")
     elif sort == "amount-high":
-        claims = claims.order_by("-claimed_amount")
+        claims = claims.order_by("-approved_amount")
     elif sort == "amount-low":
-        claims = claims.order_by("claimed_amount")
+        claims = claims.order_by("approved_amount")
     # --- Phân trang ---
     paginator = Paginator(claims, 4)
     page_obj = paginator.get_page(page_number)
@@ -94,7 +99,7 @@ def filter_claims_ajax(request):
     print("số page= ",page_obj.paginator.num_pages)
     html = render_to_string(
         "claims/user/claims_list.html",
-        {"claims": page_obj.object_list, "page_obj": page_obj}
+        {"claims": page_obj.object_list, "page_obj": page_obj,},
     )
     return JsonResponse({"html": html})
 
@@ -220,95 +225,125 @@ def detail_claims(request,pk):
     except Claim.DoesNotExist:
         return render(request, 'errors/404.html', status=404)
 
+from django.utils import timezone
+
 def generate_timeline(claim):
     """
-    Tạo timeline dựa trên trạng thái và thời gian của claim
+    Sinh timeline hiển thị tiến trình xử lý yêu cầu bồi thường
+    theo trạng thái hiện tại của claim.
     """
+
     timeline = []
 
-    # Step 1: Submitted - Luôn có
+    # STEP 1️⃣: Nộp yêu cầu
     timeline.append({
         'step': 1,
         'title': 'Đã nộp yêu cầu',
-        'description': 'Yêu cầu bồi thường đã được gửi thành công',
+        'description': 'Khách hàng đã gửi yêu cầu bồi thường.',
         'date': claim.claim_date.strftime('%d/%m/%Y - %H:%M'),
         'status': 'completed',
-        'icon': 'fa-check'
+        'icon': 'fa-file-upload'
     })
 
-    # Step 2: Document Review
-    doc_status = 'completed' if claim.claim_status in ['in_progress', 'approved', 'settled'] else 'pending'
-    doc_date = (claim.claim_date + timezone.timedelta(days=1)).strftime(
-        '%d/%m/%Y - %H:%M') if doc_status == 'completed' else 'Đang xử lý'
+    # STEP 2️⃣: Kiểm tra tài liệu
+    if claim.claim_status in ['in_progress', 'approved', 'rejected', 'request_more', 'settled']:
+        status = 'completed'
+        date = 'Đã xử lý'
+    elif claim.claim_status == 'pending':
+        status = 'in_progress'
+        date = 'Đang xử lý'
+    else:
+        status = 'pending'
+        date = 'Chờ xử lý'
 
     timeline.append({
         'step': 2,
         'title': 'Kiểm tra tài liệu',
-        'description': 'Tài liệu đã được kiểm tra và xác thực' if doc_status == 'completed' else 'Đang kiểm tra tính hợp lệ của tài liệu',
-        'date': doc_date,
-        'status': doc_status,
-        'icon': 'fa-check' if doc_status == 'completed' else 'fa-search'
+        'description': 'Tài liệu được nhân viên xác minh và đánh giá.',
+        'date': date,
+        'status': status,
+        'icon': 'fa-folder-open'
     })
 
-    # Step 3: Assessment
-    assessment_status = 'pending'
-    assessment_date = 'Chờ xử lý'
-
+    # STEP 3️⃣: Đánh giá yêu cầu
     if claim.claim_status == 'in_progress':
-        assessment_status = 'in_progress'
-        assessment_date = (claim.claim_date + timezone.timedelta(days=2)).strftime('%d/%m/%Y - %H:%M')
-    elif claim.claim_status in ['approved', 'settled']:
-        assessment_status = 'completed'
-        assessment_date = (claim.claim_date + timezone.timedelta(days=2)).strftime('%d/%m/%Y - %H:%M')
+        status = 'in_progress'
+        date = 'Đang xử lý'
+    elif claim.claim_status in ['approved', 'rejected', 'request_more', 'settled']:
+        status = 'completed'
+        date = 'Đã xử lý'
+    else:
+        status = 'pending'
+        date = 'Chờ xử lý'
 
     timeline.append({
         'step': 3,
         'title': 'Đánh giá yêu cầu',
-        'description': 'Chuyên viên đang đánh giá và tính toán số tiền bồi thường' if assessment_status == 'in_progress' else 'Đánh giá chi tiết yêu cầu bồi thường',
-        'date': assessment_date,
-        'status': assessment_status,
-        'icon': 'fa-search' if assessment_status == 'in_progress' else (
-            'fa-check' if assessment_status == 'completed' else 'fa-clipboard-list')
+        'description': 'Bộ phận chuyên môn đang xem xét chi tiết yêu cầu bồi thường.',
+        'date': date,
+        'status': status,
+        'icon': 'fa-search'
     })
 
-    # Step 4: Approval - Luôn có
-    approval_status = 'pending'
-    approval_date = 'Chờ xử lý'
+    # STEP 4️⃣: Quyết định phê duyệt / từ chối / yêu cầu bổ sung
+    if claim.claim_status in ['approved', 'rejected', 'request_more', 'settled']:
+        status = 'completed'
+        date = 'Đã xử lý'
+    elif claim.claim_status == 'in_progress':
+        status = 'in_progress'
+        date = 'Đang xử lý'
+    else:
+        status = 'pending'
+        date = 'Chờ xử lý'
 
-    if claim.claim_status in ['approved', 'settled']:
-        approval_status = 'completed'
-        approval_date = (claim.claim_date + timezone.timedelta(days=4)).strftime('%d/%m/%Y - %H:%M')
+    # Biểu tượng & mô tả linh hoạt theo loại quyết định
+    desc_map = {
+        'approved': 'Yêu cầu bồi thường đã được phê duyệt.',
+        'rejected': 'Yêu cầu bồi thường đã bị từ chối.',
+        'request_more': 'Yêu cầu khách hàng bổ sung thêm tài liệu.',
+        'in_progress': 'Đang chờ quyết định cuối cùng.',
+        'pending': 'Đang chờ xử lý.'
+    }
+
+    icon_map = {
+        'approved': 'fa-check-circle',
+        'rejected': 'fa-times-circle',
+        'request_more': 'fa-exclamation-circle',
+        'in_progress': 'fa-hourglass-half',
+        'pending': 'fa-clipboard-list'
+    }
 
     timeline.append({
         'step': 4,
-        'title': 'Phê duyệt',
-        'description': 'Quyết định cuối cùng về yêu cầu bồi thường',
-        'date': approval_date,
-        'status': approval_status,
-        'icon': 'fa-clipboard-check'
+        'title': 'Quyết định xử lý',
+        'description': desc_map.get(claim.claim_status, 'Đang xử lý yêu cầu.'),
+        'date': date,
+        'status': status,
+        'icon': icon_map.get(claim.claim_status, 'fa-clipboard-list')
     })
 
-    # Step 5: Payment - Luôn có
-    payment_status = 'pending'
-    payment_date = 'Chờ xử lý'
-
-    if claim.claim_status == 'settled' and claim.settlement_date:
-        payment_status = 'completed'
-        payment_date = claim.settlement_date.strftime('%d/%m/%Y - %H:%M')
+    # STEP 5️⃣: Thanh toán bồi thường
+    if claim.claim_status == 'settled':
+        status = 'completed'
+        date = claim.settlement_date.strftime('%d/%m/%Y - %H:%M') if claim.settlement_date else 'Đã giải quyết'
     elif claim.claim_status == 'approved':
-        payment_status = 'in_progress'
-        payment_date = 'Đang xử lý'
+        status = 'in_progress'
+        date = 'Đang tiến hành thanh toán'
+    else:
+        status = 'pending'
+        date = 'Chờ phê duyệt'
 
     timeline.append({
         'step': 5,
         'title': 'Thanh toán',
-        'description': 'Chuyển khoản số tiền bồi thường',
-        'date': payment_date,
-        'status': payment_status,
+        'description': 'Thực hiện thanh toán số tiền bồi thường cho khách hàng.',
+        'date': date,
+        'status': status,
         'icon': 'fa-money-bill-wave'
     })
 
     return timeline
+
 @login_required(login_url='login')
 def add_additional_documents(request, claim_number):
     if request.method == 'POST':
@@ -351,33 +386,30 @@ def add_additional_documents(request, claim_number):
 # ADMIN
 @login_required(login_url='login')
 def custom_claims_admin(request):
-    # Tổng số yêu cầu bồi thường
-    total_claims = Claim.objects.all().count()
+    # Số yeeu cầu từ chối
+    rejected_claims = Claim.objects.filter( claim_status="rejected").all().count()
 
     # Số yêu cầu đã duyệt
-    approved_claims = Claim.objects.all().count()
+    approved_claims = Claim.objects.filter( claim_status="approved").all().count()
 
     # Số yêu cầu chờ xử lý
     pending_claims = Claim.objects.filter( claim_status="pending").all().count()
     # Tổng số tiền đã bồi thường
-    total_paid = Claim.objects.all().aggregate(
+    total_paid = Policy.objects.all().aggregate(
         total=Sum("claimed_amount")
     )["total"] or 0
 
     total_paid_display = format_money(total_paid)
-    claims = Claim.objects.select_related("policy", "policy__product").order_by("-claim_date")
-    # Phân trang mặc định
-    paginator = Paginator(claims, 5)
-    page_number = request.GET.get("page", 1)
-    page_obj = paginator.get_page(page_number)
+    claims = Claim.objects.select_related("policy", "policy__product").prefetch_related("claim_medical_info", "claim_documents").order_by("-claim_date")
+
 
     return render(request, "claims/admin/claim_home.html", {
-        "claims": page_obj.object_list,
-        "page_obj": page_obj,
-        "total_claims": total_claims,
+        "rejected_claims": rejected_claims,
         "approved_claims": approved_claims,
         "pending_claims": pending_claims,
         "total_paid": total_paid_display,
+        "status_choices": Claim.CLAIM_STATUS_CHOICES,
+        "type_choices": ClaimMedicalInfo.TREATMENT_TYPE_CHOICES,
     })
 
 @csrf_exempt
@@ -420,15 +452,35 @@ def get_all_claims(request):
             "customer_name": claim.customer.user.get_full_name(),
             "incident_date": claim.incident_date,
             "requested_amount": float(claim.requested_amount),
+            "product_name":claim.policy.product.product_name,
             "claim_status": claim.claim_status,
-            "hospital_name": (
-                claim.claim_medical_info.first().hospital_name
-                if claim.claim_medical_info.exists()
-                else None
-            ),
-            "treatmentType":claim.claim_medical_info.first().treatment_type,
-            "documents": claim.claim_documents.count(),
+            "description":claim.description,
             "created_at": claim.created_at.strftime("%Y-%m-%d %H:%M"),
+
+            "medical_info": [
+                {
+                    "hospital_name": info.hospital_name,
+                    "treatment_type": info.treatment_type,
+                    "diagnosis": info.diagnosis,
+                    "doctor_name": info.doctor_name,
+                    "hospital_address":info.hospital_address,
+                    "admission_date":info.admission_date,
+                    "discharge_date":info.discharge_date,
+                    "total_treatment_cost":info.total_treatment_cost
+                }
+                for info in claim.claim_medical_info.all()
+            ],
+
+            "documents_count": claim.claim_documents.count(),
+            "documents": [
+                {
+
+                    "document_type": doc.document_type,
+                    "file_url": doc.file_url.url if doc.file_url else None,
+                    "uploaded_at": doc.uploaded_at.strftime("%Y-%m-%d %H:%M"),
+                }
+                for doc in claim.claim_documents.all()
+            ],
         }
         for claim in page_obj
     ]
@@ -445,3 +497,140 @@ def get_all_claims(request):
         },
         status=200,
     )
+def assess_claim_risk(claim):
+    """
+    Đánh giá rủi ro gian lận yêu cầu bồi thường.
+    """
+    score = 0
+    details = {}
+
+    medical_info = claim.claim_medical_info.first()
+
+    # 1️ Kiểm tra loại điều trị và số tiền yêu cầu
+    if medical_info:
+        treatment_type = medical_info.treatment_type
+        amount = claim.requested_amount
+
+        # Ngoại trú: chi phí cao bất thường
+        if treatment_type == "outpatient" and amount > 10_000_000:
+            score += 25
+            details["outpatient_high_cost"] = "Điều trị ngoại trú nhưng chi phí > 10 triệu"
+
+        # Nội trú: chi phí quá thấp hoặc quá cao
+        elif treatment_type == "inpatient":
+            if amount < 500_000:
+                score += 15
+                details["inpatient_low_cost"] = "Điều trị nội trú nhưng chi phí bất thường thấp"
+            elif amount > 100_000_000:
+                score += 30
+                details["inpatient_high_cost"] = "Điều trị nội trú với chi phí rất cao"
+
+        # Phẫu thuật: yêu cầu bồi thường nhiều lần hoặc số tiền vượt trội
+        elif treatment_type == "surgery":
+            if amount > 200_000_000:
+                score += 40
+                details["surgery_unusual_cost"] = "Phẫu thuật có chi phí cực cao"
+            if claim.customer.claim_set.filter(claim_medical_info__treatment_type="surgery").count() > 2:
+                score += 20
+                details["multiple_surgeries"] = "Khách hàng có nhiều yêu cầu phẫu thuật trong thời gian ngắn"
+
+        # Khám sức khỏe: nhưng lại yêu cầu bồi thường lớn (bất thường)
+        elif treatment_type == "checkup" and amount > 1_000_000:
+            score += 15
+            details["checkup_high_cost"] = "Khám sức khỏe mà yêu cầu chi phí cao"
+
+    # 2️ Kiểm tra thời gian yêu cầu sau khi mua bảo hiểm
+    if (claim.incident_date - claim.policy.start_date).days < 30:
+        score += 25
+        details["early_claim"] = "Phát sinh yêu cầu sớm trong vòng 30 ngày kể từ ngày hiệu lực"
+
+    # 3️ Nếu khách hàng đã từng bị từ chối trước đó
+    if claim.customer.claim_set.filter(claim_status="rejected").exists():
+        score += 10
+        details["previous_rejection"] = "Khách hàng từng có yêu cầu bị từ chối"
+
+    # 4️⃣ Nếu có thiếu tài liệu
+    if claim.claim_documents.count() < 2:
+        score += 10
+        details["missing_documents"] = "Thiếu tài liệu bồi thường cần thiết"
+    if score <= 30:
+        level = "low"
+        level_display = "Thấp"
+    elif score <= 60:
+        level = "medium"
+        level_display = "Trung bình"
+    else:
+        level = "high"
+        level_display = "Cao"
+    return {"risk_level": level, "score": score, "details": details,"risk_level_display": level_display}
+@login_required
+@require_http_methods(["GET"])
+def claim_risk_assessment_api(request, claim_id):
+    """
+    API đánh giá rủi ro gian lận của hồ sơ bồi thường
+    """
+    try:
+        claim = Claim.objects.get(id=claim_id)
+        claim.status = "in_progress"
+        claim.save()
+    except Claim.DoesNotExist:
+        return JsonResponse(
+            {"error": "Không tìm thấy hồ sơ bồi thường"}, status=404
+        )
+
+    result = assess_claim_risk(claim)
+    # RiskAssessment.objects.create(
+    #     claim=claim,
+    #     policy=claim.policy,
+    #     risk_score=result["score"],
+    #     risk_level=result["risk_level"],
+    #     ai_model_version="v1.0",
+    #     assessment_details=result["details"],
+    # )
+    return JsonResponse(result, status=200, safe=False)
+@login_required
+def claim_decision_view(request, claim_id):
+    """
+    Xử lý phê duyệt / từ chối / yêu cầu bổ sung bồi thường
+    """
+    claim = get_object_or_404(Claim, id=claim_id)
+
+    if request.method == "POST":
+        decision = request.POST.get("decision")
+        reason = request.POST.get("reason")
+        approvedAmount = request.POST.get("approvedAmount")
+        if not decision or not reason:
+            messages.error(request, "Vui lòng chọn quyết định và nhập lý do.")
+            return redirect(request.META.get("HTTP_REFERER", "/"))
+
+        # Cập nhật quyết định
+        if decision == "approve":
+            claim.approved(request.user, reason,approvedAmount)
+            messages.success(request, "✅ Đã phê duyệt yêu cầu bồi thường.")
+        elif decision == "reject":
+            claim.reject(request.user, reason)
+            messages.warning(request, "❌ Đã từ chối yêu cầu bồi thường.")
+        elif decision == "request_more":
+            claim.request_more(request.user, reason)
+            messages.info(request, "🟡 Đã yêu cầu bổ sung tài liệu.")
+        else:
+            messages.error(request, "Giá trị quyết định không hợp lệ.")
+            return redirect(request.META.get("HTTP_REFERER", "/"))
+        send_mail(
+            subject=f"Kết quả xử lý bồi thường #{claim.id}",
+            message=f"Kính gửi {claim.customer.user.get_full_name()},\n\n"
+                    f"Yêu cầu bồi thường của bạn đã được xử lý: {claim.get_claim_status_display()}.\n"
+                    f"Lý do: {reason}\n\nTrân trọng,\nCông ty bảo hiểm",
+            from_email="noreply@insurance.vn",
+            recipient_list=[claim.customer.user.email],
+        )
+
+    print(claim.get_claim_status_display())
+    # Nếu GET thì chỉ hiển thị thông tin
+    return JsonResponse({
+        "claim_id": claim.id,
+        "claim_status": claim.claim_status,
+        "reason": claim.decision_reason,
+        "decided_by": claim.decided_by.username if claim.decided_by else None,
+        "settlement_date": claim.settlement_date,
+    })

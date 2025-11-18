@@ -87,7 +87,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-gray-600">Từ chối</p>
-                        <p class="text-2xl font-bold text-red-600">{{ rejected_claims|default:0 }}</p>
+                        <p class="text-2xl font-bold text-red-600">{{ decision_reason|default:0 }}</p>
                     </div>
                     <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
                         <i class="fas fa-times-circle text-red-600"></i>
@@ -119,20 +119,24 @@
                         <div class="flex-1 min-w-64">
                             <input type="text" id="searchInput" placeholder="Tìm kiếm theo mã, tên khách hàng..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" onkeyup="filterClaims()">
                         </div>
-                        <select id="statusFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" onchange="filterClaims()">
-                            <option value="">Tất cả trạng thái</option>
-                            <option value="pending">Chờ xét duyệt</option>
-                            <option value="reviewing">Đang xem xét</option>
-                            <option value="approved">Đã phê duyệt</option>
-                            <option value="rejected">Từ chối</option>
-                        </select>
-                        <select id="typeFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" onchange="filterClaims()">
-                            <option value="">Tất cả loại</option>
-                            <option value="outpatient">Ngoại trú</option>
-                            <option value="inpatient">Nội trú</option>
-                            <option value="emergency">Cấp cứu</option>
-                            <option value="surgery">Phẫu thuật</option>
-                        </select>
+                            <select id="statusFilter"
+                                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    onchange="filterClaims()">
+                                <option value="">Tất cả trạng thái</option>
+                                {% for value, label in status_choices %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+
+                            <select id="typeFilter"
+                                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    onchange="filterClaims()">
+                                <option value="">Tất cả loại</option>
+                                {% for value, label in type_choices %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+
                     </div>
                 </form>
 
@@ -190,8 +194,15 @@
                         <div id="claimInfo" class="grid md:grid-cols-2 gap-4 text-sm">
                             <!-- Claim info will be populated here -->
                         </div>
-                    </div>
 
+                    </div>
+                    <div class="bg-blue-50 rounded-lg p-4">
+                        <h4 class="font-semibold text-blue-800 mb-3">Thông tin y tế</h4>
+                        <div id="ClaimMedicalInfo" class="grid md:grid-cols-2 gap-4 text-sm">
+                            <!-- Claim info will be populated here -->
+                        </div>
+
+                    </div>
                     <div>
                         <h4 class="font-semibold text-gray-800 mb-3">Tài liệu đã nộp</h4>
                         <div id="documentsList" class="space-y-3">
@@ -253,23 +264,8 @@
                         </div>
                     </div>
 
-                    <div>
-                        <h4 class="font-semibold text-gray-800 mb-3">Đánh giá rủi ro</h4>
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                <span class="text-sm">Lịch sử khiếu nại</span>
-                                <span class="text-sm font-semibold text-green-600">Bình thường</span>
-                            </div>
-                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                <span class="text-sm">Tần suất yêu cầu</span>
-                                <span class="text-sm font-semibold text-green-600">Thấp</span>
-                            </div>
-                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                <span class="text-sm">Mức độ rủi ro</span>
-                                <span class="text-sm font-semibold text-green-600">Thấp</span>
-                            </div>
-                        </div>
-                    </div>
+                    <div id="riskAssessmentBox" class="mt-4"></div>
+
 
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-2">Lý do điều chỉnh số tiền (nếu có)</label>
@@ -343,6 +339,7 @@
                         </button>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
@@ -361,492 +358,5 @@
         </div>
     </div>
 </div>
-    <script>
-        let currentApprovalStep = 1;
-        let currentPage = 1;
-        const itemsPerPage = 5;
-        let claims = [];
-        let filteredClaims = [];
-
-        document.addEventListener("DOMContentLoaded", function() {
-            fetch('/custom_claims/api/claims/')
-              .then(res => res.json())
-              .then(data => {
-                  claims = data.claims;
-                  filteredClaims = data.claims;
-                  renderClaims();
-                  renderPagination();
-              });
-        });
-
-        // Render claims list
-        function renderClaims() {
-            const container = document.getElementById('claimsList');
-            container.innerHTML = '';
-
-            // Lấy dữ liệu theo trang
-            const start = (currentPage - 1) * itemsPerPage;
-            const end = start + itemsPerPage;
-            const pageData = filteredClaims.slice(start, end);
-
-            pageData.forEach(claim => {
-                const claimCard = createClaimCard(claim);
-                container.appendChild(claimCard);
-            });
-        }
-
-        // --- Render nút phân trang ---
-        function renderPagination() {
-            const paginationContainer = document.getElementById("pagination");
-            paginationContainer.innerHTML = "";
-
-            const totalPages = Math.ceil(filteredClaims.length / itemsPerPage);
-            if (totalPages <= 1) return; // Không cần hiển thị nếu chỉ có 1 trang
-
-            const paginationHTML = `
-                <div class="flex justify-center items-center gap-2 mt-6">
-                    <button class="px-3 py-1 border rounded ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}"
-                        onclick="changePage(1)">Đầu</button>
-                    <button class="px-3 py-1 border rounded ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}"
-                        onclick="changePage(${currentPage - 1})">Trước</button>
-
-                    <span class="px-3 py-1 bg-blue-500 text-white rounded">Trang ${currentPage} / ${totalPages}</span>
-
-                    <button class="px-3 py-1 border rounded ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}"
-                        onclick="changePage(${currentPage + 1})">Sau</button>
-                    <button class="px-3 py-1 border rounded ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}"
-                        onclick="changePage(${totalPages})">Cuối</button>
-                </div>
-            `;
-            paginationContainer.innerHTML = paginationHTML;
-        }
-
-        // --- Chuyển trang ---
-        function changePage(page) {
-            const totalPages = Math.ceil(filteredClaims.length / itemsPerPage);
-            if (page < 1 || page > totalPages) return;
-            currentPage = page;
-            renderClaims();
-            renderPagination();
-        }
-        // Create claim card
-        function createClaimCard(claim) {
-            const card = document.createElement('div');
-            card.className = 'claim-card bg-white rounded-xl shadow-sm p-6 cursor-pointer';
-            card.onclick = () => selectClaim(claim);
-
-            const statusColors = {
-                pending: 'bg-orange-100 text-orange-800',
-                reviewing: 'bg-blue-100 text-blue-800',
-                approved: 'bg-green-100 text-green-800',
-                rejected: 'bg-red-100 text-red-800'
-            };
-
-            const statusTexts = {
-                pending: 'Chờ xét duyệt',
-                reviewing: 'Đang xem xét',
-                approved: 'Đã phê duyệt',
-                rejected: 'Từ chối'
-            };
-
-            const priorityColors = {
-                high: 'text-red-600',
-                medium: 'text-yellow-600',
-                low: 'text-green-600'
-            };
-
-            card.innerHTML = `
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-file-medical text-blue-600"></i>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-gray-800">${claim.claim_number}</h3>
-                            <p class="text-sm text-gray-600">${claim.customer_name}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <span class="status-badge ${statusColors[claim.claim_status]}">${statusTexts[claim.claim_status]}</span>
-                        <i class="fas fa-exclamation-circle ${priorityColors[claim.priority]}"></i>
-                    </div>
-                </div>
-
-                <div class="grid md:grid-cols-3 gap-4 text-sm mb-4">
-                    <div>
-                        <span class="text-gray-600">Ngày sự cố:</span>
-                        <span class="font-semibold ml-1">${formatDate(claim.incident_date)}</span>
-                    </div>
-                    <div>
-                        <span class="text-gray-600">Bệnh viện:</span>
-                        <span class="font-semibold ml-1">${claim.hospital_name}</span>
-                    </div>
-                    <div>
-                        <span class="text-gray-600">Số tiền yêu cầu:</span>
-                        <span class="font-semibold ml-1 text-red-600">${formatCurrency(claim.requested_amount)}</span>
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-between">
-                    <div class="text-sm text-gray-600">
-                        <i class="fas fa-calendar mr-1"></i>
-                        Nộp: ${formatDate(claim.created_at)}
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <span class="text-sm text-gray-600">${claim.documents} tài liệu</span>
-                        <i class="fas fa-chevron-right text-gray-400"></i>
-                    </div>
-                </div>
-            `;
-
-            return card;
-        }
-
-        // Select claim
-        function selectClaim(claim) {
-            selectedClaim = claim;
-            renderClaimDetails(claim);
-
-            // Highlight selected card
-            document.querySelectorAll('.claim-card').forEach(card => {
-                card.classList.remove('ring-2', 'ring-blue-500');
-            });
-            event.currentTarget.classList.add('ring-2', 'ring-blue-500');
-        }
-
-        // Render claim details
-        function renderClaimDetails(claim) {
-            const panel = document.getElementById('claimDetailsPanel');
-
-            const statusColors = {
-                pending: 'bg-orange-100 text-orange-800',
-                in_progress: 'bg-blue-100 text-blue-800',
-                approved: 'bg-green-100 text-green-800',
-                settled: 'bg-green-100 text-green-800',
-                rejected: 'bg-red-100 text-red-800'
-            };
-
-            const statusTexts = {
-                pending: 'Chờ xét duyệt',
-                in_progress: 'Đang xem xét',
-                approved: 'Đã phê duyệt',
-                rejected: 'Từ chối',
-                settled:'Đã giải quyết'
-            };
-
-            panel.innerHTML = `
-                <div class="fade-in">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-lg font-bold text-gray-800">Chi tiết yêu cầu</h3>
-                       <span class="status-badge ${statusColors[claim.claim_status]}">${statusTexts[claim.claim_status]}</span>
-                    </div>
-
-                    <div class="space-y-4 mb-6">
-                        <div>
-                            <label class="text-sm text-gray-600">Mã yêu cầu</label>
-                            <p class="font-semibold">${claim.id}</p>
-                        </div>
-                        <div>
-                            <label class="text-sm text-gray-600">Khách hàng</label>
-                            <p class="font-semibold">${claim.customerName}</p>
-                        </div>
-                        <div>
-                            <label class="text-sm text-gray-600">Hợp đồng</label>
-                            <p class="font-semibold">${claim.policyNumber}</p>
-                        </div>
-                        <div>
-                            <label class="text-sm text-gray-600">Chẩn đoán</label>
-                            <p class="font-semibold">${claim.diagnosis}</p>
-                        </div>
-                        <div>
-                            <label class="text-sm text-gray-600">Số tiền yêu cầu</label>
-                            <p class="font-semibold text-red-600">${formatCurrency(claim.totalCost)}</p>
-                        </div>
-                    </div>
-
-                    <div class="space-y-3 mb-6">
-                        <h4 class="font-semibold text-gray-800">Tài liệu</h4>
-                        ${claim.documents.map(doc => `
-                            <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
-                                <span class="text-sm">${doc}</span>
-                                <i class="fas fa-eye text-blue-600 cursor-pointer"></i>
-                            </div>
-                        `).join('')}
-                    </div>
-
-                    ${claim.status === 'pending' || claim.status === 'reviewing' ? `
-                        <button onclick="openApprovalModal()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700">
-                            <i class="fas fa-clipboard-check mr-2"></i>Xét duyệt
-                        </button>
-                    ` : ''}
-
-                    <div class="mt-4 space-y-2">
-                        <button onclick="viewHistory()" class="w-full bg-gray-200 text-gray-700 py-2 rounded-lg text-sm hover:bg-gray-300">
-                            <i class="fas fa-history mr-2"></i>Lịch sử xử lý
-                        </button>
-                        <button onclick="exportReport()" class="w-full bg-gray-200 text-gray-700 py-2 rounded-lg text-sm hover:bg-gray-300">
-                            <i class="fas fa-download mr-2"></i>Xuất báo cáo
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Filter claims
-        function filterClaims() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const statusFilter = document.getElementById('statusFilter').value;
-            const typeFilter = document.getElementById('typeFilter').value;
-
-             filteredClaims = claims.filter(claim => {
-                const matchesSearch = claim.claim_number.toLowerCase().includes(searchTerm) ||
-                                    claim.customer_name.toLowerCase().includes(searchTerm);
-                const matchesStatus = !statusFilter || claim.claim_status === statusFilter;
-                const matchesType = !typeFilter || claim.treatmentType === typeFilter;
-
-                return matchesSearch && matchesStatus && matchesType;
-            });
-            currentPage = 1;
-
-            renderClaims();
-            renderPagination();
-        }
-
-
-        // Open approval modal
-        function openApprovalModal() {
-            if (!selectedClaim) return;
-
-            document.getElementById('approvalModal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-
-            // Reset modal state
-            currentApprovalStep = 1;
-            resetApprovalSteps();
-            populateApprovalData();
-        }
-
-        // Close approval modal
-        function closeApprovalModal() {
-            document.getElementById('approvalModal').classList.add('hidden');
-            document.body.style.overflow = 'auto';
-        }
-
-        // Reset approval steps
-        function resetApprovalSteps() {
-            // Hide all step contents
-            for (let i = 1; i <= 3; i++) {
-                document.getElementById(`approvalStepContent${i}`).classList.add('hidden');
-            }
-
-            // Reset step indicators
-            for (let i = 1; i <= 3; i++) {
-                const step = document.getElementById(`approvalStep${i}`);
-                step.className = 'approval-step w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold';
-                step.textContent = i;
-            }
-
-            // Reset lines
-            for (let i = 1; i <= 2; i++) {
-                document.getElementById(`approvalLine${i}`).className = 'w-16 h-1 bg-gray-200';
-            }
-
-            // Show first step
-            document.getElementById('approvalStep1').classList.add('active');
-            document.getElementById('approvalStepContent1').classList.remove('hidden');
-        }
-
-        // Populate approval data
-        function populateApprovalData() {
-            if (!selectedClaim) return;
-
-            // Populate claim info
-            const claimInfo = document.getElementById('claimInfo');
-            claimInfo.innerHTML = `
-                <div>
-                    <span class="text-blue-600">Mã yêu cầu:</span>
-                    <span class="font-bold ml-2">${selectedClaim.id}</span>
-                </div>
-                <div>
-                    <span class="text-blue-600">Khách hàng:</span>
-                    <span class="font-bold ml-2">${selectedClaim.customerName}</span>
-                </div>
-                <div>
-                    <span class="text-blue-600">Ngày sự cố:</span>
-                    <span class="font-bold ml-2">${formatDate(selectedClaim.incidentDate)}</span>
-                </div>
-                <div>
-                    <span class="text-blue-600">Bệnh viện:</span>
-                    <span class="font-bold ml-2">${selectedClaim.hospitalName}</span>
-                </div>
-                <div>
-                    <span class="text-blue-600">Chẩn đoán:</span>
-                    <span class="font-bold ml-2">${selectedClaim.diagnosis}</span>
-                </div>
-                <div>
-                    <span class="text-blue-600">Số tiền:</span>
-                    <span class="font-bold ml-2 text-red-600">${formatCurrency(selectedClaim.totalCost)}</span>
-                </div>
-            `;
-
-            // Populate documents
-            const documentsList = document.getElementById('documentsList');
-            documentsList.innerHTML = selectedClaim.documents.map(doc => `
-                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div class="flex items-center">
-                        <i class="fas fa-file-alt text-blue-600 mr-3"></i>
-                        <span class="font-semibold">${doc}</span>
-                    </div>
-                    <button class="text-blue-600 hover:text-blue-800">
-                        <i class="fas fa-eye mr-1"></i>Xem
-                    </button>
-                </div>
-            `).join('');
-
-            // Set requested amount
-            document.getElementById('requestedAmount').value = formatCurrency(selectedClaim.totalCost);
-            document.getElementById('approvedAmount').value = selectedClaim.totalCost;
-        }
-
-        // Next approval step
-        function nextApprovalStep() {
-            if (currentApprovalStep >= 3) return;
-
-            // Hide current step
-            document.getElementById(`approvalStepContent${currentApprovalStep}`).classList.add('hidden');
-
-            // Update step indicator
-            const currentStepEl = document.getElementById(`approvalStep${currentApprovalStep}`);
-            currentStepEl.classList.remove('active');
-            currentStepEl.classList.add('completed');
-            currentStepEl.innerHTML = '<i class="fas fa-check"></i>';
-
-            // Update line
-            if (currentApprovalStep < 3) {
-                document.getElementById(`approvalLine${currentApprovalStep}`).classList.remove('bg-gray-200');
-                document.getElementById(`approvalLine${currentApprovalStep}`).classList.add('bg-green-500');
-            }
-
-            // Move to next step
-            currentApprovalStep++;
-
-            // Show next step
-            document.getElementById(`approvalStepContent${currentApprovalStep}`).classList.remove('hidden');
-            document.getElementById(`approvalStep${currentApprovalStep}`).classList.add('active');
-
-            // Update final amounts in step 3
-            if (currentApprovalStep === 3) {
-                document.getElementById('finalRequestedAmount').textContent = formatCurrency(selectedClaim.totalCost);
-                const approvedAmount = document.getElementById('approvedAmount').value || selectedClaim.totalCost;
-                document.getElementById('finalApprovedAmount').textContent = formatCurrency(approvedAmount);
-            }
-        }
-
-        // Previous approval step
-        function prevApprovalStep() {
-            if (currentApprovalStep <= 1) return;
-
-            // Hide current step
-            document.getElementById(`approvalStepContent${currentApprovalStep}`).classList.add('hidden');
-
-            // Update step indicator
-            document.getElementById(`approvalStep${currentApprovalStep}`).classList.remove('active');
-            document.getElementById(`approvalStep${currentApprovalStep}`).classList.add('bg-gray-200', 'text-gray-600');
-            document.getElementById(`approvalStep${currentApprovalStep}`).textContent = currentApprovalStep;
-
-            // Move to previous step
-            currentApprovalStep--;
-
-            // Show previous step
-            document.getElementById(`approvalStepContent${currentApprovalStep}`).classList.remove('hidden');
-
-            // Update step indicator
-            const prevStepEl = document.getElementById(`approvalStep${currentApprovalStep}`);
-            prevStepEl.classList.remove('completed');
-            prevStepEl.classList.add('active');
-            prevStepEl.textContent = currentApprovalStep;
-
-            // Update line
-            if (currentApprovalStep < 3) {
-                document.getElementById(`approvalLine${currentApprovalStep}`).classList.add('bg-gray-200');
-                document.getElementById(`approvalLine${currentApprovalStep}`).classList.remove('bg-green-500');
-            }
-        }
-
-        // Submit decision
-        function submitDecision() {
-            const decision = document.querySelector('input[name="decision"]:checked');
-            const reason = document.getElementById('decisionReason').value;
-
-            if (!decision || !reason.trim()) {
-                alert('Vui lòng chọn quyết định và nhập lý do');
-                return;
-            }
-
-            // Update claim status
-            const statusMap = {
-                approve: 'approved',
-                reject: 'rejected',
-                request_more: 'reviewing'
-            };
-
-            selectedClaim.status = statusMap[decision.value];
-
-            // Show success message
-            const messages = {
-                approve: 'Yêu cầu bồi thường đã được phê duyệt',
-                reject: 'Yêu cầu bồi thường đã bị từ chối',
-                request_more: 'Đã yêu cầu khách hàng bổ sung tài liệu'
-            };
-
-            document.getElementById('successMessage').textContent = messages[decision.value];
-
-            // Close approval modal and show success
-            closeApprovalModal();
-            document.getElementById('successModal').classList.remove('hidden');
-
-            // Update UI
-            renderClaims();
-            renderClaimDetails(selectedClaim);
-        }
-
-        // Close success modal
-        function closeSuccessModal() {
-            document.getElementById('successModal').classList.add('hidden');
-        }
-
-        // Other functions
-        function viewHistory() {
-            alert('Hiển thị lịch sử xử lý yêu cầu...');
-        }
-
-        function exportReport() {
-            alert('Xuất báo cáo yêu cầu bồi thường...');
-        }
-
-        // Helper functions
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('vi-VN', {
-                style: 'decimal',
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            }).format(amount) + ' VNĐ';
-        }
-
-        function formatDate(dateString) {
-            return new Date(dateString).toLocaleDateString('vi-VN');
-        }
-
-        // Close modals on escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeApprovalModal();
-                closeSuccessModal();
-            }
-        });
-
-        document.getElementById('searchInput').addEventListener('input', filterClaims);
-        document.getElementById('statusFilter').addEventListener('change', filterClaims);
-        document.getElementById('typeFilter').addEventListener('change', filterClaims);
-    </script>
+<script src="{% static 'js/claims_admin.js' %}"></script>
 {% endblock %}
