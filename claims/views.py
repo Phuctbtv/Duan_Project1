@@ -197,11 +197,11 @@ def detail_claims(request,pk):
     """
     try:
         claim = get_object_or_404(
-            Claim.objects.select_related('policy', 'customer', 'customer__user'),
+            Claim.objects.select_related('policy'),
             id=pk
         )
         # Kiểm tra quyền truy cập
-        if claim.customer.user != request.user:
+        if claim.policy.customer.user != request.user:
             return render(request, 'errors/403.html', status=403)
 
         # Lấy thông tin y tế
@@ -424,7 +424,7 @@ def get_all_claims(request):
     # 🔍 Tìm kiếm
     claims = (
         Claim.objects
-        .select_related("customer__user", "policy")
+        .select_related( "policy")
         .prefetch_related("claim_medical_info", "claim_documents")
         .all()
     )
@@ -432,8 +432,8 @@ def get_all_claims(request):
     if search:
         claims = claims.filter(
             Q(claim_number__icontains=search)
-            | Q(customer__user__first_name__icontains=search)
-            | Q(customer__user__last_name__icontains=search)
+            | Q(policy__customer__user__first_name__icontains=search)
+            | Q(policy__customer__user__last_name__icontains=search)
             | Q(policy__policy_number__icontains=search)
         )
 
@@ -449,7 +449,7 @@ def get_all_claims(request):
             "id": claim.id,
             "claim_number": claim.claim_number,
             "policy": claim.policy.policy_number if claim.policy else None,
-            "customer_name": claim.customer.user.get_full_name(),
+            "customer_name": claim.policy.customer.user.get_full_name(),
             "incident_date": claim.incident_date,
             "requested_amount": float(claim.requested_amount),
             "product_name":claim.policy.product.product_name,

@@ -83,7 +83,10 @@ def admin_home(request):
     user_type = request.user.user_type
     is_admin = request.user.is_staff or user_type == 'admin'
     is_agent = user_type == 'agent'
-
+    if is_admin:
+        template = "dashboard/admin/dashboard_section.html"
+    else:
+        template = "dashboard/agent/dashboard_agent.html"
     if not (is_admin or is_agent):
         return redirect('trangchu')
 
@@ -139,11 +142,11 @@ def admin_home(request):
             )
             total_days = 0
             count = 0
-            for claim in settled_claims:
-                if claim.updated_at and claim.claim_date:
-                    days = (claim.updated_at.date() - claim.claim_date).days
-                    total_days += days
-                    count += 1
+            # for claim in settled_claims:
+            #     if claim.updated_at and claim.claim_date:
+            #         days = (claim.updated_at.date() - claim.claim_date).days
+            #         total_days += days
+            #         count += 1
             avg_processing_time = round(total_days / count, 1) if count > 0 else 0
 
             # Hoạt động gần đây
@@ -300,9 +303,10 @@ def admin_home(request):
         'is_admin': is_admin,
         'is_agent': is_agent,
         'agent_code': agent_code,
+        'layout':template
     }
 
-    return render(request, "admin/dashboard_section.html", context)
+    return render(request, template, context)
 
 
 def get_recent_activities():
@@ -691,7 +695,7 @@ def customer_create(request):
 @admin_required
 def customer_detail(request, user_id):
     """Chi tiết khách hàng - Chỉ dành cho admin"""
-    user = get_object_or_404(User, pk=user_id, user_type='customer')
+    user = get_object_or_404(User, pk=user_id)
 
     # Lấy thông tin customer - xử lý an toàn
     try:
@@ -700,18 +704,36 @@ def customer_detail(request, user_id):
         print(f"Lỗi khi lấy customer: {e}")
         customer = None
 
-    # Lấy các hợp đồng của khách hàng
     policies = []
+    claims = []
+    payments = []
+
     if customer:
         try:
+            # Lấy các hợp đồng của khách hàng
             policies = Policy.objects.filter(customer=customer)
+            print("số yc =",policies.all().count())
         except Exception as e:
             print(f"Lỗi khi lấy policies: {e}")
+
+        try:
+            # Lấy các yêu cầu bồi thường (claims)
+            claims = Claim.objects.filter(customer=customer)
+        except Exception as e:
+            print(f"Lỗi khi lấy claims: {e}")
+
+        try:
+            # Lấy các lần thanh toán (payments)
+            payments = Payment.objects.filter(customer=customer)
+        except Exception as e:
+            print(f"Lỗi khi lấy payments: {e}")
 
     context = {
         'user': user,
         'customer': customer,
         'policies': policies,
+        'claims': claims,  # <<< THÊM VÀO
+        'payments': payments,  # <<< THÊM VÀO
     }
     return render(request, 'admin/customer_detail.html', context)
 
