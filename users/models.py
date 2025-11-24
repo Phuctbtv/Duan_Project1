@@ -126,14 +126,7 @@ class Customer(models.Model):
     ocr_verified = models.BooleanField(default=False, verbose_name="Đã xác minh eKYC")
     job = models.CharField(max_length=100, blank=True, verbose_name="Nghề nghiệp")
 
-    agent = models.ForeignKey(
-        Agent,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='customers',
-        verbose_name="Đại lý phụ trách"
-    )
+
 
     class Meta:
         db_table = "customers"

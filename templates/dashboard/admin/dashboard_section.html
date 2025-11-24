@@ -1,0 +1,473 @@
+
+{% extends "admin/admin_home.html" %}
+
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+
+<div id="dashboard" class="section p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">
+        {% if is_admin %}
+                Tổng Quan Hệ Thống
+            {% elif is_agent %}
+                Dashboard Đại Lý
+            {% endif %}
+        </h2>
+        <div class="flex space-x-3">
+            <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors" onclick="refreshCharts(event)">
+                <i class="fas fa-sync-alt mr-2"></i>Cập Nhật
+            </button>
+            {% if is_admin %}
+            <button class="gradient-bg text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity" onclick="exportReport()">
+                <i class="fas fa-download mr-2"></i>Xuất Báo Cáo
+            </button>
+            {% elif is_agent %}
+            <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors" onclick="exportAgentReport()">
+                <i class="fas fa-download mr-2"></i>Xuất Báo Cáo Cá Nhân
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Card 1: Tổng khách hàng -->
+        <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm">
+                        {% if is_admin %}Tổng Khách Hàng{% elif is_agent %}Khách Hàng Của Tôi{% endif %}
+                    </p>
+                    <p class="text-2xl font-bold text-gray-800">{{ total_customers|intcomma }}</p>
+                    <p class="text-xs text-green-600 mt-1">
+                        {% if is_admin %}
+                            {{ active_customers }} đang hoạt động
+                        {% elif is_agent %}
+                            {{ active_customers }} đang hoạt động
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="bg-blue-100 p-3 rounded-full">
+                    <i class="fas fa-users text-blue-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: Hợp đồng -->
+        <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm">
+                        {% if is_admin %}Hợp Đồng Đang Hoạt Động{% elif is_agent %}Hợp Đồng Của Tôi{% endif %}
+                    </p>
+                    <p class="text-2xl font-bold text-gray-800">{{ active_policies_count }}</p>
+                    <p class="text-xs {% if is_admin %}text-green-600{% else %}text-blue-600{% endif %} mt-1">
+                        {% if is_admin %}
+                            {{ pending_policies }} chờ xử lý
+                        {% elif is_agent %}
+                            {{ my_pending_policies }} chờ xử lý
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="bg-green-100 p-3 rounded-full">
+                    <i class="fas fa-file-contract text-green-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 3: Yêu cầu bồi thường -->
+        <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm">
+                        {% if is_admin %}Yêu Cầu Bồi Thường{% elif is_agent %}Yêu Cầu Bồi Thường{% endif %}
+                    </p>
+                    <p class="text-2xl font-bold text-gray-800">
+                        {% if is_admin %}
+                            {{ pending_claims_count }}
+                        {% elif is_agent %}
+                            {{ my_pending_claims }}
+                        {% endif %}
+                    </p>
+                    <p class="text-xs text-yellow-600 mt-1">đang chờ xử lý</p>
+                </div>
+                <div class="bg-orange-100 p-3 rounded-full">
+                    <i class="fas fa-exclamation-triangle text-orange-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 4: Doanh thu -->
+        <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm">
+                        {% if is_admin %}Doanh Thu Tháng{% elif is_agent %}Doanh Thu Cá Nhân{% endif %}
+                    </p>
+                    <p class="text-2xl font-bold text-gray-800">
+                        {% if is_admin %}
+                            {{ monthly_revenue }} tỷ
+                        {% elif is_agent %}
+                            {{ my_monthly_revenue }} triệu
+                        {% endif %}
+                    </p>
+                    <p class="text-xs text-green-600 mt-1">
+                        {% if is_admin %}
+                            từ {{ active_policies_count }} hợp đồng
+                        {% elif is_agent %}
+                            từ {{ active_policies_count }} hợp đồng
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="bg-purple-100 p-3 rounded-full">
+                    <i class="fas fa-chart-line text-purple-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Biểu Đồ - Hiển thị khác nhau -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Biểu đồ doanh thu -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                {% if is_admin %}Doanh Thu Toàn Hệ Thống{% elif is_agent %}Doanh Thu Cá Nhân{% endif %}
+            </h3>
+            <div class="h-64">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Biểu đồ phân loại -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                {% if is_admin %}Phân Loại Hợp Đồng{% elif is_agent %}Hợp Đồng Của Tôi{% endif %}
+            </h3>
+            <div class="h-64">
+                <canvas id="contractChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activities & Thống Kê -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                {% if is_admin %}Hoạt Động Gần Đây{% elif is_agent %}Hoạt Động Của Tôi{% endif %}
+            </h3>
+            <div class="space-y-4" id="recentActivities">
+                {% for activity in recent_activities %}
+                <div class="flex items-start space-x-3">
+                    <div class="w-2 h-2 {{ activity.color }} rounded-full mt-2"></div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-800">{{ activity.message }}</p>
+                        <p class="text-xs text-gray-500 mt-1">{{ activity.time }}</p>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="flex items-start space-x-3">
+                    <div class="w-2 h-2 bg-gray-400 rounded-full mt-2"></div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-800">
+                            {% if is_admin %}Đang tải dữ liệu hoạt động...{% elif is_agent %}Chưa có hoạt động nào{% endif %}
+                        </p>
+                        <p class="text-xs text-gray-500 mt-1">{% now "H:i - d/m/Y" %}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                {% if is_admin %}Thống Kê Hiệu Suất{% elif is_agent %}Hiệu Suất Cá Nhân{% endif %}
+            </h3>
+            <div class="space-y-4">
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-700">
+                            {% if is_admin %}Tỷ Lệ Phê Duyệt{% elif is_agent %}Tỷ Lệ Thành Công{% endif %}
+                        </span>
+                        <span class="text-sm font-bold text-green-600">{{ approval_rate }}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-green-500 h-2 rounded-full" style="width: {{ approval_rate }}%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-700">Thời Gian Xử Lý TB</span>
+                        <span class="text-sm font-bold text-blue-600">{{ avg_processing_time }} ngày</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-500 h-2 rounded-full" style="width: {% widthratio avg_processing_time 7 100 %}%"></div>
+                    </div>
+                </div>
+                {% if is_admin %}
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-700">Hài Lòng Khách Hàng</span>
+                        <span class="text-sm font-bold text-purple-600">{{ customer_satisfaction }}/5</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-purple-500 h-2 rounded-full" style="width: {% widthratio customer_satisfaction 5 100 %}%"></div>
+                    </div>
+                </div>
+                <div class="pt-4 border-t border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium text-gray-700">Tổng số Quản trị viên</span>
+                        <span class="text-sm font-bold text-orange-600">{{ staff_users }} người</span>
+                    </div>
+                </div>
+                {% elif is_agent %}
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-700">Khách Hàng Mới</span>
+                        <span class="text-sm font-bold text-purple-600">{{ new_customers_this_month }} tháng này</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-purple-500 h-2 rounded-full" style="width: {% widthratio new_customers_this_month 20 100 %}%"></div>
+                    </div>
+                </div>
+                <div class="pt-4 border-t border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium text-gray-700">Hoa Hồng Tháng</span>
+                        <span class="text-sm font-bold text-orange-600">{{ monthly_commission }} triệu</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Biến toàn cục cho biểu đồ
+let revenueChart, contractChart;
+
+// Hàm khởi tạo biểu đồ với dữ liệu
+function initializeCharts(data) {
+    console.log('🎯 Khởi tạo biểu đồ với data:', data);
+
+    // Xóa biểu đồ cũ nếu tồn tại
+    if (revenueChart) revenueChart.destroy();
+    if (contractChart) contractChart.destroy();
+
+    // Biểu đồ doanh thu
+    const revenueCtx = document.getElementById('revenueChart');
+    if (revenueCtx) {
+        console.log('📊 Tạo revenue chart với data:', data.revenue_chart);
+        revenueChart = new Chart(revenueCtx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: data.revenue_chart.labels || ['Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6'],
+                datasets: [{
+                    label: '{% if is_admin %}Doanh Thu (tỷ VNĐ){% elif is_agent %}Doanh Thu (triệu VNĐ){% endif %}',
+                    data: data.revenue_chart.data || [0, 0, 0, 0, 0, 0],
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: '{% if is_admin %}Tỷ VNĐ{% elif is_agent %}Triệu VNĐ{% endif %}'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Tháng'
+                        }
+                    }
+                }
+            }
+        });
+        console.log('✅ Revenue chart created');
+    } else {
+        console.error('❌ Không tìm thấy revenueChart canvas');
+    }
+
+    // Biểu đồ phân loại hợp đồng
+    const contractCtx = document.getElementById('contractChart');
+    if (contractCtx) {
+        console.log('📈 Tạo contract chart với data:', data.contract_chart);
+        contractChart = new Chart(contractCtx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: data.contract_chart.labels || ['Không có dữ liệu'],
+                datasets: [{
+                    data: data.contract_chart.data || [1],
+                    backgroundColor: [
+                        '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#84cc16'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Phân Loại Hợp Đồng'
+                    }
+                }
+            }
+        });
+        console.log('✅ Contract chart created');
+    } else {
+        console.error('❌ Không tìm thấy contractChart canvas');
+    }
+}
+
+// Hàm làm mới biểu đồ với API - SỬA LẠI
+function refreshCharts(event) {
+    console.log('🔄 Làm mới biểu đồ...');
+
+    const refreshBtn = event.target.closest('button');
+    const originalHtml = refreshBtn.innerHTML;
+    refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang cập nhật...';
+    refreshBtn.disabled = true;
+
+    fetch('/admin/data/')
+        .then(response => {
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return response.json();
+        })
+        .then(data => {
+            console.log('📥 Data nhận được:', data);
+            initializeCharts(data); // KHỞI TẠO LẠI hoàn toàn
+            refreshBtn.innerHTML = originalHtml;
+            refreshBtn.disabled = false;
+            showNotification('Dữ liệu đã được cập nhật thành công!', 'success');
+        })
+        .catch(error => {
+            console.error('❌ Lỗi khi cập nhật biểu đồ:', error);
+            refreshBtn.innerHTML = originalHtml;
+            refreshBtn.disabled = false;
+            showNotification('Có lỗi khi cập nhật dữ liệu.', 'error');
+        });
+}
+
+// Khởi tạo biểu đồ khi trang load
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Trang đã load, gọi API để lấy data...');
+
+    fetch('/admin/data/')
+        .then(response => {
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return response.json();
+        })
+        .then(data => {
+            console.log('📊 Data khởi tạo:', data);
+            initializeCharts(data);
+        })
+        .catch(error => {
+            console.error('❌ Lỗi khi tải dữ liệu ban đầu:', error);
+            // Khởi tạo với dữ liệu mẫu
+            initializeCharts({
+                revenue_chart: { labels: ['Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6'], data: [0, 0, 0, 0, 0, 0] },
+                contract_chart: { labels: ['Không có dữ liệu'], data: [1] }
+            });
+            showNotification('Đang sử dụng dữ liệu mẫu.', 'info');
+        });
+});
+
+// Hàm hiển thị thông báo (giữ nguyên)
+function showNotification(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 transform transition-all duration-300 ${
+        type === 'success' ? 'bg-green-500 text-white' :
+        type === 'error' ? 'bg-red-500 text-white' :
+        'bg-blue-500 text-white'
+    }`;
+
+    const icon = type === 'success' ? 'fa-check-circle' :
+                 type === 'error' ? 'fa-exclamation-circle' :
+                 'fa-info-circle';
+
+    toast.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas ${icon} mr-2"></i>
+            <span>${message}</span>
+        </div>
+    `;
+
+    document.body.appendChild(toast);
+
+    // Tự động xóa sau 4 giây
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    }, 4000);
+}
+
+// Khởi tạo biểu đồ khi trang load
+document.addEventListener('DOMContentLoaded', function() {
+    // Gọi API ngay khi trang load để lấy dữ liệu thực
+    fetch('/admin/data/')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Dữ liệu khởi tạo:', data);
+            initializeCharts(data);
+        })
+        .catch(error => {
+            console.error('Lỗi khi tải dữ liệu ban đầu:', error);
+            // Khởi tạo với dữ liệu mẫu nếu API lỗi
+            initializeCharts({});
+            showNotification('Đang sử dụng dữ liệu mẫu. Vui lòng cập nhật để lấy dữ liệu thực.', 'info');
+        });
+});
+</script>
+
+<style>
+.gradient-bg {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.card-hover:hover {
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+/* Animation cho loading */
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
