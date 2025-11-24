@@ -122,7 +122,6 @@ def create_claims(request, pk):
             # Tạo yêu cầu bồi thường
             claim = Claim.objects.create(
                 policy=policy,
-                customer=policy.customer,
                 claim_number=claim_number,
                 incident_date=data.get('incidentDate'),
                 description=data.get('description'),
@@ -350,7 +349,7 @@ def add_additional_documents(request, claim_number):
         claim = get_object_or_404(Claim, claim_number=claim_number)
 
         # Kiểm tra quyền truy cập
-        if claim.customer.user != request.user:
+        if claim.policy.customer.user != request.user:
             return JsonResponse({'error': 'Unauthorized'}, status=403)
 
         files = request.FILES.getlist('documents')
@@ -545,7 +544,7 @@ def assess_claim_risk(claim):
         details["early_claim"] = "Phát sinh yêu cầu sớm trong vòng 30 ngày kể từ ngày hiệu lực"
 
     # 3️ Nếu khách hàng đã từng bị từ chối trước đó
-    if claim.customer.claim_set.filter(claim_status="rejected").exists():
+    if Claim.objects.filter(policy__customer=claim.policy.customer, claim_status="rejected").exists():
         score += 10
         details["previous_rejection"] = "Khách hàng từng có yêu cầu bị từ chối"
 
@@ -618,11 +617,11 @@ def claim_decision_view(request, claim_id):
             return redirect(request.META.get("HTTP_REFERER", "/"))
         send_mail(
             subject=f"Kết quả xử lý bồi thường #{claim.id}",
-            message=f"Kính gửi {claim.customer.user.get_full_name()},\n\n"
+            message=f"Kính gửi {claim.policy.customer.user.get_full_name()},\n\n"
                     f"Yêu cầu bồi thường của bạn đã được xử lý: {claim.get_claim_status_display()}.\n"
                     f"Lý do: {reason}\n\nTrân trọng,\nCông ty bảo hiểm",
             from_email="noreply@insurance.vn",
-            recipient_list=[claim.customer.user.email],
+            recipient_list=[claim.policy.customer.user.email],
         )
 
     print(claim.get_claim_status_display())
