@@ -207,51 +207,6 @@ def admin_policy_list(request):
     }
     return render(request, 'admin/policies_section.html', context)
 
-
-@login_required
-def admin_policy_create(request):
-    """Tạo hợp đồng"""
-    if request.method == 'POST':
-        form = PolicyForm(request.POST)
-        if form.is_valid():
-            # Validate ngày hiệu lực và ngày hết hạn
-            start_date = form.cleaned_data.get('start_date')
-            end_date = form.cleaned_data.get('end_date')
-
-            if start_date and end_date:
-                if start_date >= end_date:
-                    form.add_error('start_date', 'Ngày hiệu lực phải trước ngày hết hạn')
-                    form.add_error('end_date', 'Ngày hết hạn phải sau ngày hiệu lực')
-                    return render(request, 'admin/policies_form.html', {
-                        'form': form,
-                        'title': 'Tạo Hợp Đồng',
-                        'action': 'create'
-                    })
-
-                # Kiểm tra ngày hiệu lực không được là quá khứ (tùy chọn)
-                today = timezone.now().date()
-                if start_date < today:
-                    form.add_error('start_date', 'Ngày hiệu lực không được là ngày trong quá khứ')
-                    return render(request, 'admin/policies_form.html', {
-                        'form': form,
-                        'title': 'Tạo Hợp Đồng',
-                        'action': 'create'
-                    })
-
-            policy = form.save()
-            messages.success(request, "Đã thêm hợp đồng thành công!")
-            return redirect('policy_detail', pk=policy.pk)
-    else:
-        form = PolicyForm()
-
-    context = {
-        'form': form,
-        'title': 'Tạo Hợp Đồng',
-        'action': 'create'
-    }
-    return render(request, 'admin/policies_form.html', context)
-
-
 @login_required
 def admin_policy_detail(request, pk):
     """Xem chi tiết hợp đồng (policy)"""
@@ -430,11 +385,7 @@ def api_approve_policy(request, pk):
         data = json.loads(request.body)
         note = data.get('note', '')
 
-        policy.start_date = timezone.now().date()
-        policy.end_date = policy.start_date + timedelta(days=365)
-        policy.policy_status = 'active'
-        policy.payment_status = 'overdue'
-        policy.save()
+        policy.activate()
 
         # Tạo thông báo trong hệ thống
         Notification.objects.create(
@@ -470,9 +421,7 @@ def api_reject_policy(request, pk):
 
         if not reason:
             return JsonResponse({'success': False, 'error': 'Vui lòng nhập lý do'}, status=400)
-
-        policy.policy_status = 'cancelled'
-        policy.save()
+        policy.cancel(True)
 
         Notification.objects.create(
             user=policy.customer.user,

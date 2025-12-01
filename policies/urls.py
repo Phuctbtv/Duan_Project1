@@ -1,7 +1,7 @@
 
 from django.urls import path
 
-from policies.views import custom_policies_admin, admin_policy_list, admin_policy_create, admin_policy_detail, \
+from policies.views import custom_policies_admin, admin_policy_list, admin_policy_detail, \
     api_policy_detail, admin_policy_renew, admin_policy_cancel, admin_policy_edit, api_approve_policy, \
     api_reject_policy, dashboard_view_user
 
@@ -11,9 +11,6 @@ urlpatterns = [
 
     # Danh sách hợp đồng
     path('admin/policies/list/', admin_policy_list, name='admin_policy_list'),
-
-    # Tạo hợp đồng mới
-    path('admin/policies/add/', admin_policy_create, name='policy_create'),
 
     # Xem chi tiết hợp đồng
     path('admin/policies/<int:pk>/', admin_policy_detail, name='policy_detail'),
