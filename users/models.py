@@ -104,7 +104,12 @@ class Customer(models.Model):
     """Model khách hàng"""
 
     user = models.OneToOneField(
-        User, on_delete=models.CASCADE, primary_key=True, verbose_name="Người dùng"
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        unique=True,
+        verbose_name="Người dùng"
     )
     id_card_number = models.CharField(
         max_length=20, unique=True, verbose_name="Số CMND/CCCD"

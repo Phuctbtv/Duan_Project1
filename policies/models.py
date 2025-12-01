@@ -13,7 +13,7 @@ class Policy(models.Model):
     PAYMENT_STATUS_CHOICES = [
         ("pending", "Chờ thanh toán"),
         ("paid", "Đã thanh toán"),
-        ("overdue", "Quá hạn"),
+        ("refunded", "Đã hoàn tiền"),
         ("cancelled", "Đã hủy"),
     ]
 
@@ -126,11 +126,15 @@ class Policy(models.Model):
             )
         self.save()
 
-    def cancel(self):
-        """Hủy hợp đồng nếu thanh toán thất bại hoặc khách hủy"""
-        self.payment_status = "cancelled"
+    def cancel(self, refunded=False):
+        if refunded:
+            self.payment_status = "refunded"
+        else:
+            self.payment_status = "cancelled"
+
         self.policy_status = "cancelled"
         self.save()
+
     def __str__(self):
         return f"{self.policy_number} - {self.customer.user.username}"
 

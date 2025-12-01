@@ -13,7 +13,7 @@ from django.contrib import messages
 from payments.forms import HealthInfoForm
 from payments.models import Payment
 from policies.models import Policy, PolicyHolder, HealthInfo
-from users.models import Customer
+from users.models import Customer, Agent
 
 
 def payments_users(request):
@@ -347,4 +347,35 @@ def process_payment(request):
     except Exception as e:
         print("❌ Lỗi trong process_payment:", e)
         return JsonResponse({"success": False, "error": str(e)})
+def create_policy(request, product):
+    user = request.user
+    code = request.POST.get("code")  # mã giới thiệu (nếu có)
+    amount = product.base_price  # hoặc số tiền đã tính phí
 
+    # ==== Xác định agent ====
+    agent = None
+
+    # 1) Nếu có mã giới thiệu
+    if code:
+        try:
+            agent = Agent.objects.get(code=code)
+        except Agent.DoesNotExist:
+            agent = None
+
+    # 2) Nếu user là đại lý đang đăng nhập
+    if hasattr(user, "agent"):
+        agent = user.agent
+
+    # ==== Tạo hợp đồng ====
+    policy = Policy.objects.create(
+        customer=user.customer,
+        product=product,
+        policy_number=f"HĐ-{uuid.uuid4().hex[:8].upper()}",
+        premium_amount=amount,
+        payment_status="pending",
+        policy_status="pending",
+        sum_insured=product.max_claim_amount,
+        agent=agent,
+    )
+
+    return policy
