@@ -84,15 +84,50 @@ class HealthInfoForm(forms.Form):
             age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
             if age < 18:
                 self.add_error('birthDate', 'Bạn phải đủ 18 tuổi để mua bảo hiểm.')
+        # Nếu CUSTOMER → Không bắt buộc CCCD người mua
+        if self.user and self.user.user_type == "customer":
+            optional_fields = [
+                "cccd_front",
+                "cccd_back",
+            ]
+            for f in optional_fields:
+                field = self.fields[f]
+                field.required = False  # bỏ required theo form
 
+        # Nếu AGENT → phải upload đầy đủ
+        if self.user and self.user.user_type == "agent":
+            required_fields = [
+                "cccd_front",
+                "cccd_back",
+                "cccd_front_policyHolder",
+                "cccd_back_policyHolder",
+                "selfie"
+            ]
+            for f in required_fields:
+                if not cleaned_data.get(f):
+                    self.add_error(f, "Vui lòng upload đầy đủ giấy tờ.")
         return cleaned_data
 
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        if self.user and self.user.user_type == "customer":
+            # Nếu là customer, CCCD của customer không bắt buộc
+            self.fields['cccd_front'].required = False
+            self.fields['cccd_back'].required = False
     # --- Validate file upload ---
     def clean_cccd_front(self):
-        return self._validate_file(self.cleaned_data.get('cccd_front'), 'CCCD mặt trước')
+        file = self.cleaned_data.get('cccd_front')
+        if self.user and self.user.user_type == "customer":
+            return file  # bỏ validate
+        return self._validate_file(file, 'CCCD mặt trước')
 
     def clean_cccd_back(self):
-        return self._validate_file(self.cleaned_data.get('cccd_back'), 'CCCD mặt sau')
+        file = self.cleaned_data.get('cccd_back')
+        if self.user and self.user.user_type == "customer":
+            return file
+        return self._validate_file(file, 'CCCD mặt sau')
+
     def clean_cccd_front_policyHolder(self):
         return self._validate_file(self.cleaned_data.get('cccd_front_policyHolder'), 'CCCD mặt trước')
 
@@ -110,6 +145,11 @@ class HealthInfoForm(forms.Form):
 
     # --- Hàm con kiểm tra định dạng & dung lượng ---
     def _validate_file(self, file, field_name):
+        # Nếu customer → không bắt buộc
+        if self.user and self.user.user_type == "customer" and field_name in [
+            "CCCD mặt trước", "CCCD mặt sau"
+        ]:
+            return file
         if not file:
             raise forms.ValidationError(f"{field_name} là bắt buộc.")
         valid_extensions = ['jpg', 'jpeg', 'png', 'pdf']

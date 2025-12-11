@@ -4,9 +4,11 @@ import json
 import requests
 from django.conf import settings
 
+API_TIMEOUT = 15
+
 def process_ocr_cccd(image_file):
     """
-    Hàm utility để xử lý OCR CCCD
+    Hàm utility tối ưu tốc độ để xử lý OCR CCCD bằng một lần gọi Gemini API.
     """
     if not image_file:
         return {"success": False, "error": "No image uploaded"}
@@ -20,65 +22,30 @@ def process_ocr_cccd(image_file):
             "error": f"Invalid image type: {image_type}. Only JPEG, PNG, or WebP are allowed."
         }
 
-    image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
-    GEMINI_API_KEY = settings.GEMINI_API_KEY
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key={GEMINI_API_KEY}"
-
-    # Xác minh loại ảnh
-    verify_payload = {
-        "contents": [{
-            "parts": [
-                {
-                    "text": (
-                        "Ảnh này có phải là Căn cước công dân Việt Nam (mặt trước hoặc mặt sau) không? "
-                        "Chỉ trả về JSON dạng: {'is_cccd': true hoặc false}."
-                    )
-                },
-                {
-                    "inline_data": {"mime_type": image_type, "data": image_base64}
-                }
-            ]
-        }]
-    }
-
+    # Đọc tệp và mã hóa Base64
     try:
-        verify_res = requests.post(url, json=verify_payload, timeout=20)
-        verify_data = verify_res.json()
-        verify_text = verify_data["candidates"][0]["content"]["parts"][0]["text"].strip()
-
-        if verify_text.startswith("```json"):
-            verify_text = verify_text.replace("```json", "").replace("```", "").strip()
-
-        # Parse kết quả xác minh
-        try:
-            verify_result = json.loads(verify_text)
-            if not verify_result.get("is_cccd", False):
-                return {
-                    "success": False,
-                    "error": "Ảnh tải lên không phải là Căn cước công dân Việt Nam. Vui lòng thử lại."
-                }
-        except Exception:
-            return {
-                "success": False,
-                "error": "Không thể xác minh loại ảnh. Hãy tải lên ảnh CCCD mặt trước hoặc sau."
-            }
+        image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
     except Exception as e:
-        return {
-            "success": False,
-            "error": f"Lỗi khi xác minh loại ảnh: {str(e)}"
-        }
+        return {"success": False, "error": f"Lỗi đọc tệp ảnh: {str(e)}"}
 
-    # Trích xuất thông tin OCR
-    extract_payload = {
+    GEMINI_API_KEY = settings.GEMINI_API_KEY
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
+
+    # 1. GỘP CẢ XÁC MINH VÀ TRÍCH XUẤT VÀO MỘT LẦN GỌI
+    unified_payload = {
         "contents": [{
             "parts": [
                 {
                     "text": (
-                        "Trích xuất thông tin từ ảnh CCCD và trả về DẠNG JSON thuần. "
-                        "Các trường cần có: "
+                        "Đầu tiên, xác minh ảnh này có phải là Căn cước công dân Việt Nam (mặt trước hoặc mặt sau) không. "
+                        "Chỉ trả về DẠNG JSON thuần. "
+                        "Nếu KHÔNG phải CCCD, JSON phải có trường: {'is_cccd': false}. "
+                        "Nếu LÀ CCCD, JSON phải có trường: {'is_cccd': true, ...}. "
+                        "Trong trường hợp LÀ CCCD, trích xuất thêm các trường sau: "
                         "'ho_va_ten_dem', 'ten', 'id_number', 'gioi_tinh', "
-                        "'date_of_birth' (YYYY-MM-DD), 'address'. "
-                        "Không thêm mô tả khác ngoài JSON."
+                        "'date_of_birth' (theo định dạng YYYY-MM-DD), 'address'. "
+                        "Tuyệt đối KHÔNG thêm mô tả hoặc ký tự khác ngoài JSON."
                     )
                 },
                 {
@@ -89,18 +56,21 @@ def process_ocr_cccd(image_file):
     }
 
     try:
-        res = requests.post(url, json=extract_payload, timeout=30)
+
+        res = requests.post(url, json=unified_payload, timeout=API_TIMEOUT)
         data = res.json()
 
         if "candidates" not in data:
+            error_message = data.get("error", {}).get("message", "Gemini không phản hồi hợp lệ")
             return {
                 "success": False,
-                "error": data.get("error", {}).get("message", "Gemini không phản hồi hợp lệ"),
+                "error": f"Lỗi Gemini API: {error_message}",
                 "raw_response": data
             }
 
         text = data["candidates"][0]["content"]["parts"][0]["text"].strip()
 
+        # Xử lý dọn dẹp JSON
         if text.startswith("```json"):
             text = text.replace("```json", "").replace("```", "").strip()
 
@@ -109,7 +79,14 @@ def process_ocr_cccd(image_file):
 
         result = json.loads(text)
 
-        # ✅ Kiểm tra các trường bắt buộc
+        # 2. Xử lý kết quả Xác minh (Verification)
+        if not result.get("is_cccd", False):
+            return {
+                "success": False,
+                "error": "Ảnh tải lên không phải là Căn cước công dân Việt Nam. Vui lòng thử lại."
+            }
+
+        # 3. Xử lý kết quả Trích xuất (Extraction)
         required_fields = ["id_number", "gioi_tinh", "date_of_birth"]
         missing = [f for f in required_fields if not result.get(f)]
         if missing:
@@ -133,6 +110,6 @@ def process_ocr_cccd(image_file):
     except json.JSONDecodeError:
         return {"success": False, "error": "OCR không trả về JSON hợp lệ."}
     except requests.exceptions.Timeout:
-        return {"success": False, "error": "Gemini API timeout. Thử lại sau."}
+        return {"success": False, "error": f"Gemini API timeout sau {API_TIMEOUT} giây. Thử lại sau."}
     except Exception as e:
         return {"success": False, "error": str(e)}

@@ -81,7 +81,7 @@ def admin_home(request):
     """Dashboard chung cho cả Admin và Agent"""
 
     user_type = request.user.user_type
-    is_admin = request.user.is_staff or user_type == 'admin'
+    is_admin = request.user.is_superuser
     is_agent = user_type == 'agent'
     if is_admin:
         template = "dashboard/admin/dashboard_section.html"
@@ -90,15 +90,13 @@ def admin_home(request):
     if not (is_admin or is_agent):
         return redirect('trangchu')
 
-    # KHAI BÁO BIẾN Ở ĐÂY - NGOÀI CÁC BLOCK IF
     total_customers = active_customers = new_customers_this_month = 0
-    monthly_revenue = approval_rate = avg_processing_time = 0
+    admin_monthly_revenue = agent_monthly_revenue= approval_rate = avg_processing_time = 0
     active_policies_count = pending_claims_count = pending_policies = 0
     recent_activities = []
     agent_code = None
     monthly_commission = 0
 
-    # KHAI BÁO current_month VÀ current_year Ở NGOÀI
     current_month = timezone.now().month
     current_year = timezone.now().year
 
@@ -114,19 +112,21 @@ def admin_home(request):
             ).count()
 
             # Doanh thu tháng (tỷ VNĐ)
-            monthly_revenue_payments = Payment.objects.filter(
+            admin_monthly_revenue_raw = Payment.objects.filter(
                 payment_date__month=current_month,
                 payment_date__year=current_year,
                 status='success'
             ).aggregate(total=Sum('amount'))['total'] or 0
-            monthly_revenue = float(monthly_revenue_payments) / 1_000_000_000
 
+            admin_monthly_revenue = float(admin_monthly_revenue_raw) / 1_000_000_000
+
+            print("doanh thu tháng admin:",admin_monthly_revenue)
             # Policies và claims
             active_policies_count = Policy.objects.filter(policy_status='active').count()
             pending_claims_count = Claim.objects.filter(claim_status='pending').count()
             pending_policies = Policy.objects.filter(policy_status='pending').count()
 
-            staff_users = User.objects.filter(is_staff=True).count()
+
 
             # Tỷ lệ phê duyệt
             total_claims = Claim.objects.count()
@@ -142,11 +142,11 @@ def admin_home(request):
             )
             total_days = 0
             count = 0
-            # for claim in settled_claims:
-            #     if claim.updated_at and claim.claim_date:
-            #         days = (claim.updated_at.date() - claim.claim_date).days
-            #         total_days += days
-            #         count += 1
+            for claim in settled_claims:
+                if claim.updated_at and claim.claim_date:
+                    days = (claim.updated_at.date() - claim.claim_date).days
+                    total_days += days
+                    count += 1
             avg_processing_time = round(total_days / count, 1) if count > 0 else 0
 
             # Hoạt động gần đây
@@ -159,22 +159,26 @@ def admin_home(request):
                 agent_code = agent.code
 
                 # Khách hàng của agent - TẠM THỜI DÙNG COUNT ĐƠN GIẢN
-                total_customers = Customer.objects.filter(agent=agent).count()
-                active_customers = Customer.objects.filter(agent=agent, user__is_active=True).count()
+                # total_customers = Customer.objects.filter(agent=agent).count()
+                # active_customers = Customer.objects.filter(agent=agent, user__is_active=True).count()
 
                 # Khách hàng mới tháng này
-                new_customers_this_month = Customer.objects.filter(
-                    agent=agent,
-                    user__date_joined__month=current_month,
-                    user__date_joined__year=current_year
-                ).count()
+                # new_customers_this_month = Customer.objects.filter(
+                #     agent=agent,
+                #     user__date_joined__month=current_month,
+                #     user__date_joined__year=current_year
+                # ).count()
 
                 # Hợp đồng của agent
                 active_policies_count = Policy.objects.filter(agent=agent, policy_status='active').count()
                 pending_policies = Policy.objects.filter(agent=agent, policy_status='pending').count()
 
                 # Claims của agent
-                pending_claims_count = Claim.objects.filter(agent=agent, claim_status='pending').count()
+
+                pending_claims_count = Claim.objects.filter(
+                    policy__agent=agent,
+                    claim_status="pending"
+                ).count()
 
                 # Doanh thu cá nhân (triệu VNĐ) - TÍNH TỪ HOA HỒNG THỰC TẾ
                 monthly_commission = Policy.objects.filter(
@@ -187,17 +191,21 @@ def admin_home(request):
                 monthly_commission = float(monthly_commission) / 1_000_000  # Chuyển sang triệu
 
                 # Doanh thu hiển thị (có thể dùng commission hoặc premium)
-                monthly_revenue = Policy.objects.filter(
+                agent_revenue_raw = Policy.objects.filter(
                     agent=agent,
                     policy_status='active',
                     payment_status='paid',
                     updated_at__month=current_month,
                     updated_at__year=current_year
                 ).aggregate(total=Sum('premium_amount'))['total'] or 0
-                monthly_revenue = float(monthly_revenue) / 1_000_000  # Chuyển sang triệu
 
+                agent_monthly_revenue = float(agent_revenue_raw) / 1_000_000
+                print("doanh thu tháng agent:", agent_monthly_revenue)
                 # Tỷ lệ phê duyệt của agent
-                agent_claims = Claim.objects.filter(agent=agent)
+                agent_claims = Claim.objects.filter(
+                    policy__agent=agent,
+                )
+
                 total_agent_claims = agent_claims.count()
                 if total_agent_claims > 0:
                     approved_agent_claims = agent_claims.filter(claim_status='approved').count()
@@ -223,7 +231,7 @@ def admin_home(request):
                     agent=agent,
                     policy_status='active'
                 ).aggregate(total=Sum('commission_amount'))['total'] or 0
-                monthly_commission = float(total_commission) / 1_000_000  # Chuyển sang triệu
+                monthly_commission = float(total_commission) / 1_000_000
 
                 # Hoạt động gần đây của agent
                 recent_activities = get_agent_recent_activities(agent)
@@ -232,7 +240,7 @@ def admin_home(request):
                 # Fallback nếu agent không tồn tại
                 total_customers = 25
                 active_customers = 20
-                monthly_revenue = 2.5
+                agent_monthly_revenue = 2.5
                 approval_rate = 88.5
                 avg_processing_time = 1.8
                 new_customers_this_month = 5
@@ -253,7 +261,7 @@ def admin_home(request):
         if is_admin:
             total_customers = 1234
             active_customers = 1000
-            monthly_revenue = 58.5
+            admin_monthly_revenue = 58.5
             approval_rate = 94.2
             avg_processing_time = 2.3
             new_customers_this_month = 45
@@ -267,7 +275,7 @@ def admin_home(request):
         elif is_agent:
             total_customers = 25
             active_customers = 20
-            monthly_revenue = 2.5
+            agent_monthly_revenue = 2.5
             approval_rate = 88.5
             avg_processing_time = 1.8
             new_customers_this_month = 5
@@ -286,13 +294,12 @@ def admin_home(request):
         'total_customers': total_customers,
         'active_customers': active_customers,
         'new_customers_this_month': new_customers_this_month,
-        'monthly_revenue': round(monthly_revenue, 2),
-        'my_monthly_revenue': round(monthly_revenue, 2) if is_agent else 0,
+        'admin_monthly_revenue': round(admin_monthly_revenue, 5),
+        'agent_monthly_revenue': round(agent_monthly_revenue, 5),
         'monthly_commission': round(monthly_commission, 2) if is_agent else 0,
         'approval_rate': approval_rate,
         'avg_processing_time': avg_processing_time,
         'customer_satisfaction': 4.8 if is_admin else 4.5,
-        'staff_users': staff_users if is_admin else 0,
         'recent_activities': recent_activities,
         'active_policies_count': active_policies_count,
         'pending_claims_count': pending_claims_count,
@@ -363,6 +370,8 @@ def get_agent_recent_activities(agent):
         # Lấy policies gần đây
         recent_policies = Policy.objects.filter(agent=agent).select_related('customer__user', 'product').order_by(
             '-created_at')[:3]
+
+
         for policy in recent_policies:
             customer_name = f"{policy.customer.user.first_name} {policy.customer.user.last_name}".strip()
             if not customer_name:
@@ -383,8 +392,10 @@ def get_agent_recent_activities(agent):
             })
 
         # Lấy claims gần đây
-        recent_claims = Claim.objects.filter(agent=agent).select_related('policy__customer__user').order_by(
+        recent_claims = Claim.objects.filter(policy__agent=agent).select_related('policy__customer__user').order_by(
             '-created_at')[:2]
+
+
         for claim in recent_claims:
             customer_name = f"{claim.policy.customer.user.first_name} {claim.policy.customer.user.last_name}".strip()
             time_ago = timezone.now() - claim.created_at
@@ -426,65 +437,58 @@ def dashboard_data(request):
         return JsonResponse({'error': 'Unauthorized'}, status=403)
 
     try:
+        # KHỞI TẠO MẢNG DỮ LIỆU VÀ NHÃN
         revenue_data = []
         labels = []
 
-        # Lấy dữ liệu 6 tháng gần nhất
-        for i in range(5, -1, -1):
+        # LẤY DỮ LIỆU CHO 12 THÁNG GẦN NHẤT
+        for i in range(11, -1, -1):
+            # Tính toán ngày đầu tiên của tháng i tháng trước
             target_date = timezone.now() - timedelta(days=30 * i)
-            month_year = f"Th{target_date.month}/{str(target_date.year)[-2:]}"
+
+            # Tính toán tháng và năm để làm nhãn
+            month_year = f"Th{target_date.month}"
             labels.append(month_year)
 
             try:
+                # Lấy ngày đầu và ngày cuối của tháng mục tiêu
+                year = target_date.year
+                month = target_date.month
+
+
                 if is_admin:
-                    paid_policies = Policy.objects.filter(payment_status='paid', policy_status='active')
-                    total_revenue = paid_policies.aggregate(total=Sum('premium_amount'))['total'] or 0
-                    monthly_revenue = float(total_revenue) / 1_000_000_000
-                    # Doanh thu hệ thống (triệu VNĐ)
-                    # monthly_revenue = Payment.objects.filter(
-                    #     payment_date__month=target_date.month,
-                    #     payment_date__year=target_date.year,
-                    #     status='success'
-                    # ).aggregate(total=Sum('amount'))['total'] or 0
-                    # revenue_data.append(float(monthly_revenue) / 1_000_000)
+                    # Doanh thu hệ thống (tính bằng VNĐ)
+                    monthly_total_amount = Payment.objects.filter(
+                        payment_date__year=year,
+                        payment_date__month=month,
+                        status='success'
+                    ).aggregate(total=Sum('amount'))['total'] or 0
+                    revenue_data.append(round(float(monthly_total_amount) / 1_000_000_000, 4))
+
                 else:
+                    # Doanh thu/Hoa hồng Agent (tính bằng VNĐ)
                     agent = Agent.objects.get(user=request.user)
-                    paid_policies = Policy.objects.filter(
+
+                    # Tính tổng hoa hồng trong tháng
+                    monthly_total_commission = Policy.objects.filter(
                         agent=agent,
+                        policy_status='active',
                         payment_status='paid',
-                        policy_status='active'
-                    )
-                    total_revenue = paid_policies.aggregate(total=Sum('premium_amount'))['total'] or 0
-                    monthly_revenue = float(total_revenue) / 1_000_000
-                    # Doanh thu agent (triệu VNĐ)
-                    # agent = Agent.objects.get(user=request.user)
-                    # monthly_commission = Policy.objects.filter(
-                    #     agent=agent,
-                    #     policy_status='active',
-                    #     payment_status='paid',
-                    #     updated_at__month=target_date.month,
-                    #     updated_at__year=target_date.year
-                    # ).aggregate(total=Sum('commission_amount'))['total'] or 0
-                    # revenue_data.append(float(monthly_commission) / 1_000_000)
+                        updated_at__year=year,
+                        updated_at__month=month
+                    ).aggregate(total=Sum('commission_amount'))['total'] or 0
+
+                    # Chuyển đổi sang Triệu VNĐ (chia 1,000,000) và làm tròn 2 chữ số
+                    revenue_data.append(round(float(monthly_total_commission) / 1_000_000, 2))
 
             except Exception as e:
                 print(f"Lỗi doanh thu tháng {month_year}: {e}")
                 revenue_data.append(0)
 
-            # LABELS ĐÚNG - 6 tháng gần nhất
-            current_month = timezone.now().month
-            labels = []
-            for i in range(6, 0, -1):
-                month_num = current_month - i
-                if month_num <= 0:
-                    month_num += 12
-                labels.append(f"Th{month_num}")
-
-            # DATA - tháng cuối có doanh thu, các tháng trước = 0
-            revenue_data = [0, 0, 0, 0, 0, monthly_revenue]
 
         # Phân loại hợp đồng
         try:
+
             if is_admin:
                 policy_types = Policy.objects.filter(policy_status='active').values(
                     'product__product_name'
@@ -512,47 +516,13 @@ def dashboard_data(request):
         data = {
             'revenue_chart': {
                 'labels': labels,
-                'data': [round(x, 2) for x in revenue_data],
+                'data': revenue_data,
             },
             'contract_chart': {
                 'labels': policy_labels,
                 'data': policy_data,
             }
         }
-
-        # try:
-        #     if is_admin:
-        #         policy_types_data = Policy.objects.values('product__product_name').annotate(
-        #             total=Count('id')
-        #         ).order_by('-total')[:6]
-        #     else:
-        #         agent = Agent.objects.get(user=request.user)
-        #         policy_types_data = Policy.objects.filter(agent=agent).values('product__product_name').annotate(
-        #             total=Count('id')
-        #         ).order_by('-total')[:6]
-        #
-        #     policy_labels = [item['product__product_name'] or 'Chưa phân loại' for item in policy_types_data]
-        #     policy_data = [item['total'] for item in policy_types_data]
-        #
-        #     if not policy_labels:
-        #         policy_labels = ['Chưa có hợp đồng']
-        #         policy_data = [1]
-        #
-        # except Exception as e:
-        #     print(f"Lỗi phân loại hợp đồng: {e}")
-        #     policy_labels = ['Lỗi tải dữ liệu']
-        #     policy_data = [1]
-        #
-        # data = {
-        #     'revenue_chart': {
-        #         'labels': labels,
-        #         'data': [round(x, 2) for x in revenue_data],
-        #     },
-        #     'contract_chart': {
-        #         'labels': policy_labels,
-        #         'data': policy_data,
-        #     }
-        # }
 
         return JsonResponse(data)
 
@@ -561,7 +531,8 @@ def dashboard_data(request):
         import traceback
         traceback.print_exc()
 
-        # Fallback data
+        # Fallback data (Giữ nguyên)
+        # ... (Sử dụng dữ liệu fallback cũ nếu có lỗi nghiêm trọng)
         if is_admin:
             return JsonResponse({
                 'revenue_chart': {

@@ -105,7 +105,7 @@ def calculate_premium_logic(product, cleaned_data):
 @require_POST
 def calculate_premium(request):
     try:
-        form = HealthInfoForm(request.POST, request.FILES)
+        form = HealthInfoForm(request.POST, request.FILES,user=request.user)
         # Lấy thông tin sản phẩm
         product_id = request.POST.get("product_id")
         try:
@@ -270,6 +270,7 @@ def process_payment(request):
             product_id = request.POST.get("product_id")
             amount = request.POST.get("final_premium")
             payment_method = request.POST.get("payment_method")
+            agent_code = request.POST.get("agent_code")
 
             if not product_id or not amount or not payment_method:
                 return JsonResponse({"success": False, "error": "Thiếu thông tin thanh toán"}, status=400)
@@ -288,15 +289,7 @@ def process_payment(request):
             product = InsuranceProduct.objects.get(id=product_id)
 
             # Tạo hợp đồng (Policy)
-            policy = Policy.objects.create(
-                customer=user.customer,
-                product=product,
-                policy_number=f"HĐ-{uuid.uuid4().hex[:8].upper()}",
-                premium_amount=amount,
-                payment_status="pending",
-                policy_status="pending",
-                sum_insured=product.max_claim_amount,
-            )
+            policy = create_policy(user, product, amount, code=agent_code)
 
             # Tạo payment transaction
             transaction_id = f"GD-{uuid.uuid4().hex[:10].upper()}"
@@ -347,35 +340,35 @@ def process_payment(request):
     except Exception as e:
         print("❌ Lỗi trong process_payment:", e)
         return JsonResponse({"success": False, "error": str(e)})
-def create_policy(request, product):
-    user = request.user
-    code = request.POST.get("code")  # mã giới thiệu (nếu có)
-    amount = product.base_price  # hoặc số tiền đã tính phí
-
-    # ==== Xác định agent ====
+def create_policy(user, product, final_premium, code=None):
+    """
+    Tạo đối tượng Policy mới, xác định Agent và gán các thông tin cơ bản.
+    """
+    # === 1. Xác định Agent ===
     agent = None
 
-    # 1) Nếu có mã giới thiệu
+    # Ưu tiên 1: Mã giới thiệu (nếu có)
     if code:
         try:
             agent = Agent.objects.get(code=code)
         except Agent.DoesNotExist:
-            agent = None
+            pass # Bỏ qua nếu mã không tồn tại
 
-    # 2) Nếu user là đại lý đang đăng nhập
-    if hasattr(user, "agent"):
+    # Ưu tiên 2: User hiện tại là Agent
+    if not agent and hasattr(user, "agent"):
         agent = user.agent
 
-    # ==== Tạo hợp đồng ====
+    # === 2. Tạo Hợp đồng (Policy) ===
+
     policy = Policy.objects.create(
-        customer=user.customer,
+        customer=user.customer, # Giả định User có customer liên kết
         product=product,
         policy_number=f"HĐ-{uuid.uuid4().hex[:8].upper()}",
-        premium_amount=amount,
+        premium_amount=final_premium,
         payment_status="pending",
         policy_status="pending",
         sum_insured=product.max_claim_amount,
         agent=agent,
-    )
 
+    )
     return policy
