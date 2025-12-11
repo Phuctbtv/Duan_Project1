@@ -173,7 +173,7 @@ def update_profile(request):
             front_image = form.cleaned_data.get("cccd_front")
             back_image = form.cleaned_data.get("cccd_back")
 
-            if front_image and back_image:
+            if front_image and front_image != user.customer.cccd_front:
                 ocr_result = process_ocr_cccd(front_image)
 
                 if not ocr_result.get("success"):

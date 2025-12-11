@@ -122,7 +122,7 @@ def dashboard_view_user(request):
         ).order_by('-updated_at')
 
     else:
-        # 👤 THỐNG KÊ CHO CUSTOMER (giữ nguyên code cũ)
+        #  THỐNG KÊ CHO CUSTOMER
         total_contracts = Policy.objects.filter(customer__user_id=user.id).count()
         active_contracts = Policy.objects.filter(customer__user=user, policy_status="active").count()
         year_fee = Policy.objects.filter(customer__user=user).aggregate(total=Sum("premium_amount"))["total"] or 0
@@ -317,7 +317,7 @@ def admin_policy_renew(request, pk):
         policy.start_date = policy.end_date + timedelta(days=1)
         policy.end_date = policy.start_date + duration
 
-        policy.policy_status = "active"  # đặt lại trạng thái nếu cần
+        policy.policy_status = "active"
         policy.save()
 
         messages.success(request, f"Hợp đồng {policy.policy_number} đã được gia hạn thành công!")
@@ -384,7 +384,8 @@ def api_approve_policy(request, pk):
         policy = get_object_or_404(Policy, pk=pk)
         data = json.loads(request.body)
         note = data.get('note', '')
-
+        # Cập nhật payment
+        Payment.objects.filter(policy=policy).update(status="success")
         policy.activate()
 
         # Tạo thông báo trong hệ thống
