@@ -3,6 +3,8 @@ from datetime import timedelta
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
 import json
+
+from django.db import transaction
 from django.http import JsonResponse
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
@@ -34,7 +36,7 @@ def custom_policies_admin(request):
 
     # Lấy tất cả hợp đồng + join với customer và product
     policies = Policy.objects.select_related('customer', 'product').prefetch_related('payments').order_by('-created_at').all()
-
+    agent = Agent.objects.all()
     # Cập nhật trạng thái expired nếu end_date < hôm nay
     today = timezone.now().date()
     for policy in policies:
@@ -74,6 +76,7 @@ def custom_policies_admin(request):
         'selected_product': product,
         'dashboard_policy': dashboard_policy,
         'status_choices' : status_choices,
+        'agents': agent,
 
     }
     return render(request, 'admin/policies_section.html', context)
@@ -447,3 +450,53 @@ def api_reject_policy(request, pk):
 
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+
+@login_required
+def transfer_servicing_agent_api(request, pk):
+    if not request.user.is_superuser:
+        return JsonResponse({"success": False, "message": "Bạn không có quyền thực hiện thao tác này."}, status=403)
+
+    try:
+        data = json.loads(request.body)
+        new_agent_id = data.get('new_agent_id')
+        reason = data.get('reason', '')
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "message": "Dữ liệu yêu cầu không hợp lệ (JSON Error)."}, status=400)
+
+    if not new_agent_id or not reason:
+        return JsonResponse({"success": False, "message": "Vui lòng chọn đại lý mới và nhập lý do."}, status=400)
+
+    policy = get_object_or_404(Policy, pk=pk)
+
+    try:
+        new_agent = Agent.objects.get(pk=new_agent_id)
+    except Agent.DoesNotExist:
+        return JsonResponse({"success": False, "message": "Đại lý mới không tồn tại."}, status=404)
+
+    old_agent = policy.agent_servicing
+
+    try:
+        with transaction.atomic():
+
+            # 2. Cập nhật Hợp đồng
+            policy.agent_servicing = new_agent
+            policy.save(update_fields=['agent_servicing', 'updated_at'])
+
+            messages.success(request, "Đã chuyển đại lý quản lý thành công!")
+            # 3. Kích hoạt thông báo (nếu cần)
+            # notify_agent_transfer(policy, old_agent, new_agent)
+
+    except Exception as e:
+
+        return JsonResponse({"success": False, "message": f"Lỗi xử lý: {str(e)}"}, status=500)
+
+    # Phản hồi thành công
+    return JsonResponse({
+        "success": True,
+        "message": f"Chuyển đại lý quản lý thành công sang {new_agent.user.get_full_name()}.",
+        "new_agent_name": new_agent.user.get_full_name(),
+        "new_agent_id": new_agent.pk,
+        "code_agent":new_agent.code,
+    })

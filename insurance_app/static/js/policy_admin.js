@@ -443,3 +443,79 @@
         document.body.appendChild(imageModal);
     };
 
+    // Hàm khởi tạo xử lý form chuyển giao đại lý
+    function initTransferAgentForm() {
+        const form = document.getElementById('transferAgentForm');
+        if (!form) return;
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            handleTransferAgent(form);
+        });
+    }
+
+    function openTransferModal(policyId, policyNumber) {
+        const transferModal = document.getElementById('transferAgentModal');
+        transferModal.classList.remove('hidden');
+        // 1. Cập nhật các trường ẩn trong form
+        document.getElementById('policyIdTransfer').value = policyId;
+        document.getElementById('modalPolicyNumber').textContent = policyNumber;
+        console.log("đã bấm");
+        // 2. Cập nhật action URL của form AJAX
+        const apiUrlBase = document.getElementById('apiUrlBase').value;
+        const apiUrl = apiUrlBase.replace('0', policyId);
+        document.getElementById('transferAgentForm').action = apiUrl;
+
+    }
+    // Hàm chính xử lý chuyển đại lý
+    async function handleTransferAgent(form) {
+        const url = form.action;
+
+        const newAgentId = document.getElementById('new_agent_id').value;
+        const reason = document.getElementById('reason').value;
+        const csrfToken = getCsrfToken();
+
+        if (!newAgentId || !reason) {
+            alert('Vui lòng điền đầy đủ thông tin.');
+            return;
+        }
+
+        const payload = {
+            new_agent_id: newAgentId,
+            reason: reason
+        };
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `Lỗi HTTP: ${response.status}`);
+            }
+
+            const data = await response.json();
+            alert(data.message);
+
+            // Cập nhật giao diện
+            document.getElementById('currentAgentName').textContent = data.new_agent_name +" - "+data.code_agent;
+            closeModalTransfer();
+            document.getElementById("reason").value="";
+
+        } catch (error) {
+            console.error('Lỗi chuyển giao:', error);
+            alert('Chuyển giao thất bại: ' + error.message);
+        }
+    }
+    // Đóng modal
+    function closeModalTransfer() {
+        document.getElementById('transferAgentModal').classList.add('hidden');
+    }
+    // Kích hoạt khi tải trang
+    document.addEventListener('DOMContentLoaded', initTransferAgentForm);
