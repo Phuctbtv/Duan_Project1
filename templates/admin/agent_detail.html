@@ -1,32 +1,124 @@
 {% extends 'admin/admin_home.html' %}
 {% load static %}
+{% load humanize %}
 
 {% block content %}
-<div class="section p-6 max-w-3xl mx-auto">
-    <h2 class="text-2xl font-bold text-gray-800 mb-6">Chi Tiết Đại Lý</h2>
+<div class="section p-6 max-w-6xl mx-auto">
+    <h2 class="text-3xl font-bold text-gray-800 mb-8">👤 Hồ Sơ Đại Lý: {{ user.get_full_name }}</h2>
 
-    <div class="bg-white p-6 rounded-xl shadow-md space-y-4">
-        <div><strong>Tên đăng nhập:</strong> {{ user.username }}</div>
-        <div><strong>Họ tên:</strong> {{ user.get_full_name }}</div>
-        <div><strong>Email:</strong> {{ user.email|default:"—" }}</div>
-        <div><strong>Số điện thoại:</strong> {{ user.phone_number|default:"—" }}</div>
-        <div><strong>Mã đại lý:</strong> {{ agent.code }}</div>
-        <div><strong>Ngân hàng:</strong> {{ agent.bank_name|default:"—" }}</div>
-        <div><strong>Số tài khoản:</strong> {{ agent.bank_account_number|default:"—" }}</div>
-        <div><strong>Tên chủ tài khoản:</strong> {{ agent.bank_account_holder|default:"—" }}</div>
-        <div>
-            <strong>Trạng thái:</strong>
-            {% if user.is_active %}
-                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Hoạt động</span>
-            {% else %}
-                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Tạm khóa</span>
-            {% endif %}
-        </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        <div class="flex justify-end space-x-4 mt-4">
-            <a href="{% url 'agent_edit' user.id %}" class="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Chỉnh Sửa</a>
-            <a href="{% url 'custom_section' %}" class="px-6 py-2 rounded-lg bg-gray-600 text-white hover:bg-gray-700">Quay Lại</a>
-        </div>
-    </div>
+        <div class="lg:col-span-1 space-y-6">
+
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+                <h3 class="text-xl font-semibold text-gray-700 mb-4 flex items-center space-x-2">
+                    <i class="fas fa-user-circle text-blue-500"></i>
+                    <span>Thông Tin Cơ Bản</span>
+                </h3>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between border-b pb-2">
+                        <strong class="text-gray-600">Mã đại lý:</strong>
+                        <span class="font-bold text-blue-600">{{ agent.code }}</span>
+                    </div>
+                    <div class="flex justify-between border-b pb-2">
+                        <strong class="text-gray-600">Tên đăng nhập:</strong>
+                        <span>{{ user.username }}</span>
+                    </div>
+                    <div class="flex justify-between border-b pb-2">
+                        <strong class="text-gray-600">Họ tên:</strong>
+                        <span>{{ user.get_full_name }}</span>
+                    </div>
+                    <div class="flex justify-between border-b pb-2">
+                        <strong class="text-gray-600">Email:</strong>
+                        <span>{{ user.email|default:"—" }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <strong class="text-gray-600">Số điện thoại:</strong>
+                        <span>{{ user.phone_number|default:"—" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+                <h3 class="text-xl font-semibold text-gray-700 mb-4 flex items-center space-x-2">
+                    <i class="fas fa-university text-green-500"></i>
+                    <span>Thông Tin Thanh Toán</span>
+                </h3>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between border-b pb-2">
+                        <strong class="text-gray-600">Ngân hàng:</strong>
+                        <span>{{ agent.bank_name|default:"—" }}</span>
+                    </div>
+                    <div class="flex justify-between border-b pb-2">
+                        <strong class="text-gray-600">Số tài khoản:</strong>
+                        <span class="font-mono">{{ agent.bank_account_number|default:"—" }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <strong class="text-gray-600">Chủ tài khoản:</strong>
+                        <span>{{ agent.bank_account_holder|default:"—" }}</span>
+                    </div>
+                </div>
+            </div>
+
+             <div class="flex justify-between space-x-4 mt-4 p-4 bg-gray-50 rounded-xl shadow-inner">
+                <a href="{% url 'agent_edit' user.id %}" class="flex-1 text-center px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition duration-150">
+                    <i class="fas fa-edit mr-1"></i> Chỉnh Sửa
+                </a>
+                <a href="{% url 'custom_section' %}" class="flex-1 text-center px-4 py-2 rounded-lg bg-gray-600 text-white hover:bg-gray-700 transition duration-150">
+                    <i class="fas fa-arrow-left mr-1"></i> Quay Lại
+                </a>
+            </div>
+
+        </div> <div class="lg:col-span-2">
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+                <h3 class="text-xl font-semibold text-gray-700 mb-4 flex items-center space-x-2">
+                    <i class="fas fa-file-contract text-red-500"></i>
+                    <span>Danh Sách Hợp Đồng Đại Lý Đang Quản Lý</span>
+                </h3>
+
+                {% if servicing_policies %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mã HĐ</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Khách hàng</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sản phẩm</th>
+                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Phí (VNĐ)</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for policy in servicing_policies %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{{ policy.policy_number }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{{ policy.customer.user.get_full_name }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{{ policy.product.product_name }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right font-semibold">{{ policy.premium_amount|floatformat:0|intcomma }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    {% if policy.policy_status == 'active' %}
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Hoạt động</span>
+                                    {% elif policy.policy_status == 'pending' %}
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">Chờ duyệt</span>
+                                    {% else %}
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Đã hủy</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-center text-sm font-medium">
+                                    <a href="{% url 'policy_detail' policy.pk %}" class="text-indigo-600 hover:text-indigo-900 transition duration-150">Xem chi tiết</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border-dashed border-2 border-gray-200">
+                    <p>Đại lý này hiện chưa quản lý hợp đồng nào.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div> </div>
 </div>
 {% endblock %}

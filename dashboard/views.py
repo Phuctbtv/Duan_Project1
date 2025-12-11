@@ -585,7 +585,7 @@ def get_total_revenue():
 @admin_required
 def custom_section(request):
     """Quản lý khách hàng - Chỉ dành cho admin"""
-    users = User.objects.all()
+    users = User.objects.filter(is_superuser=False)
 
     # Lấy tham số tìm kiếm và filter từ URL
     search_query = request.GET.get('q', '')
@@ -895,10 +895,11 @@ def agent_detail(request, user_id):
     """Chi tiết đại lý"""
     user = get_object_or_404(User, pk=user_id, user_type='agent')
     agent = get_object_or_404(Agent, user=user)
-
+    servicing_policies = Policy.objects.filter(agent_servicing=agent).select_related('customer__user', 'product')
     context = {
         'user': user,
-        'agent': agent
+        'agent': agent,
+        'servicing_policies': servicing_policies,
     }
     return render(request, 'admin/agent_detail.html', context)
 
@@ -945,10 +946,35 @@ def agent_edit(request, user_id):
 @login_required
 @admin_required
 def agent_toggle_status(request, user_id):
-    """Kích hoạt / vô hiệu hóa đại lý"""
+    """Kích hoạt / vô hiệu hóa đại lý, có kiểm tra hợp đồng đang quản lý."""
+
     user = get_object_or_404(User, pk=user_id, user_type='agent')
+
+    if user.is_active is True:
+        try:
+            agent_obj = Agent.objects.get(user=user)
+        except Agent.DoesNotExist:
+            agent_obj = None
+
+        if agent_obj:
+            # Lọc các hợp đồng đang hoạt động (active) mà đại lý này đang phụ trách.
+            active_policies = Policy.objects.filter(
+                agent_servicing=agent_obj,
+                policy_status='active'
+            ).exists()
+
+            if active_policies:
+                messages.error(
+                    request,
+                    f'Không thể vô hiệu hóa đại lý {user.get_full_name()} vì họ đang quản lý ít nhất một hợp đồng đang hoạt động. '
+                    'Vui lòng chuyển giao các hợp đồng này trước.'
+                )
+                return redirect('custom_section')
+
     user.is_active = not user.is_active
     user.save()
+
     status = "kích hoạt" if user.is_active else "vô hiệu hóa"
-    messages.success(request, f'Đã {status} đại lý {user.get_full_name()}')
+    messages.success(request, f'Đã {status} đại lý {user.get_full_name()}.')
+
     return redirect('custom_section')
