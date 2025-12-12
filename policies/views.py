@@ -451,8 +451,6 @@ def api_reject_policy(request, pk):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
-
-
 @login_required
 def transfer_servicing_agent_api(request, pk):
     if not request.user.is_superuser:
@@ -474,9 +472,6 @@ def transfer_servicing_agent_api(request, pk):
         new_agent = Agent.objects.get(pk=new_agent_id)
     except Agent.DoesNotExist:
         return JsonResponse({"success": False, "message": "Đại lý mới không tồn tại."}, status=404)
-
-    old_agent = policy.agent_servicing
-
     try:
         with transaction.atomic():
 
@@ -487,12 +482,21 @@ def transfer_servicing_agent_api(request, pk):
             messages.success(request, "Đã chuyển đại lý quản lý thành công!")
             # 3. Kích hoạt thông báo (nếu cần)
             # notify_agent_transfer(policy, old_agent, new_agent)
-
+            # Gửi email
+            customer_email = policy.customer.user.email
+            if customer_email:
+                subject = "Thay đổi đại lý quản lý hợp đồng!"
+                message = (
+                    f"Kính chào {policy.customer.user.get_full_name()},\n\n"
+                    f"Hợp đồng bảo hiểm "+ policy.product.product_name+"của bạn đã được chuyển giao sang đại lý " + new_agent.user.get_full_name()+" - "+new_agent.code + "quản lý"
+                    f"Lý do: {reason}\n\n"
+                    "Vui lòng liên hệ bộ phận hỗ trợ nếu có thắc mắc.\n\n"
+                    "Trân trọng,\nĐội ngũ hỗ trợ Bảo hiểm"
+                )
+                send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [customer_email])
     except Exception as e:
 
         return JsonResponse({"success": False, "message": f"Lỗi xử lý: {str(e)}"}, status=500)
-
-    # Phản hồi thành công
     return JsonResponse({
         "success": True,
         "message": f"Chuyển đại lý quản lý thành công sang {new_agent.user.get_full_name()}.",
