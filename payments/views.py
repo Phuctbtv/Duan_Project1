@@ -1,3 +1,4 @@
+
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import render, get_object_or_404, redirect
@@ -13,7 +14,7 @@ from django.contrib import messages
 from payments.forms import HealthInfoForm
 from payments.models import Payment
 from policies.models import Policy, PolicyHolder, HealthInfo
-from users.models import Customer, Agent
+from users.models import Customer, Agent, User
 
 
 def payments_users(request):
@@ -100,6 +101,17 @@ def calculate_premium_logic(product, cleaned_data):
         "health_conditions": health_conditions,
     }
 
+def split_fullname(fullname):
+    parts = fullname.strip().split()
+
+    if len(parts) == 1:
+        return "", parts[0]
+    elif len(parts) == 2:
+        return parts[0], parts[1]
+    else:
+        lastname = parts[-1]
+        firstname = " ".join(parts[:-1])
+        return firstname, lastname
 
 @csrf_exempt
 @require_POST
@@ -131,17 +143,56 @@ def calculate_premium(request):
                 }, status=403)
 
             with transaction.atomic():
-                # Tạo hoặc cập nhật Customer
-                customer, created = Customer.objects.get_or_create(
-                    user=user,
-                    defaults={
-                        "id_card_number": cleaned_data.get("id_card_number"),
-                        "nationality": cleaned_data.get("nationality", "Việt Nam"),
-                        "gender": cleaned_data.get("gender", "other"),
-                        "job": cleaned_data.get("occupation", ""),
-                    }
-                )
+                customer_data = {
+                    "id_card_number": cleaned_data.get("id_card_number"),
+                    "nationality": cleaned_data.get("nationality", "Việt Nam"),
+                    "gender": cleaned_data.get("gender", "other"),
+                    "job": cleaned_data.get("occupation", ""),
+                }
+                if user.user_type == "agent":
+                    customer_email = cleaned_data.get("email", "")
+                    if not customer_email:
+                        return JsonResponse({"success": False, "error": "Đại lý cần cung cấp email khách hàng."})
+                    fullname = cleaned_data.get("fullname", "")
+                    firstname, lastname = split_fullname(fullname)
 
+                    customer_user = User.objects.filter(email=customer_email).first()
+
+                    if customer_user:
+
+                        if customer_user.user_type != "customer":
+                            return JsonResponse({
+                                "success": False,
+                                "error": "Email này đã tồn tại nhưng không phải tài khoản khách hàng."
+                            }, status=400)
+
+                        customer = Customer.objects.filter(user=customer_user).first()
+                        if not customer:
+                            customer = Customer.objects.create(user=customer_user, **customer_data)
+                        policy_owner_user = customer_user
+                    else:
+                        # Chưa có → tạo mới
+                        customer_user = User.objects.create(
+                            username=customer_email,
+                            email=customer_email,
+                            user_type="customer",
+                            is_active=True,
+                            first_name=firstname,
+                            last_name=lastname,
+                            date_of_birth=cleaned_data.get("birthDate", ""),
+                            phone_number=cleaned_data.get("phone", ""),
+                            address=cleaned_data.get("address", ""),
+                        )
+                        customer = Customer.objects.create(user=customer_user, **customer_data)
+                        policy_owner_user = customer_user
+                else:
+                    customer, created = Customer.objects.get_or_create(
+                        user=user,
+                        defaults=customer_data
+                    )
+                    policy_owner_user = user
+                if not policy_owner_user:
+                    return JsonResponse({"success": False, "error": "Lỗi hệ thống: Không xác định được Chủ hợp đồng."},status=500)
                 if request.FILES.get("cccd_front"):
                     if customer.cccd_front:
                         customer.cccd_front.delete(save=False)
@@ -207,6 +258,7 @@ def calculate_premium(request):
                     'final_premium': calculation_result['final_premium'],
                     'policy_holder_id': policy_holder.id,
                     'health_info_id': health_info.id,
+                    'policy_owner_user_id': policy_owner_user.id,
                     'beneficiary_data': {
                         'fullname': cleaned_data.get("beneficiary_fullname"),
                         'birthDate': cleaned_data.get("beneficiary_birthdate"),
@@ -214,7 +266,7 @@ def calculate_premium(request):
                         'relationship_to_customer': cleaned_data.get("beneficiary_relationship"),
                     }
                 }
-                # Loại bỏ file objects khỏi response
+
                 serializable_cleaned_data = {}
                 for key, value in cleaned_data.items():
                     if not hasattr(value, 'file'):
@@ -266,7 +318,9 @@ def process_payment(request):
 
     try:
         with transaction.atomic():
-            user = request.user
+            # User hiện tại
+            current_user = request.user
+
             product_id = request.POST.get("product_id")
             amount = request.POST.get("final_premium")
             payment_method = request.POST.get("payment_method")
@@ -275,11 +329,11 @@ def process_payment(request):
             if not product_id or not amount or not payment_method:
                 return JsonResponse({"success": False, "error": "Thiếu thông tin thanh toán"}, status=400)
 
-            # LẤY DỮ LIỆU TỪ SESSION
+
             draft_data = request.session.get('draft_data', {})
             policy_holder_id = draft_data.get('policy_holder_id')
-            health_info_id = draft_data.get('health_info_id')
-            beneficiary_data = draft_data.get('beneficiary_data', {})
+
+            policy_owner_user_id = draft_data.get('policy_owner_user_id')
 
             if not policy_holder_id:
                 return JsonResponse(
@@ -288,10 +342,16 @@ def process_payment(request):
 
             product = InsuranceProduct.objects.get(id=product_id)
 
-            # Tạo hợp đồng (Policy)
-            policy = create_policy(user, product, amount, code=agent_code)
+            if current_user.user_type == 'agent' and policy_owner_user_id:
+                policy_owner_user = User.objects.get(pk=policy_owner_user_id)
+            else:
+                policy_owner_user = current_user
 
-            # Tạo payment transaction
+            if not hasattr(policy_owner_user, 'customer'):
+                return JsonResponse({"success": False, "error": "User không có Customer Profile hợp lệ."}, status=400)
+
+            policy = create_policy(policy_owner_user,request.user, product, amount, code=agent_code)
+            print("policy_owner_user :",policy_owner_user)
             transaction_id = f"GD-{uuid.uuid4().hex[:10].upper()}"
             payment = Payment.objects.create(
                 policy=policy,
@@ -306,9 +366,6 @@ def process_payment(request):
             policy_holder.policy = policy
             policy_holder.save()
 
-            # HealthInfo đã được tạo từ trước và vẫn giữ nguyên
-
-            # Xóa session data sau khi sử dụng
             if 'draft_data' in request.session:
                 del request.session['draft_data']
 
@@ -332,7 +389,8 @@ def process_payment(request):
             },
             "transfer_content": f"{policy.policy_number}-{payment.transaction_id}",
         })
-
+    except User.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Không tìm thấy người sở hữu hợp đồng"}, status=404)
     except InsuranceProduct.DoesNotExist:
         return JsonResponse({"success": False, "error": "Sản phẩm không tồn tại"}, status=404)
     except PolicyHolder.DoesNotExist:
@@ -340,35 +398,37 @@ def process_payment(request):
     except Exception as e:
         print("❌ Lỗi trong process_payment:", e)
         return JsonResponse({"success": False, "error": str(e)})
-def create_policy(user, product, final_premium, code=None):
-    """
-    Tạo đối tượng Policy mới, xác định Agent và gán các thông tin cơ bản.
-    """
-    # === 1. Xác định Agent ===
-    agent = None
 
-    # Ưu tiên 1: Mã giới thiệu (nếu có)
+
+def create_policy(user,agent_seller, product, final_premium, code=None):
+    customer_owner = user.customer
+    agent_servicing = None
     if code:
         try:
-            agent = Agent.objects.get(code=code)
+            agent_seller = Agent.objects.get(code=code)
         except Agent.DoesNotExist:
-            pass # Bỏ qua nếu mã không tồn tại
-
-    # Ưu tiên 2: User hiện tại là Agent
-    if not agent and hasattr(user, "agent"):
-        agent = user.agent
-
-    # === 2. Tạo Hợp đồng (Policy) ===
+            pass
+    if  agent_seller.user_type == 'agent':
+        try:
+            agent_seller =Agent.objects.get(user=agent_seller)
+            agent_servicing = agent_seller
+        except Agent.DoesNotExist:
+            pass
+    else:
+        try:
+            agent_servicing = Agent.objects.get(code='DIRECT_SALES')
+        except Agent.DoesNotExist:
+            agent_servicing = None
 
     policy = Policy.objects.create(
-        customer=user.customer, # Giả định User có customer liên kết
+        customer=customer_owner,
         product=product,
         policy_number=f"HĐ-{uuid.uuid4().hex[:8].upper()}",
         premium_amount=final_premium,
         payment_status="pending",
         policy_status="pending",
         sum_insured=product.max_claim_amount,
-        agent=agent,
-
+        agent=agent_seller,
+        agent_servicing=agent_servicing,
     )
     return policy
