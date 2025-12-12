@@ -42,7 +42,7 @@
                         {% if is_admin %}
                             {{ active_customers }} đang hoạt động
                         {% elif is_agent %}
-                            {{ active_customers }} đang hoạt động
+                             đang hoạt động
                         {% endif %}
                     </p>
                 </div>
@@ -57,7 +57,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-gray-600 text-sm">
-                        {% if is_admin %}Hợp Đồng Đang Hoạt Động{% elif is_agent %}Hợp Đồng Của Tôi{% endif %}
+                        {% if is_admin %}Hợp Đồng Đang Hoạt Động{% elif is_agent %}Hợp Đồng quản lý{% endif %}
                     </p>
                     <p class="text-2xl font-bold text-gray-800">{{ active_policies_count }}</p>
                     <p class="text-xs {% if is_admin %}text-green-600{% else %}text-blue-600{% endif %} mt-1">

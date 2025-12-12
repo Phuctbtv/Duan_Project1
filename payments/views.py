@@ -266,7 +266,7 @@ def calculate_premium(request):
                         'relationship_to_customer': cleaned_data.get("beneficiary_relationship"),
                     }
                 }
-
+                request.session.modified = True
                 serializable_cleaned_data = {}
                 for key, value in cleaned_data.items():
                     if not hasattr(value, 'file'):
@@ -335,10 +335,10 @@ def process_payment(request):
 
             policy_owner_user_id = draft_data.get('policy_owner_user_id')
 
-            if not policy_holder_id:
-                return JsonResponse(
-                    {"success": False, "error": "Không tìm thấy thông tin người được bảo hiểm. Vui lòng tính phí lại."},
-                    status=400)
+            # if not policy_holder_id:
+            #     return JsonResponse(
+            #         {"success": False, "error": "Không tìm thấy thông tin người được bảo hiểm. Vui lòng tính phí lại."},
+            #         status=400)
 
             product = InsuranceProduct.objects.get(id=product_id)
 
@@ -350,7 +350,13 @@ def process_payment(request):
             if not hasattr(policy_owner_user, 'customer'):
                 return JsonResponse({"success": False, "error": "User không có Customer Profile hợp lệ."}, status=400)
 
-            policy = create_policy(policy_owner_user,request.user, product, amount, code=agent_code)
+            policy = create_policy(
+                policy_owner_user=policy_owner_user,
+                product=product,
+                final_premium=amount,
+                current_user=current_user,
+                code=agent_code
+            )
             print("policy_owner_user :",policy_owner_user)
             transaction_id = f"GD-{uuid.uuid4().hex[:10].upper()}"
             payment = Payment.objects.create(
@@ -399,21 +405,28 @@ def process_payment(request):
         print("❌ Lỗi trong process_payment:", e)
         return JsonResponse({"success": False, "error": str(e)})
 
+def create_policy(policy_owner_user, product, final_premium, current_user, code=None):
 
-def create_policy(user,agent_seller, product, final_premium, code=None):
-    customer_owner = user.customer
+    customer_owner = policy_owner_user.customer
     agent_servicing = None
+    agent_seller = None
+
+
     if code:
         try:
             agent_seller = Agent.objects.get(code=code)
         except Agent.DoesNotExist:
             pass
-    if  agent_seller.user_type == 'agent':
+
+    if not agent_seller and current_user.user_type == 'agent':
         try:
-            agent_seller =Agent.objects.get(user=agent_seller)
-            agent_servicing = agent_seller
+            # Lấy Agent liên kết với người đang thao tác
+            agent_seller = Agent.objects.filter(user=current_user).first()
         except Agent.DoesNotExist:
             pass
+
+    if agent_seller:
+        agent_servicing = agent_seller
     else:
         try:
             agent_servicing = Agent.objects.get(code='DIRECT_SALES')
@@ -429,6 +442,6 @@ def create_policy(user,agent_seller, product, final_premium, code=None):
         policy_status="pending",
         sum_insured=product.max_claim_amount,
         agent=agent_seller,
-        agent_servicing=agent_servicing,
+        agent_servicing=agent_servicing
     )
     return policy
