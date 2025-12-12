@@ -24,4 +24,5 @@ urlpatterns = [
     path('agents/<int:user_id>/toggle-status/', views.agent_toggle_status, name='agent_toggle_status'),
     path('check-username/', CheckUsernameView.as_view(), name='check_username'),
     path('check-email/', CheckEmailView.as_view(), name='check_email'),
+    path('finance_dashboard/', views.finance_dashboard_view, name='finance_dashboard'),
 ]

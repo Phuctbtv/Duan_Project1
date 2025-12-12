@@ -2,6 +2,8 @@ from django.db import transaction
 import json
 import random
 import string
+
+from django.db.models.functions import TruncMonth
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -18,6 +20,7 @@ from policies.models import Policy
 from claims.models import Claim
 from payments.models import Payment
 from django.contrib import messages
+from django.db.models import Sum, Q
 
 
 def generate_agent_code():
@@ -126,8 +129,6 @@ def admin_home(request):
             pending_claims_count = Claim.objects.filter(claim_status='pending').count()
             pending_policies = Policy.objects.filter(policy_status='pending').count()
 
-
-
             # Tỷ lệ phê duyệt
             total_claims = Claim.objects.count()
             if total_claims > 0:
@@ -144,7 +145,7 @@ def admin_home(request):
             count = 0
             for claim in settled_claims:
                 if claim.updated_at and claim.claim_date:
-                    days = (claim.updated_at.date() - claim.claim_date).days
+                    days = (claim.updated_at.date() - claim.claim_date.date()).days
                     total_days += days
                     count += 1
             avg_processing_time = round(total_days / count, 1) if count > 0 else 0
@@ -160,7 +161,12 @@ def admin_home(request):
 
                 # Khách hàng của agent - TẠM THỜI DÙNG COUNT ĐƠN GIẢN
                 # total_customers = Customer.objects.filter(agent=agent).count()
-                # active_customers = Customer.objects.filter(agent=agent, user__is_active=True).count()
+                total_customers = Customer.objects.filter(
+                    policy__agent=request.user.agent,
+                    policy__policy_status="active"
+                ).distinct().count()
+
+
 
                 # Khách hàng mới tháng này
                 # new_customers_this_month = Customer.objects.filter(
@@ -197,7 +203,7 @@ def admin_home(request):
                     payment_status='paid',
                     updated_at__month=current_month,
                     updated_at__year=current_year
-                ).aggregate(total=Sum('premium_amount'))['total'] or 0
+                ).aggregate(total=Sum('commission_amount'))['total'] or 0
 
                 agent_monthly_revenue = float(agent_revenue_raw) / 1_000_000
                 print("doanh thu tháng agent:", agent_monthly_revenue)
@@ -221,7 +227,7 @@ def admin_home(request):
                 count = 0
                 for claim in settled_agent_claims:
                     if claim.updated_at and claim.claim_date:
-                        days = (claim.updated_at.date() - claim.claim_date).days
+                        days = (claim.updated_at.date() - claim.claim_date.date()).days
                         total_days += days
                         count += 1
                 avg_processing_time = round(total_days / count, 1) if count > 0 else 0
@@ -978,3 +984,122 @@ def agent_toggle_status(request, user_id):
     messages.success(request, f'Đã {status} đại lý {user.get_full_name()}.')
 
     return redirect('custom_section')
+
+def finance_dashboard_view(request):
+    if not request.user.is_superuser:
+        return redirect('trangchu')
+
+    now = timezone.now()
+    current_month = now.month
+    current_year = now.year
+
+    last_12_months = now.date() - timedelta(days=365)
+
+    # 1. Tổng phí bảo hiểm nhận được (Tổng doanh thu)
+    total_premium_raw = (
+        Payment.objects.filter(status='success')
+        .aggregate(total_sum=Sum('amount'))
+        ['total_sum']
+        or 0
+    )
+
+    # 2. Doanh thu tháng hiện tại
+    monthly_revenue_raw = (
+        Payment.objects.filter(
+            status='success',
+            payment_date__month=current_month,
+            payment_date__year=current_year
+        )
+        .aggregate(total_sum=Sum('amount'))
+        ['total_sum']
+        or 0
+    )
+
+    # ---- Thống kê doanh thu 12 tháng gần nhất ----
+    monthly_sales_data = (
+        Payment.objects.filter(
+            status='success',
+            payment_date__gte=last_12_months
+        )
+        .annotate(month=TruncMonth('payment_date'))
+        .values('month')
+        .annotate(total_sales=Sum('amount'))
+        .order_by('month')
+    )
+
+    # Convert thành dict { '2024-01': 1000000 }
+    monthly_dict = {
+        item["month"].strftime("%Y-%m"): float(item["total_sales"])
+        for item in monthly_sales_data
+    }
+
+    # Tạo 12 tháng gần nhất
+    months = []
+    for i in range(11, -1, -1):
+        month_label = (now - timedelta(days=30 * i)).strftime("%Y-%m")
+        months.append(month_label)
+
+    # Fill dữ liệu theo đúng 12 tháng
+    filled_monthly_sales = [
+        {"month": m, "total_sales": monthly_dict.get(m, 0)}
+        for m in months
+    ]
+
+    # ---- Hoa hồng ----
+    total_commission_raw = (
+        Policy.objects.aggregate(total_sum=Sum('commission_amount'))['total_sum'] or 0
+    )
+
+    pending_commission_raw = (
+        Policy.objects.filter(
+            payment_status='paid',
+            updated_at__month=current_month,
+            updated_at__year=current_year
+        )
+        .aggregate(total_sum=Sum('commission_amount'))
+        ['total_sum']
+        or 0
+    )
+
+    # ---- Top 5 Agent theo hoa hồng (giảm dần) ----
+    top_agents = (
+        Agent.objects.annotate(
+            total_commission=Sum(
+                'sold_policies__commission_amount',
+
+                filter=Q(sold_policies__policy_status='active')
+            ),
+            active_policies_count=Count(
+            'sold_policies',
+            filter=Q(sold_policies__policy_status='active')
+    )
+        )
+        .order_by('total_commission')[:5]
+    )
+
+    # ---- Bồi thường ----
+    total_claimed_raw = (
+        Policy.objects.aggregate(total_sum=Sum('claimed_amount'))['total_sum'] or 0
+    )
+
+    pending_claims_count = Claim.objects.filter(claim_status='pending').count()
+
+    loss_ratio = (
+        (total_claimed_raw / total_premium_raw) * 100 if total_premium_raw > 0 else 0
+    )
+
+    context = {
+        "total_premium": total_premium_raw,
+        "monthly_revenue": monthly_revenue_raw,
+        "total_commission": total_commission_raw,
+        "pending_commission": pending_commission_raw,
+        "total_claimed": total_claimed_raw,
+        "pending_claims_count": pending_claims_count,
+        "loss_ratio": round(loss_ratio, 2),
+
+        "top_agents": top_agents,
+        "monthly_sales_chart_json": filled_monthly_sales,
+
+    }
+
+    return render(request, 'dashboard/admin/finance_dashboard.html', context)
